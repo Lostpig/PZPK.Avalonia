@@ -23,7 +23,7 @@ public class NoteBookPage : ComponentBase
                     {
                         list.BindNotebook(Model?.Notebook);
                     }),
-                Grid("150,*")
+                Grid("200,*")
                     .IsVisible(() => Model is not null)
                     .Children(
                         list,

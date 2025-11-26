@@ -1,12 +1,13 @@
 ﻿using Avalonia.Controls;
+using Avalonia.Controls.Shapes;
 using Avalonia.Layout;
+using Avalonia.Markup.Declarative;
+using Avalonia.Media;
 using Material.Icons;
 using Material.Icons.Avalonia;
 using System;
 using System.Collections.Generic;
-using Avalonia.Markup.Declarative;
-using Avalonia.Media;
-using Avalonia.Controls.Shapes;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace PZPK.Desktop.Common;
 
@@ -26,7 +27,7 @@ internal static class ControlHelpers
         return new StackPanel
         {
             Orientation = Orientation.Horizontal,
-            VerticalAlignment = alignment,
+            VerticalAlignment = alignment
         };
     }
 
@@ -62,6 +63,25 @@ internal static class ControlHelpers
 
         return btn;
     }
+    public static Button IconButton(MaterialIconKind icon, int size = 40)
+    {
+        var btn = new Button()
+        {
+            Padding = new Avalonia.Thickness(0),
+            Width = size,
+            Height = size,
+            Content = new MaterialIcon()
+            {
+                Kind = icon,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center,
+            },
+        };
+        btn.Classes.Add("Rounded");
+
+        return btn;
+    }
+
 
     public static Grid Grid(string? colDefines = null, string? rowDefines = null)
     {

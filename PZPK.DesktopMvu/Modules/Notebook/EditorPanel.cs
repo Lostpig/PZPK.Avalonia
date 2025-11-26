@@ -1,4 +1,5 @@
-﻿using Avalonia.Markup.Declarative;
+﻿using Avalonia.Layout;
+using Avalonia.Markup.Declarative;
 using PZPK.Core.Note;
 using System;
 
@@ -9,22 +10,32 @@ public class EditorPanel : ComponentBase
 {
     protected override object Build()
     {
-        return Grid(null, "100, 1*").
+        Editor = new AvaloniaEdit.TextEditor()
+                    .Margin(30, 10, 30, 20)
+                    .Row(1);
+        Editor.ShowLineNumbers = true;
+        Editor.FlowDirection = Avalonia.Media.FlowDirection.LeftToRight;
+
+        return Grid(null, "70, 1*").
             Children(
-                HStackPanel().Row(0)
-                    .Margin(10)
+                Grid("*, 200")
+                    .Row(0)
+                    .Margin(30, 20, 30, 10)
                     .Children(
-                        PzTextBox(() => Title, v => Title = v).Row(0).Width(200),
-                        PzButton("Save").OnClick(_ => SaveCurrentNote()),
-                        PzButton("Delete").OnClick(_ => SaveCurrentNote())
+                        PzTextBox(() => Title, v => Title = v).Col(0),
+                        HStackPanel()
+                            .Col(1)
+                            .HorizontalAlignment(HorizontalAlignment.Center)
+                            .Children(
+                                SukiButton("Save").Margin(10, 0).OnClick(_ => SaveCurrentNote()),
+                                SukiButton("Delete", "Accent").Margin(10, 0).OnClick(_ => SaveCurrentNote())
+                            )
                     ),
-                PzTextBox(() => Content, v => Content = v)
-                    .Margin(30)
-                    .Row(1)
-                    .AcceptsReturn(true)
+                Editor
             );
     }
 
+    private AvaloniaEdit.TextEditor Editor;
     private Note? Current { get; set; }
     string Title { get; set; } = "";
     string Content { get; set; } = "";
@@ -37,11 +48,15 @@ public class EditorPanel : ComponentBase
         Title = note?.Title ?? "";
         Content = note?.Content ?? "";
 
+        Editor.Text = Content;
+
         StateHasChanged();
     }
     private void SaveCurrentNote()
     {
         if (Current is null) return;
+
+        Content = Editor.Text;
 
         Current.Save(Title, Content);
         NoteSaved?.Invoke(Current);

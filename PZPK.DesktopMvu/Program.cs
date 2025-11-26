@@ -2,6 +2,8 @@
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Declarative;
+using Avalonia.Markup.Xaml.Styling;
+using Avalonia.Media;
 using Material.Icons.Avalonia;
 using SukiUI;
 using System;
@@ -26,8 +28,14 @@ internal sealed class Program
             // .LogToTrace()
             .AfterSetup(b =>
             {
+                var EditorStyle = new StyleInclude((Uri?)null) { Source = new Uri("avares://AvaloniaEdit/Themes/Fluent/AvaloniaEdit.xaml") };
+
+                b.Instance?.Resources.Add("ControlContentThemeFontSize", 14.0);
+                b.Instance?.Resources.Add("ContentControlThemeFontFamily", FontFamily.Parse("Consolas"));
+
                 b.Instance?.Styles.Add(new SukiTheme() { ThemeColor = SukiUI.Enums.SukiColor.Blue });
                 b.Instance?.Styles.Add(new MaterialIconStyles(null));
+                b.Instance?.Styles.Add(EditorStyle);
                 b.Instance?.DataTemplates.Add(new PageLocator());
             })
 #if DEBUG
