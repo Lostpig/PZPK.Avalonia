@@ -26,27 +26,27 @@ public class OpenFilePanel : ComponentBase
                     .Children(
                         MaterialIcon(MaterialIconKind.FolderOpen, 48)
                             .Foreground(primaryColor),
-                        TextedBlock("Open PZPK file")
+                        PzText("Open PZPK file")
                             .FontSize(20)
                             .Margin(0, 5, 0, 27)
                             .HorizontalAlignment(HorizontalAlignment.Center),
-                        TextedBlock("File"),
+                        PzText("File"),
                         Grid("*, Auto")
                             .Margin(0, 0, 0, 6)
                             .Children(
                                 PzTextBox(() => SelectedPath, v => SelectedPath = v)
                                     .IsReadOnly(true)
                                     .Col(0),
-                                PzButton("Select")
+                                SukiButton("Select")
                                     .Margin(20, 0, 0, 0)
                                     .OnClick(_ => SelectPackageFile())
                                     .Col(1)
                             ),
-                        TextedBlock("Password"),
+                        PzText("Password"),
                         PzTextBox(() => Password, v => Password = v)
                             .Margin(0, 0, 0, 6)
                             .PasswordChar('*'),
-                        TextedBlock(() => ErrorMessage)
+                        PzText(() => ErrorMessage)
                             .Foreground(new SolidColorBrush(Colors.Red))
                             .IsVisible(() => !string.IsNullOrWhiteSpace(ErrorMessage)),
                         SukiButton("Open", "Flat", "Rounded")

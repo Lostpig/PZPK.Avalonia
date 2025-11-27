@@ -22,21 +22,21 @@ internal class DevPage : ComponentBase
             .Children(
                 HStackPanel().Margin(10)
                     .Children(
-                        TextedBlock("File"),
+                        PzText("File"),
                         PzTextBox(() => SelectedFile, v => SelectedFile = v).Width(400).IsReadOnly(true),
-                        PzButton("Select File").OnClick(_ => OnSelectFile()),
-                        PzButton("OpenAsImage").OnClick(_ => OnOpenAsImage())
+                        SukiButton("Select File").OnClick(_ => OnSelectFile()),
+                        SukiButton("OpenAsImage").OnClick(_ => OnOpenAsImage())
                     ),
                 HStackPanel().Margin(10)
                     .Children(
-                        TextedBlock("Text"),
+                        PzText("Text"),
                         PzTextBox(() => Text, v => Text = v).Width(300),
-                        TextedBlock("Decrypted Text"),
+                        PzText("Decrypted Text"),
                         PzTextBox(() => DeText, v => DeText = v).Width(300).IsReadOnly(true)
                     ),
                 HStackPanel().Margin(10)
                     .Children(
-                        PzButton("TestCrypto").OnClick(_ => TestCrypto())
+                        SukiButton("TestCrypto").OnClick(_ => TestCrypto())
                     )
             );
     }

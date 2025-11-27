@@ -38,15 +38,15 @@ public class InfoBar(PreviewModel vm) : ComponentBase<PreviewModel>(vm)
                             .Height(40)
                             .Classes("items-stack")
                             .Children(
-                                TextedBlock(() => vm.FileName),
-                                PZSeparatorH(),
-                                TextedBlock(() => vm.Current.ToString()),
-                                TextedBlock("/"),
-                                TextedBlock(() => vm.Total.ToString()),
-                                PZSeparatorH(),
-                                TextedBlock(() => vm.SizeText),
-                                PZSeparatorH(),
-                                TextedBlock(() => vm.FileSizeText)
+                                PzText(() => vm.FileName),
+                                PzSeparatorH(),
+                                PzText(() => vm.Current.ToString()),
+                                PzText("/"),
+                                PzText(() => vm.Total.ToString()),
+                                PzSeparatorH(),
+                                PzText(() => vm.SizeText),
+                                PzSeparatorH(),
+                                PzText(() => vm.FileSizeText)
                             )
                     )
             );

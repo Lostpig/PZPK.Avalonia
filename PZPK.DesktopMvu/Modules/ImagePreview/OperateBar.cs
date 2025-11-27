@@ -43,16 +43,16 @@ public class OperateBar(PreviewModel vm) : ComponentBase<PreviewModel>(vm)
                                 .Height(40)
                                 .Classes("items-stack")
                                 .Children(
-                                    PzButton("-").OnClick(_ => ScaleChange?.Invoke(-0.1)),
-                                    TextedBlock(() => vm.ScalePercent),
-                                    PzButton("+").OnClick(_ => ScaleChange?.Invoke(0.1)),
-                                    PzButton("OriginalSize").OnClick(_ => ToOriginSize?.Invoke()),
-                                    PzButton("FitToWidth").OnClick(_ => FitToWidth?.Invoke()),
-                                    PzButton("FitToHeight").OnClick(_ => FitToHeight?.Invoke()),
-                                    PZSeparatorH(),
-                                    PzButton("Prev").OnClick(_ => ImageChange?.Invoke(-1)),
-                                    PzButton("Next").OnClick(_ => ImageChange?.Invoke(1)),
-                                    PZSeparatorH(),
+                                    SukiButton("-").OnClick(_ => ScaleChange?.Invoke(-0.1)),
+                                    PzText(() => vm.ScalePercent),
+                                    SukiButton("+").OnClick(_ => ScaleChange?.Invoke(0.1)),
+                                    SukiButton("OriginalSize").OnClick(_ => ToOriginSize?.Invoke()),
+                                    SukiButton("FitToWidth").OnClick(_ => FitToWidth?.Invoke()),
+                                    SukiButton("FitToHeight").OnClick(_ => FitToHeight?.Invoke()),
+                                    PzSeparatorH(),
+                                    SukiButton("Prev").OnClick(_ => ImageChange?.Invoke(-1)),
+                                    SukiButton("Next").OnClick(_ => ImageChange?.Invoke(1)),
+                                    PzSeparatorH(),
                                     new ComboBox().Width(120)
                                         .SelectedIndex(() => (int)vm.Lock, i => vm.Lock = (LockMode)i)
                                         .Items(
@@ -61,8 +61,8 @@ public class OperateBar(PreviewModel vm) : ComponentBase<PreviewModel>(vm)
                                             new ComboBoxItem().Content("Lock fit to width"),
                                             new ComboBoxItem().Content("Lock fit to height")
                                         ),
-                                    PZSeparatorH(),
-                                    PzButton("FullScreen").OnClick(_ => ToggleFullScreen?.Invoke())
+                                    PzSeparatorH(),
+                                    SukiButton("FullScreen").OnClick(_ => ToggleFullScreen?.Invoke())
                                 )
                         )
                 );

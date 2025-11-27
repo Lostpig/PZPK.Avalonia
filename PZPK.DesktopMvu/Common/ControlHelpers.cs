@@ -7,7 +7,6 @@ using Material.Icons;
 using Material.Icons.Avalonia;
 using System;
 using System.Collections.Generic;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace PZPK.Desktop.Common;
 
@@ -31,11 +30,11 @@ internal static class ControlHelpers
         };
     }
 
-    public static TextBlock TextedBlock(Func<string> func)
+    public static TextBlock PzText(Func<string> func)
     {
         return new TextBlock().Text(func);
     }
-    public static TextBlock TextedBlock(string text)
+    public static TextBlock PzText(string text)
     {
         return new TextBlock() { Text = text };
     }
@@ -44,14 +43,7 @@ internal static class ControlHelpers
     {
         return new TextBox().Text(func, onChange);
     }
-    
-    public static Button PzButton(string text)
-    {
-        return new Button()
-        {
-            Content = text
-        };
-    }
+
     public static Button SukiButton(string text, params string[] classes)
     {
         var btn = new Button()
@@ -81,7 +73,6 @@ internal static class ControlHelpers
 
         return btn;
     }
-
 
     public static Grid Grid(string? colDefines = null, string? rowDefines = null)
     {
@@ -136,7 +127,7 @@ internal static class ControlHelpers
         return container;
     }
 
-    public static Rectangle PZSeparatorV(int height = 1, IBrush? color = null)
+    public static Rectangle PzSeparatorV(int height = 1, IBrush? color = null)
     {
         color ??= App.Instance.Suki.GetSukiColor("SukiControlBorderBrush");
         return new Rectangle()
@@ -146,7 +137,7 @@ internal static class ControlHelpers
             HorizontalAlignment = HorizontalAlignment.Stretch
         };
     }
-    public static Rectangle PZSeparatorH(int width = 1, IBrush? color = null)
+    public static Rectangle PzSeparatorH(int width = 1, IBrush? color = null)
     {
         color ??= App.Instance.Suki.GetSukiColor("SukiControlBorderBrush");
         return new Rectangle()

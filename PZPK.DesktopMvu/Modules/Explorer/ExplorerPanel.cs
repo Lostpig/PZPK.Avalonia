@@ -32,10 +32,10 @@ public class ExplorerPanel : ComponentBase
             .Child(
                 VStackPanel()
                     .Children(
-                        TextedBlock(() => "PackageName: " + PackageName).Margin(0, 0, 0, 8),
-                        TextedBlock(() => "Description: " + Description).Margin(0, 0, 0, 8),
-                        TextedBlock(() => "Tags: " + Tags).Margin(0, 0, 0, 8),
-                        TextedBlock(() => Info)
+                        PzText(() => "PackageName: " + PackageName).Margin(0, 0, 0, 8),
+                        PzText(() => "Description: " + Description).Margin(0, 0, 0, 8),
+                        PzText(() => "Tags: " + Tags).Margin(0, 0, 0, 8),
+                        PzText(() => Info)
                     )
             );
     }
@@ -85,7 +85,7 @@ public class ExplorerPanel : ComponentBase
                 var f = dirStack.Pop();
 
                 var folderBtn = new Border().Padding(5)
-                    .Child(TextedBlock(f.Name).VerticalAlignment(VerticalAlignment.Center));
+                    .Child(PzText(f.Name).VerticalAlignment(VerticalAlignment.Center));
                 folderBtn.PointerReleased += (_, _) => EnterDirectory(f);
                 folderBtn.PointerEntered += (_, _) => folderBtn.Background = highlightBg;
                 folderBtn.PointerExited += (_, _) => folderBtn.Background = normalBg;

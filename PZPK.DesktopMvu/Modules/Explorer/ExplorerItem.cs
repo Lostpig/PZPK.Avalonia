@@ -40,8 +40,8 @@ public class ExplorerItem : IDataTemplate
             .Classes("explorer-item")
             .Children(
                 MaterialIcon(icon).Col(0),
-                TextedBlock(name).Col(1),
-                TextedBlock(size).Col(2)
+                PzText(name).Col(1),
+                PzText(size).Col(2)
             );
     }
 }

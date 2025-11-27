@@ -13,7 +13,8 @@ public class NoteBookPage : ComponentBase
 
         list.OnNoteSelected(n => editor.BindNote(n))
             .OnNoteBookClosed(OnNoteBookClosed);
-        editor.OnNoteSaved(n => list.UpdateItem(n));
+        editor.OnNoteSaved(n => list.UpdateItem(n))
+              .OnNoteDeleted(n => list.DeleteItem(n));
 
         return new Panel()
             .Children(

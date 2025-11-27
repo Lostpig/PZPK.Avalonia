@@ -4,6 +4,8 @@ using Avalonia.Platform;
 using PZPK.Desktop.Common;
 using PZPK.Desktop.Modules.ImagePreview;
 using SukiUI.Controls;
+using SukiUI.Dialogs;
+using SukiUI.Toasts;
 using System;
 
 namespace PZPK.Desktop;
@@ -19,9 +21,12 @@ internal class App
         }
     }
 
-    public Window? MainWindow { get; private set; }
+    public SukiWindow? MainWindow { get; private set; }
     public Routes Routes { get; private set; }
     public SukiHelpers Suki { get; private set; }
+
+    public ISukiDialogManager DialogManager { get; private set; }
+    public ISukiToastManager ToastManager { get; private set; }
 
     private App()
     {
@@ -46,6 +51,14 @@ internal class App
             ImagePreviewManager.CloseActiveWindow();
             Environment.Exit(0);
         });
+
+        ToastManager = new SukiToastManager();
+        var ToastHost = new SukiToastHost{ Manager = ToastManager };
+        DialogManager = new SukiDialogManager();
+        var DialogHost = new SukiDialogHost{ Manager = DialogManager };
+
+        MainWindow.Hosts.Add(ToastHost);
+        MainWindow.Hosts.Add(DialogHost);
 
         return MainWindow;
     }

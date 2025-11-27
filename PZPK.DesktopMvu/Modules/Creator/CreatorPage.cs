@@ -46,27 +46,27 @@ public class CreatorPage : ComponentBase
                             .Classes("properties-stack")
                             .Children(
                                 HStackPanel().Children(
-                                    TextedBlock("Name").Classes("label"),
+                                    PzText("Name").Classes("label"),
                                     PzTextBox(() => State.Name, v => State.Name = v)
                                 ),
                                 HStackPanel().Children(
-                                    TextedBlock("Description").Classes("label"),
+                                    PzText("Description").Classes("label"),
                                     PzTextBox(() => State.Description, v => State.Description = v)
                                 ),
                                 HStackPanel().Children(
-                                    TextedBlock("Password").Classes("label"),
+                                    PzText("Password").Classes("label"),
                                     PzTextBox(() => State.Password, v => State.Password = v)
                                 ),
                                 HStackPanel().Children(
-                                    TextedBlock("Confirm Password").Classes("label"),
+                                    PzText("Confirm Password").Classes("label"),
                                     PzTextBox(() => State.RptPassword, v => State.RptPassword = v)
                                 ),
                                 HStackPanel().Children(
-                                    TextedBlock("Tags").Classes("label"),
-                                    TextedBlock(State.TagsText)
+                                    PzText("Tags").Classes("label"),
+                                    PzText(State.TagsText)
                                 ),
                                 HStackPanel().Children(
-                                    TextedBlock("").Classes("label"),
+                                    PzText("").Classes("label"),
                                     PzTextBox(() => State.InputTag, v => State.InputTag = v).Width(100),
                                     SukiButton("Add Tag").VerticalAlignment(VerticalAlignment.Center)
                                 )

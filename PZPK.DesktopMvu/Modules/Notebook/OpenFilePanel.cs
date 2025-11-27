@@ -22,27 +22,27 @@ public class OpenFilePanel : ComponentBase
                 .Children(
                     MaterialIcon(MaterialIconKind.BookAdd, 32)
                         .Foreground(primaryColor),
-                    TextedBlock("Open PZPK Notebook")
+                    PzText("Open PZPK Notebook")
                         .FontSize(20)
                         .Margin(0, 5, 0, 27)
                         .HorizontalAlignment(HorizontalAlignment.Center),
-                    TextedBlock("File"),
+                    PzText("File"),
                     Grid("*, Auto")
                         .Margin(0, 0, 0, 6)
                         .Children(
                             PzTextBox(() => SelectedPath, v => SelectedPath = v)
                                 .IsReadOnly(true)
                                 .Col(0),
-                            PzButton("Select")
+                            SukiButton("Select")
                                 .Margin(20, 0, 0, 0)
                                 .OnClick(_ => SelectNotebookFile())
                                 .Col(1)
                         ),
-                    TextedBlock("Password"),
+                    PzText("Password"),
                     PzTextBox(() => Password, v => Password = v)
                         .Margin(0, 0, 0, 6)
                         .PasswordChar('*'),
-                    TextedBlock(() => ErrorMessage)
+                    PzText(() => ErrorMessage)
                         .Foreground(new SolidColorBrush(Colors.Red))
                         .IsVisible(() => !string.IsNullOrWhiteSpace(ErrorMessage)),
                     SukiButton("Open", "Flat", "Rounded")
@@ -60,31 +60,31 @@ public class OpenFilePanel : ComponentBase
                 .Children(
                     MaterialIcon(MaterialIconKind.BookEdit, 32)
                         .Foreground(primaryColor),
-                    TextedBlock("Create New Notebook")
+                    PzText("Create New Notebook")
                         .FontSize(20)
                         .Margin(0, 5, 0, 27)
                         .HorizontalAlignment(HorizontalAlignment.Center),
-                    TextedBlock("Path"),
+                    PzText("Path"),
                     Grid("*, Auto")
                         .Margin(0, 0, 0, 6)
                         .Children(
                             PzTextBox(() => CreatePath, v => CreatePath = v)
                                 .IsReadOnly(true)
                                 .Col(0),
-                            PzButton("Select")
+                            SukiButton("Select")
                                 .Margin(20, 0, 0, 0)
                                 .OnClick(_ => SelectCreatePath())
                                 .Col(1)
                         ),
-                    TextedBlock("Password"),
+                    PzText("Password"),
                     PzTextBox(() => CreatePw, v => CreatePw = v)
                         .Margin(0, 0, 0, 6)
                         .PasswordChar('*'),
-                    TextedBlock("Repeat password"),
+                    PzText("Repeat password"),
                     PzTextBox(() => CreateRepeatPw, v => CreateRepeatPw = v)
                         .Margin(0, 0, 0, 6)
                         .PasswordChar('*'),
-                    TextedBlock(() => CreateErrorMessage)
+                    PzText(() => CreateErrorMessage)
                         .Foreground(new SolidColorBrush(Colors.Red))
                         .IsVisible(() => !string.IsNullOrWhiteSpace(CreateErrorMessage)),
                     SukiButton("Create", "Flat", "Rounded")

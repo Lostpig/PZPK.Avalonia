@@ -1,5 +1,4 @@
 ﻿using Avalonia.Controls;
-using Avalonia.Controls.Templates;
 using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Markup.Declarative;
@@ -10,11 +9,10 @@ using PZPK.Core.Note;
 using PZPK.Desktop.Common;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace PZPK.Desktop.Modules.Notebook;
+
 using static PZPK.Desktop.Common.ControlHelpers;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 using PZNotebook = PZPK.Core.Note.NoteBook;
 
 public class NoteListItem : ContentControl, ISelectable
@@ -40,7 +38,7 @@ public class NoteListItem : ContentControl, ISelectable
         _parent = parent;
         Data = data;
 
-        _text = TextedBlock(Data.Title).VerticalAlignment(VerticalAlignment.Center);
+        _text = PzText(Data.Title).VerticalAlignment(VerticalAlignment.Center);
         Content = new Border()
             .Background(Brushes.Transparent)
             .Padding(10, 8)
@@ -173,6 +171,22 @@ public class NoteListPanel : ComponentBase
         }
 
         NoteSelected?.Invoke(item.Data);
+    }
+    public void DeleteItem(Note note)
+    {
+        var item = Items.Find(i => i.Data == note);
+
+        if (item != null) {
+            Items.Remove(item);
+            ListContainer.Children.Remove(item);
+            Notebook?.DeleteNote(note);
+
+            if (Items.Count > 0) 
+            {
+                Items[0].IsSelected = true;
+                UpdateSelected(Items[0]);
+            }
+        }
     }
 
     public void SaveNoteBook()
