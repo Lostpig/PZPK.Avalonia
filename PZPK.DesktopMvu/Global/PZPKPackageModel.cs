@@ -2,9 +2,9 @@
 using PZPK.Core.Extract;
 using System.IO;
 
-namespace PZPK.Desktop.Modules.Global;
+namespace PZPK.Desktop.Global;
 
-internal class PZPKPackageModel
+public class PZPKPackageModel
 {
     static public bool HasOpened => Current != null;
     public static PZPKPackageModel? Current { get; private set; }

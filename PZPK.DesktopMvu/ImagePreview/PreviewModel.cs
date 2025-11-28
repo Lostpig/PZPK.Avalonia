@@ -1,6 +1,6 @@
 ﻿using Avalonia.Media;
 
-namespace PZPK.Desktop.Modules.ImagePreview;
+namespace PZPK.Desktop.ImagePreview;
 
 public enum LockMode
 {

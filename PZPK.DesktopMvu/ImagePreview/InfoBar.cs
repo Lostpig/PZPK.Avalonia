@@ -5,7 +5,7 @@ using Avalonia.Styling;
 using PZPK.Desktop.Common;
 using Avalonia.Layout;
 
-namespace PZPK.Desktop.Modules.ImagePreview;
+namespace PZPK.Desktop.ImagePreview;
 using static PZPK.Desktop.Common.ControlHelpers;
 
 public class InfoBar(PreviewModel vm) : ComponentBase<PreviewModel>(vm)

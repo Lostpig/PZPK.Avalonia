@@ -1,9 +1,9 @@
 ﻿using PZPK.Core;
 using PZPK.Desktop.Common;
-using PZPK.Desktop.Modules.Global;
+using PZPK.Desktop.Global;
 using System.Linq;
 
-namespace PZPK.Desktop.Modules.ImagePreview;
+namespace PZPK.Desktop.ImagePreview;
 
 public class ImagePreviewManager
 {

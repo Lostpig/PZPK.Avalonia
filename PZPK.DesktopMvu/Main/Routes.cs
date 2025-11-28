@@ -8,7 +8,7 @@ using PZPK.Desktop.Modules.Notebook;
 using System;
 using System.Collections.Generic;
 
-namespace PZPK.Desktop;
+namespace PZPK.Desktop.Main;
 
 internal class Routes
 {
@@ -20,18 +20,6 @@ internal class Routes
         new PageRecord("Dev", MaterialIconKind.DeveloperBoard, typeof(Modules.Dev.DevPage)),
 #endif
     ];
-
-    public PageRecord CurrentPage { get; private set; }
-
-    public Routes()
-    {
-        CurrentPage = Pages[0];
-    }
-
-    public void NavigateTo(PageRecord page)
-    {
-        CurrentPage = page;
-    }
 }
 
 internal record PageRecord(string PageName, MaterialIconKind Icon, Type PageType);

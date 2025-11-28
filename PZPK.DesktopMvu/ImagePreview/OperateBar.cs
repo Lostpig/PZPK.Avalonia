@@ -7,7 +7,7 @@ using System;
 using Avalonia.Layout;
 using System.Linq;
 
-namespace PZPK.Desktop.Modules.ImagePreview;
+namespace PZPK.Desktop.ImagePreview;
 using static PZPK.Desktop.Common.ControlHelpers;
 
 public class OperateBar(PreviewModel vm) : ComponentBase<PreviewModel>(vm)
@@ -58,8 +58,8 @@ public class OperateBar(PreviewModel vm) : ComponentBase<PreviewModel>(vm)
                                         .Items(
                                             new ComboBoxItem().Content("None"),
                                             new ComboBoxItem().Content("Lock scale"),
-                                            new ComboBoxItem().Content("Lock fit to width"),
-                                            new ComboBoxItem().Content("Lock fit to height")
+                                            new ComboBoxItem().Content("Lock fit to height"),
+                                            new ComboBoxItem().Content("Lock fit to width")
                                         ),
                                     PzSeparatorH(),
                                     SukiButton("FullScreen").OnClick(_ => ToggleFullScreen?.Invoke())

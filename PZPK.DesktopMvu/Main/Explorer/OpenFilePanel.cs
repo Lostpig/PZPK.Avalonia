@@ -1,19 +1,20 @@
 ﻿using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.Markup.Declarative;
-using Avalonia.Media;
 using Avalonia.Platform.Storage;
 using Material.Icons;
 using PZPK.Desktop.Common;
-using PZPK.Desktop.Modules.Global;
 using SukiUI.Controls;
-using System;
 
 namespace PZPK.Desktop.Modules.Explorer;
 using static PZPK.Desktop.Common.ControlHelpers;
 
 public class OpenFilePanel : ComponentBase
 {
+    public OpenFilePanel(ExplorerModel service): base()
+    {
+        Service = service;
+    }
     protected override object Build()
     {
         var primaryColor = App.Instance.Suki.GetSukiColor("SukiPrimaryColor");
@@ -46,9 +47,6 @@ public class OpenFilePanel : ComponentBase
                         PzTextBox(() => Password, v => Password = v)
                             .Margin(0, 0, 0, 6)
                             .PasswordChar('*'),
-                        PzText(() => ErrorMessage)
-                            .Foreground(new SolidColorBrush(Colors.Red))
-                            .IsVisible(() => !string.IsNullOrWhiteSpace(ErrorMessage)),
                         SukiButton("Open", "Flat", "Rounded")
                             .Width(100)
                             .HorizontalAlignment(HorizontalAlignment.Center)
@@ -58,11 +56,9 @@ public class OpenFilePanel : ComponentBase
             );
     }
 
-    public event Action? PackageOpened;
-
-    private string SelectedPath = "";
-    private string Password = "";
-    private string ErrorMessage = "";
+    private ExplorerModel Service { get; init; }
+    private string SelectedPath { get; set; } = "";
+    private string Password { get; set; } = "";
 
     private async void SelectPackageFile()
     {
@@ -87,22 +83,6 @@ public class OpenFilePanel : ComponentBase
     }
     private void OpenPackage()
     {
-        if (!string.IsNullOrWhiteSpace(SelectedPath) && !string.IsNullOrWhiteSpace(Password))
-        {
-            try
-            {
-                PZPKPackageModel.Open(SelectedPath, Password);
-                PackageOpened?.Invoke();
-
-                // SelectedPath = string.Empty;
-                // Password = string.Empty;
-                ErrorMessage = string.Empty;
-            }
-            catch (Exception ex)
-            {
-                ErrorMessage = ex.Message ?? "Unknown error";
-                StateHasChanged();
-            }
-        }
+        Service.OpenPackage(SelectedPath, Password);
     }
 }

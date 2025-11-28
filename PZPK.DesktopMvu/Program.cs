@@ -36,7 +36,7 @@ internal sealed class Program
                 b.Instance?.Styles.Add(new SukiTheme() { ThemeColor = SukiUI.Enums.SukiColor.Blue });
                 b.Instance?.Styles.Add(new MaterialIconStyles(null));
                 b.Instance?.Styles.Add(EditorStyle);
-                b.Instance?.DataTemplates.Add(new PageLocator());
+                b.Instance?.DataTemplates.Add(new Main.PageLocator());
             })
 #if DEBUG
             .UseHotReload()
@@ -48,7 +48,7 @@ internal sealed class Program
         //     //app.UseManagedSystemDialogs();
         // }
 
-        lifetime.MainWindow = App.Instance.StartMainWindow();
+        lifetime.MainWindow = App.Instance.MainWindow;
 #if DEBUG
         lifetime.MainWindow?.AttachDevTools();
 #endif

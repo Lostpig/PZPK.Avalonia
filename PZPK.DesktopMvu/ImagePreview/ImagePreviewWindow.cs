@@ -7,16 +7,15 @@ using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using PZPK.Core;
 using PZPK.Desktop.Common;
-using PZPK.Desktop.Modules.Global;
+using PZPK.Desktop.Global;
 using SukiUI.Controls;
 using SukiUI.Toasts;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Threading;
 
-namespace PZPK.Desktop.Modules.ImagePreview;
+namespace PZPK.Desktop.ImagePreview;
 using static PZPK.Desktop.Common.ControlHelpers;
 
 struct MouseState
@@ -28,6 +27,17 @@ struct MouseState
 }
 public class ImagePreviewWindow : SukiWindow
 {
+    private readonly ISukiToastManager ToastManager = new SukiToastManager();
+    private readonly PreviewModel Model;
+    private readonly Image ImageRef;
+    private readonly OperateBar OperateBarRef;
+    private readonly InfoBar InfoBarRef;
+    private readonly ScrollViewer ScrollRef;
+    private bool FileChangedFlag = false;
+    private int Index = 0;
+    private PZFile? File;
+    private List<PZFile> Files = [];
+
     public ImagePreviewWindow() : base()
     {
         Model = new();
@@ -37,12 +47,6 @@ public class ImagePreviewWindow : SukiWindow
         };
         Hosts.Add(ToastHost);
 
-        Build();
-
-        InitOperates();
-    }
-    private void Build()
-    {
         ImageRef = new Image()
             .HorizontalAlignment(Avalonia.Layout.HorizontalAlignment.Stretch)
             .VerticalAlignment(Avalonia.Layout.VerticalAlignment.Stretch)
@@ -71,6 +75,8 @@ public class ImagePreviewWindow : SukiWindow
                 OperateBarRef,
                 InfoBarRef
             );
+
+        InitOperates();
     }
 
     public void OpenImage(PZFile file, List<PZFile> files)
@@ -109,17 +115,6 @@ public class ImagePreviewWindow : SukiWindow
 
         FileChangedFlag = false;
     }
-
-    private ISukiToastManager ToastManager = new SukiToastManager();
-    private PreviewModel Model;
-    private Image ImageRef;
-    private OperateBar OperateBarRef;
-    private InfoBar InfoBarRef;
-    private ScrollViewer ScrollRef;
-    private bool FileChangedFlag = false;
-    private int Index = 0;
-    private PZFile? File;
-    private List<PZFile> Files = [];
 
     private void InitOperates()
     {
@@ -177,10 +172,6 @@ public class ImagePreviewWindow : SukiWindow
         UpdateImageScale();
         UpdateChildBars();
     }
-    private void CustomToggleFullScreen()
-    {
-        this.WindowState = this.WindowState == WindowState.FullScreen ? WindowState.Normal : WindowState.FullScreen;
-    }
 
     private async void LoadImage()
     {
@@ -222,6 +213,7 @@ public class ImagePreviewWindow : SukiWindow
             ToastManager.CreateToast()
                 .WithTitle("Error")
                 .WithContent(ex.Message)
+                .Dismiss().After(TimeSpan.FromSeconds(3))
                 .Queue();
             ImageRef.Source = null;
         }

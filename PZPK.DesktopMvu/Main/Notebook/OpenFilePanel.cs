@@ -5,6 +5,7 @@ using Avalonia.Media;
 using Avalonia.Platform.Storage;
 using Material.Icons;
 using PZPK.Desktop.Common;
+using PZPK.Desktop.Main;
 using SukiUI.Controls;
 using System;
 using System.IO;
@@ -13,7 +14,7 @@ using System.IO;
 namespace PZPK.Desktop.Modules.Notebook;
 using static PZPK.Desktop.Common.ControlHelpers;
 
-public class OpenFilePanel : ComponentBase
+public class OpenFilePanel(NoteBookModel vm) : ComponentBase<NoteBookModel>(vm)
 {
     private StackPanel BuildOpenTab()
     {
@@ -42,9 +43,6 @@ public class OpenFilePanel : ComponentBase
                     PzTextBox(() => Password, v => Password = v)
                         .Margin(0, 0, 0, 6)
                         .PasswordChar('*'),
-                    PzText(() => ErrorMessage)
-                        .Foreground(new SolidColorBrush(Colors.Red))
-                        .IsVisible(() => !string.IsNullOrWhiteSpace(ErrorMessage)),
                     SukiButton("Open", "Flat", "Rounded")
                         .Width(100)
                         .HorizontalAlignment(HorizontalAlignment.Center)
@@ -84,9 +82,6 @@ public class OpenFilePanel : ComponentBase
                     PzTextBox(() => CreateRepeatPw, v => CreateRepeatPw = v)
                         .Margin(0, 0, 0, 6)
                         .PasswordChar('*'),
-                    PzText(() => CreateErrorMessage)
-                        .Foreground(new SolidColorBrush(Colors.Red))
-                        .IsVisible(() => !string.IsNullOrWhiteSpace(CreateErrorMessage)),
                     SukiButton("Create", "Flat", "Rounded")
                         .Width(100)
                         .HorizontalAlignment(HorizontalAlignment.Center)
@@ -95,7 +90,7 @@ public class OpenFilePanel : ComponentBase
                 );
     }
 
-    protected override object Build()
+    protected override object Build(NoteBookModel? vm)
     {
         return new GlassCard()
             .Width(380)
@@ -108,16 +103,12 @@ public class OpenFilePanel : ComponentBase
             );
     }
 
-    public event Action? NotebookOpened;
-
     private string SelectedPath = "";
     private string Password = "";
-    private string ErrorMessage = "";
 
     private string CreatePath = "";
     private string CreatePw = "";
     private string CreateRepeatPw = "";
-    private string CreateErrorMessage = "";
 
     private async void SelectNotebookFile()
     {
@@ -154,7 +145,7 @@ public class OpenFilePanel : ComponentBase
             var localPath = file.Path.LocalPath;
             if (File.Exists(localPath))
             {
-                CreateErrorMessage = "File already exists.";
+                Toast.Error("File already exists.");
             }
             else
             {
@@ -167,51 +158,11 @@ public class OpenFilePanel : ComponentBase
 
     private void OpenNotebook()
     {
-        if (!string.IsNullOrWhiteSpace(SelectedPath) && !string.IsNullOrWhiteSpace(Password))
-        {
-            try
-            {
-                NoteBookModel.Open(SelectedPath, Password);
-                NotebookOpened?.Invoke();
-
-                // SelectedPath = string.Empty;
-                // Password = string.Empty;
-                ErrorMessage = string.Empty;
-            }
-            catch (Exception ex)
-            {
-                ErrorMessage = ex.Message ?? "Unknown error";
-                StateHasChanged();
-            }
-        }
+        ViewModel?.Open(SelectedPath, Password);
     }
-
     private void CreateNotebook()
     {
-        if (!string.IsNullOrWhiteSpace(CreatePath) && !string.IsNullOrWhiteSpace(CreatePw) && !string.IsNullOrWhiteSpace(CreateRepeatPw))
-        {
-            if (CreatePw != CreateRepeatPw)
-            {
-                CreateErrorMessage = "Passwords do not match.";
-                StateHasChanged();
-                return;
-            }
-
-            try
-            {
-                NoteBookModel.Create(CreatePath, CreatePw);
-                NotebookOpened?.Invoke();
-
-                // SelectedPath = string.Empty;
-                // Password = string.Empty;
-                CreateErrorMessage = string.Empty;
-            }
-            catch (Exception ex)
-            {
-                CreateErrorMessage = ex.Message ?? "Unknown error";
-                StateHasChanged();
-            }
-        }
+        ViewModel?.Create(CreatePath, CreatePw, CreateRepeatPw);
     }
 }
 

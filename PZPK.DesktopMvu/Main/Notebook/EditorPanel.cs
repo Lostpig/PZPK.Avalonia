@@ -1,19 +1,21 @@
-﻿using Avalonia.Controls;
+﻿using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.Markup.Declarative;
 using Avalonia.Media;
+using Avalonia.Platform;
 using AvaloniaEdit;
 using AvaloniaEdit.TextMate;
-using PZPK.Core.Note;
-using SukiUI.Dialogs;
+using PZPK.Desktop.Main;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using TextMateSharp.Grammars;
 
 namespace PZPK.Desktop.Modules.Notebook;
 using static PZPK.Desktop.Common.ControlHelpers;
 
-public class EditorPanel : ComponentBase
+public class EditorPanel(NoteBookModel vm): ComponentBase<NoteBookModel>(vm)
 {
     private TextEditor BuildEditor()
     {
@@ -21,17 +23,20 @@ public class EditorPanel : ComponentBase
         SelectedLanguage = RegOptions.GetLanguageByExtension(".md");
 
         Editor = new TextEditor();
+        Editor.FontFamily = Font;
         Editor.FontSize = EditFontSize;
         Editor.Background = Brushes.Transparent;
         Editor.ShowLineNumbers = true;
+        Editor.Options.ShowSpaces = true;
         Editor.FlowDirection = FlowDirection.LeftToRight;
         Editor.Resources.Add("TextAreaSelectionBrush", Brushes.DarkBlue);
         // Editor.Options.HighlightCurrentLine = true;
 
         return Editor;
     }
-    protected override object Build()
+    protected override object Build(NoteBookModel? vm)
     {
+        InitializeModel();
         foreach (var theme in Enum.GetValues<ThemeName>())
         {
             var name = Enum.GetName<ThemeName>(theme)!;
@@ -50,7 +55,7 @@ public class EditorPanel : ComponentBase
                             .Col(1)
                             .HorizontalAlignment(HorizontalAlignment.Center)
                             .Children(
-                                SukiButton("Save").Margin(10, 0).OnClick(_ => SaveCurrentNote()),
+                                SukiButton("Save").Margin(10, 0).OnClick(_ => SaveNote()),
                                 SukiButton("Delete", "Accent").Margin(10, 0).OnClick(_ => OnDelete())
                             )
                     ),
@@ -66,6 +71,10 @@ public class EditorPanel : ComponentBase
                             .ItemsSource(Themes.Keys)
                             .SelectedItem(() => ThemeText, v => ThemeText = (string)v)
                             .OnSelectionChanged(_ => UpdateTheme()),
+                        new ComboBox()
+                            .ItemsSource(Fonts)
+                            .SelectedItem(() => Font, v => Font = (FontFamily)v)
+                            .OnSelectionChanged(_ => UpdateFont()),
                         new ComboBox()
                             .ItemsSource(new int[] { 12, 14, 16, 18, 20, 24, 28, 32, 40, 48, 56, 64, 72 })
                             .SelectedItem(() => EditFontSize, v => EditFontSize = (int)v)
@@ -90,36 +99,37 @@ public class EditorPanel : ComponentBase
     private TextEditor Editor;
     private RegistryOptions RegOptions;
     private TextMate.Installation TextMateInstallation;
-    private Note? Current { get; set; }
+    private List<FontFamily> Fonts = FontManager.Current.SystemFonts.OrderBy(f => f.Name).ToList();
+
     private Language SelectedLanguage { get; set; }
+    private FontFamily Font { get; set; } = FontFamily.Parse("Consolas");
     private string ThemeText { get; set; } = Enum.GetName<ThemeName>(ThemeName.DarkPlus) ?? "DarkPlus";
     private Dictionary<string, ThemeName> Themes = new();
     private int EditFontSize = 14;
 
-    string Title { get; set; } = "";
-    string Content { get; set; } = "";
+    private string Title { get; set; } = "";
+    private string Content { get; set; } = "";
 
-    public event Action<Note>? NoteSaved;
-    public event Action<Note>? NoteDeleted;
-
-    public void BindNote(Note? note)
+    private void InitializeModel()
     {
-        Current = note;
+        ViewModel?.NoteChanged += OnNoteChanged;
+    }
+    private void OnNoteChanged()
+    {
+        var note = ViewModel?.Note;
+
         Title = note?.Title ?? "";
         Content = note?.Content ?? "";
-
         Editor.Text = Content;
+
+        IsVisible = note != null;
 
         StateHasChanged();
     }
-    private void SaveCurrentNote()
+    private void SaveNote()
     {
-        if (Current is null) return;
-
         Content = Editor.Text;
-
-        Current.Save(Title, Content);
-        NoteSaved?.Invoke(Current);
+        ViewModel?.ModifyNote(Title, Content);
     }
     private void UpdateLanguage()
     {
@@ -135,16 +145,16 @@ public class EditorPanel : ComponentBase
         var scopeName = RegOptions.GetScopeByLanguageId(SelectedLanguage.Id);
         TextMateInstallation.SetGrammar(scopeName);
     }
-    public void OnDelete()
+    private void UpdateFont()
     {
-        App.Instance?.DialogManager
-            .CreateDialog()
-            .WithActionButton("Delete", e => {
-                if (Current is null) return;
-                NoteDeleted?.Invoke(Current);
-                e.Dismiss();
-            })
-            .WithActionButton("Cancel ", _ => { }, true)  // last parameter optional
-            .TryShow();
+        Editor.FontFamily = Font;
+    }
+    private async void OnDelete()
+    {
+        var ok = await Dialog.Confirm("Sure to delete?");
+        if (ok)
+        {
+            ViewModel?.DeleteNote();
+        }
     }
 }

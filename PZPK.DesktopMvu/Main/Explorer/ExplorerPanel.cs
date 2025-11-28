@@ -6,8 +6,7 @@ using Avalonia.Markup.Declarative;
 using Material.Icons;
 using PZPK.Core;
 using PZPK.Desktop.Common;
-using PZPK.Desktop.Modules.Global;
-using PZPK.Desktop.Modules.ImagePreview;
+using PZPK.Desktop.ImagePreview;
 using SukiUI.Content;
 using SukiUI.Controls;
 using System;
@@ -16,9 +15,8 @@ using System.Collections.Generic;
 namespace PZPK.Desktop.Modules.Explorer;
 using static PZPK.Desktop.Common.ControlHelpers;
 
-public class ExplorerPanel : ComponentBase
+public class ExplorerPanel(ExplorerModel vm) : ComponentBase<ExplorerModel>(vm)
 {
-    // Markups
     private Border BuildPackageDetail()
     {
         var suki = App.Instance.Suki;
@@ -52,7 +50,7 @@ public class ExplorerPanel : ComponentBase
     {
         List<Control> controls = [];
         var current = Current;
-        var model = Model;
+        var model = ViewModel?.Model;
 
         var normalBg = App.Instance.Suki.GetSukiColor("SukiBackground");
         var highlightBg = App.Instance.Suki.GetSukiColor("SukiStrongBackground");
@@ -96,9 +94,10 @@ public class ExplorerPanel : ComponentBase
 
         return controls;
     }
-    protected override object Build()
+    protected override object Build(ExplorerModel vm)
     {
         var suki = App.Instance.Suki;
+        vm.OnPackageOpened += OnPackageOpened;
 
         return Grid(null, "Auto, 50, 1*")
             .Children(
@@ -128,41 +127,6 @@ public class ExplorerPanel : ComponentBase
             );
     }
 
-    // Codes
-    public event Action? PackageClose;
-    public void UpdateModel()
-    {
-        var model = PZPKPackageModel.Current;
-        if (model != Model)
-        {
-            Model = model;
-
-            Description = Model?.Detail.Description ?? "";
-            PackageName = Model?.Detail.Name ?? "";
-            Tags = string.Join(',', Model?.Detail.Tags ?? []);
-            Info = Model is not null ? $"FileType: {Model.Header.Type} | Version: {Model.Header.Version} | Size: {Utility.ComputeFileSize(Model.Header.FileSize)}" : "";
-            TypeIcon = Model?.Header.Type switch
-            {
-                PZType.Package => MaterialIconKind.Package,
-                PZType.Note => MaterialIconKind.Archive,
-                _ => MaterialIconKind.File
-            };
-
-            if (Model is null)
-            {
-                Current = null;
-                Items.Clear();
-            }
-            else
-            {
-                EnterDirectory(Model.Root);
-            }
-
-            StateHasChanged();
-        }
-    }
-
-    private PZPKPackageModel? Model = null;
     private string Description = "";
     private string PackageName = "";
     private string Tags = "";
@@ -171,17 +135,44 @@ public class ExplorerPanel : ComponentBase
     private PZFolder? Current;
     private List<IPZItem> Items = [];
 
+    private void OnPackageOpened()
+    {
+        var model = ViewModel?.Model;
+
+        Description = model?.Detail.Description ?? "";
+        PackageName = model?.Detail.Name ?? "";
+        Tags = string.Join(',', model?.Detail.Tags ?? []);
+        Info = model is not null ? $"FileType: {model.Header.Type} | Version: {model.Header.Version} | Size: {Utility.ComputeFileSize(model.Header.FileSize)}" : "";
+        TypeIcon = model?.Header.Type switch
+        {
+            PZType.Package => MaterialIconKind.Package,
+            PZType.Note => MaterialIconKind.Archive,
+            _ => MaterialIconKind.File
+        };
+
+        if (model is null)
+        {
+            Current = null;
+            Items.Clear();
+        }
+        else
+        {
+            EnterDirectory(model.Root);
+        }
+
+        StateHasChanged();
+    }
     private void ClosePackage()
     {
-        PackageClose?.Invoke();
+        ViewModel?.ClosePackage();
     }
     private void EnterDirectory(PZFolder folder)
     {
         if (folder == Current) return;
 
-        if (Model is not null)
+        if (ViewModel?.Model is not null)
         {
-            var index = Model.Package.Index;
+            var index = ViewModel.Model.Package.Index;
             var files = index.GetFiles(folder, false);
             var folders = index.GetFolders(folder, false);
             files.Sort(NaturalPZItemComparer.Instance);
