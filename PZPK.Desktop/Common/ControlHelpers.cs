@@ -5,8 +5,12 @@ using Avalonia.Markup.Declarative;
 using Avalonia.Media;
 using Material.Icons;
 using Material.Icons.Avalonia;
+using SukiUI.Content;
+using SukiUI.Controls;
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Data;
 
 namespace PZPK.Desktop.Common;
 
@@ -146,5 +150,26 @@ internal static class ControlHelpers
             Fill = color,
             VerticalAlignment = VerticalAlignment.Stretch
         };
+    }
+
+    public static Stepper Index(this Stepper control, Func<int> func)
+    {
+        void setter(int v) => control.Index = v;
+        control._set(setter, func, null, null);
+
+        return control;
+    }
+    public static Stepper Steps(this Stepper control, Func<IEnumerable> func)
+    {
+        void setter(IEnumerable v) => control.Steps = v;
+        control._set(setter, func, null, null);
+
+        return control;
+    }
+    public static Stepper AlternativeStyle(this Stepper control, bool value)
+    {
+        control.AlternativeStyle = value;
+
+        return control;
     }
 }

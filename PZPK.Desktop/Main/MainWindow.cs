@@ -43,7 +43,7 @@ public class MainWindow : SukiWindow
         Hosts.Add(ToastHost);
         Hosts.Add(DialogHost);
 
-        var icon = AssetLoader.Open(new Uri($"avares://PZPK.DesktopMvu/avalonia-logo.ico"));
+        var icon = AssetLoader.Open(new Uri($"avares://PZPK.Desktop/avalonia-logo.ico"));
         Icon = new WindowIcon(icon);
 
         Title = "PZPK Desktop Mvu";

@@ -7,6 +7,7 @@ using Material.Icons;
 using PZPK.Core;
 using PZPK.Desktop.Common;
 using PZPK.Desktop.ImagePreview;
+using PZPK.Desktop.Main;
 using SukiUI.Content;
 using SukiUI.Controls;
 using System;
@@ -119,9 +120,9 @@ public class ExplorerPanel(ExplorerModel vm) : ComponentBase<ExplorerModel>(vm)
                     .Child(
                         HStackPanel().Children(() => BuildFolderStack())
                     ),
-                new ListBox().Row(3)
+                new ListBox().Row(2)
                     .SelectionMode(SelectionMode.Multiple)
-                    .ItemTemplate(new ExplorerItem())
+                    .ItemTemplate(new PZItemTemplate())
                     .ItemsSource(() => Items)
                     .OnDoubleTapped(OnItemDoubleTap)
             );

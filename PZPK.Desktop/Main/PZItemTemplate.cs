@@ -5,10 +5,10 @@ using PZPK.Core;
 using PZPK.Desktop.Common;
 using Avalonia.Markup.Declarative;
 
-namespace PZPK.Desktop.Modules.Explorer;
+namespace PZPK.Desktop.Main;
 using static PZPK.Desktop.Common.ControlHelpers;
 
-public class ExplorerItem : IDataTemplate
+public class PZItemTemplate : IDataTemplate
 {
     public bool Match(object? data)
     {
