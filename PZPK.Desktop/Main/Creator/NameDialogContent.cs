@@ -6,19 +6,19 @@ using static Common.ControlHelpers;
 
 internal class NameDialogContent : ContentControl
 {
-    public string Result { get; private set; } = "";
+    private TextBox _textbox;
     public NameDialogContent()
     {
-        var input = new TextBox();
-        input.TextChanged += (s, e) =>
-        {
-            Result = input.Text ?? "";
-        };
-
-        Content = Grid(null, "*, *")
+        _textbox = new TextBox();
+        Content = VStackPanel(Avalonia.Layout.HorizontalAlignment.Stretch)
             .Children(
-                PzText("Name:").Row(0),
-                input
+                PzText("Name:").Margin(0,0,0,15),
+                _textbox.HorizontalAlignment(Avalonia.Layout.HorizontalAlignment.Stretch)
             );
+    }
+
+    public string? GetResult()
+    {
+        return _textbox.Text;
     }
 }

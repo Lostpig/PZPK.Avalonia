@@ -21,9 +21,9 @@ public class CreatorPage : ComponentBase
             .Children(
                 new Stepper()
                     .Row(0)
+                    .HorizontalAlignment(HorizontalAlignment.Center)
                     .Margin(50, 10, 50, 0)
                     .Index(() => Model.Step - 1)
-                    .AlternativeStyle(true)
                     .Steps(() => new List<string>()
                     {
                         "Index",
@@ -33,7 +33,7 @@ public class CreatorPage : ComponentBase
                     }),
                 new GlassCard()
                     .Row(1)
-                    .Margin(20)
+                    .Margin(20, 5, 20, 20)
                     .Content(
                         Grid().Children(
                             new IndexPanel(Model).IsVisible(() => Model.Step == 1),

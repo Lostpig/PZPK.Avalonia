@@ -47,7 +47,7 @@ internal class CreatorModel
         Properties = new CreateProperties();
     }
 
-    public void Next()
+    public void NextStep()
     {
         if (Step == 1)
         {

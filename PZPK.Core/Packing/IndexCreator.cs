@@ -28,16 +28,26 @@ public class IndexCreator: IndexBase<PZIndexFolder, PZIndexFile>
             throw new Exceptions.PZFolderNotFoundException(folder.Name, folder.Id);
         }
     }
-    internal void CheckDuplicateNameFile(string name, PZIndexFolder parent)
+    internal void CheckFileName(string name, PZIndexFolder parent)
     {
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            throw new Exceptions.EmptyStringException(nameof(name));
+        }
+
         var files = GetFiles(parent, false);
         if (files.Exists(f => f.Name == name))
         {
             throw new Exceptions.DuplicateNameException(name);
         }
     }
-    internal void CheckDuplicateNameFolder(string name, PZIndexFolder parent)
+    internal void CheckFolderName(string name, PZIndexFolder parent)
     {
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            throw new Exceptions.EmptyStringException(nameof(name));
+        }
+
         var folders = GetFolders(parent, false);
         if (folders.Exists(f => f.Name == name))
         {
@@ -65,20 +75,37 @@ public class IndexCreator: IndexBase<PZIndexFolder, PZIndexFile>
         }
 
         CheckFolderExists(parent);
-        CheckDuplicateNameFile(name, parent);
+        CheckFileName(name, parent);
 
         int id = _idCounter.Next();
         PZIndexFile file = new(name, id, parent.Id, source, sourceInfo.Length);
         _files.Add(id, file);
         return file;
     }
+    public PZIndexFile AddFile(FileInfo fi, PZIndexFolder parent, string? rename = null)
+    {
+        if (!fi.Exists)
+        {
+            throw new FileNotFoundException(string.Empty, fi.FullName);
+        }
+        rename = rename ?? fi.Name;
+
+        CheckFolderExists(parent);
+        CheckFileName(rename, parent);
+
+        int id = _idCounter.Next();
+        PZIndexFile file = new(rename, id, parent.Id, fi.FullName, fi.Length);
+        _files.Add(id, file);
+        return file;
+    }
+
     public bool RemoveFile(PZIndexFile file)
     {
         return _files.Remove(file.Id);
     }
     public void MoveFile(PZIndexFile file, PZIndexFolder toFolder)
     {
-        CheckDuplicateNameFile(file.Name, toFolder);
+        CheckFileName(file.Name, toFolder);
         var newFile = file with { Pid = toFolder.Id };
         _files[file.Id] = newFile;
     }
@@ -87,7 +114,7 @@ public class IndexCreator: IndexBase<PZIndexFolder, PZIndexFile>
         if (newName == file.Name) return;
 
         PZIndexFolder folder = GetFolder(file.Pid);
-        CheckDuplicateNameFile(newName, folder);
+        CheckFileName(newName, folder);
 
         var newFile = file with { Name = newName };
         _files[file.Id] = newFile;
@@ -97,7 +124,7 @@ public class IndexCreator: IndexBase<PZIndexFolder, PZIndexFile>
     public PZIndexFolder AddFolder(string name, PZIndexFolder parent)
     {
         CheckFolderExists(parent);
-        CheckDuplicateNameFolder(name, parent);
+        CheckFolderName(name, parent);
 
         int id = _idCounter.Next();
         PZIndexFolder folder = new(name, id, parent.Id);
@@ -131,7 +158,7 @@ public class IndexCreator: IndexBase<PZIndexFolder, PZIndexFile>
             throw new ArgumentException("Cannot move root folder", nameof(folder));
         }
 
-        CheckDuplicateNameFolder(folder.Name, toFolder);
+        CheckFolderName(folder.Name, toFolder);
         var newFolder = folder with { Pid = toFolder.Id };
         _folders[folder.Id] = newFolder;
     }
@@ -144,9 +171,22 @@ public class IndexCreator: IndexBase<PZIndexFolder, PZIndexFile>
 
         if (newName == folder.Name) return;
         PZIndexFolder parent = GetFolder(folder.Pid);
-        CheckDuplicateNameFolder(newName, parent);
+        CheckFolderName(newName, parent);
 
         var newFolder = folder with { Name = newName };
         _folders[folder.Id] = newFolder;
+    }
+
+    public void Reset()
+    {
+        _folders.Clear();
+        _files.Clear();
+        _idCounter.Reset();
+    }
+
+    public void Clear()
+    {
+        _folders.Clear();
+        _files.Clear();
     }
 }

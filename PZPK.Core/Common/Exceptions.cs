@@ -56,6 +56,11 @@ public class DuplicateNameException(string name, string? message = default) : Ex
     public string Name { get; init; } = name;
 }
 
+public class EmptyStringException(string argument, string? message = default) : Exception(message)
+{
+    public string Argument { get; init; } = argument;
+}
+
 public class CreatorInvaildException(string? message = default) : Exception(message);
 
 public class FileTypeMismatchException(string fileType, string package, string? message = default) : Exception(message)
