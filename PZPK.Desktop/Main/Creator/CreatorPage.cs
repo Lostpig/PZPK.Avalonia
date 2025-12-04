@@ -1,16 +1,10 @@
-﻿using Avalonia.Controls;
-using Avalonia.Layout;
-using Avalonia.Styling;
+﻿using Avalonia.Layout;
 using Avalonia.Markup.Declarative;
 using PZPK.Desktop.Common;
 using SukiUI.Controls;
-using Avalonia.Media;
-using Avalonia.Controls.Primitives;
 using System.Collections.Generic;
-using PZPK.Desktop.Main.Creator;
-using System.Linq;
 
-namespace PZPK.Desktop.Modules.Creator;
+namespace PZPK.Desktop.Main.Creator;
 using static Common.ControlHelpers;
 
 public class CreatorPage : ComponentBase
@@ -37,12 +31,17 @@ public class CreatorPage : ComponentBase
                     .Content(
                         Grid().Children(
                             new IndexPanel(Model).IsVisible(() => Model.Step == 1),
-                            new PropertiesPanel().IsVisible(() => Model.Step == 2),
+                            new PropertiesPanel(Model).IsVisible(() => Model.Step == 2),
                             new PackingPanel().IsVisible(() => Model.Step == 3)
                         )
                     )
             );
     }
+    protected override void OnCreated()
+    {
+        base.OnCreated();
+        Model.OnStepChanged += StateHasChanged;
+    }
 
-    private CreatorModel Model = new();
+    private readonly CreatorModel Model = new();
 }

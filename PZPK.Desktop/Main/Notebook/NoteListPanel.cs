@@ -8,7 +8,7 @@ using Material.Icons;
 using PZPK.Core.Note;
 using PZPK.Desktop.Common;
 
-namespace PZPK.Desktop.Modules.Notebook;
+namespace PZPK.Desktop.Main.Notebook;
 
 using static PZPK.Desktop.Common.ControlHelpers;
 

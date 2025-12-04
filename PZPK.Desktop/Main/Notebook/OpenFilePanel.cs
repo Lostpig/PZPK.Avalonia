@@ -11,7 +11,7 @@ using System;
 using System.IO;
 
 
-namespace PZPK.Desktop.Modules.Notebook;
+namespace PZPK.Desktop.Main.Notebook;
 using static PZPK.Desktop.Common.ControlHelpers;
 
 public class OpenFilePanel(NoteBookModel vm) : ComponentBase<NoteBookModel>(vm)

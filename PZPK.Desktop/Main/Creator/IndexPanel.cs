@@ -20,7 +20,7 @@ using System.IO;
 namespace PZPK.Desktop.Main.Creator;
 using static Common.ControlHelpers;
 
-internal class IndexPanel(CreatorModel vm) : ComponentBase<CreatorModel>(vm)
+public class IndexPanel(CreatorModel vm) : ComponentBase<CreatorModel>(vm)
 {
     protected override StyleGroup? BuildStyles()
     {

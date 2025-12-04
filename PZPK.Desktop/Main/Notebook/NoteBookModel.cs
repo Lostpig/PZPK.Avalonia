@@ -2,7 +2,7 @@
 using PZPK.Desktop.Main;
 using System;
 
-namespace PZPK.Desktop.Modules.Notebook;
+namespace PZPK.Desktop.Main.Notebook;
 using PZNotebook = PZPK.Core.Note.NoteBook;
 
 public class NoteBookModel

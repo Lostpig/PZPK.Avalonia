@@ -2,9 +2,9 @@
 using Avalonia.Controls.Templates;
 using Avalonia.Markup.Declarative;
 using Material.Icons;
-using PZPK.Desktop.Modules.Creator;
-using PZPK.Desktop.Modules.Explorer;
-using PZPK.Desktop.Modules.Notebook;
+using PZPK.Desktop.Main.Creator;
+using PZPK.Desktop.Main.Explorer;
+using PZPK.Desktop.Main.Notebook;
 using System;
 using System.Collections.Generic;
 
@@ -17,7 +17,7 @@ internal class Routes
         new PageRecord("Creator", MaterialIconKind.Create, typeof(CreatorPage)),
         new PageRecord("Notebook", MaterialIconKind.Book, typeof(NoteBookPage)),
 #if DEBUG
-        new PageRecord("Dev", MaterialIconKind.DeveloperBoard, typeof(Modules.Dev.DevPage)),
+        new PageRecord("Dev", MaterialIconKind.DeveloperBoard, typeof(Dev.DevPage)),
 #endif
     ];
 }

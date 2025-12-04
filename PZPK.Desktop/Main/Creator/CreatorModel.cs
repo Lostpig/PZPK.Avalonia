@@ -1,19 +1,21 @@
 ﻿using PZPK.Core;
 using PZPK.Core.Packing;
+using PZPK.Desktop.Common;
+using SukiUI.Helpers;
 using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace PZPK.Desktop.Main.Creator;
 
-public record CreateProperties
+public class CreateProperties
 {
     public string Name { get; set; } = "";
     public string Description { get; set; } = "";
     public List<string> Tags { get; set; } = [];
     public string Password { get; set; } = "";
     public int BlockSize { get; set; } = Constants.Sizes.t_4KB;
-
+    public bool EnableImageResizing { get; set; } = true;
+    public ImageResizerOptions ImageOptions { get; set; } = new();
     public bool Check()
     {
         if (string.IsNullOrWhiteSpace(Name))
@@ -34,12 +36,21 @@ public record CreateProperties
     }
 }
 
-internal class CreatorModel
+public class CreatorModel
 {
     public IndexCreator Index;
     public CreateProperties Properties;
 
-    public int Step = 1; //1:Index 2:Properties 3:Packing 4:Complete
+    //1:Index 2:Properties 3:Packing 4:Complete
+    public int Step { 
+        get; 
+        set {
+            if (field == value) return;
+            field = value;
+            OnStepChanged?.Invoke();
+        } 
+    } = 1; 
+    public event Action? OnStepChanged;
 
     public CreatorModel()
     {
@@ -62,7 +73,13 @@ internal class CreatorModel
             Step++;
         }
     }
-
+    public void PreviousStep()
+    {
+        if (Step > 1)
+        {
+            Step--;
+        }
+    }
     public void Reset()
     {
         Index = new IndexCreator();

@@ -1,17 +1,13 @@
 ﻿using Avalonia.Controls;
 using Avalonia.Markup.Declarative;
-using Avalonia.Media;
 using Avalonia.Platform.Storage;
 using PZPK.Core;
 using PZPK.Core.Crypto;
 using PZPK.Desktop.ImagePreview;
-using PZPK.Desktop.Modules.Explorer;
 using System;
-using System.Collections.Generic;
-using System.Reflection;
 using System.Text;
 
-namespace PZPK.Desktop.Modules.Dev;
+namespace PZPK.Desktop.Main.Dev;
 using static PZPK.Desktop.Common.ControlHelpers;
 
 internal class DevPage : ComponentBase

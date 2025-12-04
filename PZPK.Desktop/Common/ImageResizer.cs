@@ -9,8 +9,31 @@ using System.IO;
 
 namespace PZPK.Desktop.Common;
 
-internal class ImageResizer : IImageResizer
+public enum ImageResizerFormat
 {
+    Jpeg,
+    Png,
+    Webp
+}
+public record ImageResizerOptions
+{
+    public int MaxSize { get; set; } = 2160;
+    public int Quality { get; set; } = 75;
+    public bool Lossless { get; set; } = false;
+    public ImageResizerFormat Format { get; set; } = ImageResizerFormat.Jpeg;
+}
+public class ImageResizer : IImageResizer
+{
+    public static ImageResizer CreateResizer(ImageResizerOptions options)
+    {
+        return options.Format switch
+        {
+            ImageResizerFormat.Jpeg => CreateJpegResizer(options.MaxSize, options.Quality),
+            ImageResizerFormat.Png => CreatePngResizer(options.MaxSize),
+            ImageResizerFormat.Webp => CreateWebpResizer(options.MaxSize, options.Lossless, options.Quality),
+            _ => throw new System.NotImplementedException(),
+        };
+    }
     public static ImageResizer CreateJpegResizer(int maxSize, int quality)
     {
         JpegEncoder encoder = new() { Quality = quality };

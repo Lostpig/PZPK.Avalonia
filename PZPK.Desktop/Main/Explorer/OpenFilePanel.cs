@@ -6,7 +6,7 @@ using Material.Icons;
 using PZPK.Desktop.Common;
 using SukiUI.Controls;
 
-namespace PZPK.Desktop.Modules.Explorer;
+namespace PZPK.Desktop.Main.Explorer;
 using static PZPK.Desktop.Common.ControlHelpers;
 
 public class OpenFilePanel : ComponentBase

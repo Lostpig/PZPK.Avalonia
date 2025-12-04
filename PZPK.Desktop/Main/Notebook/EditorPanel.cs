@@ -12,7 +12,7 @@ using System.Collections.Generic;
 using System.Linq;
 using TextMateSharp.Grammars;
 
-namespace PZPK.Desktop.Modules.Notebook;
+namespace PZPK.Desktop.Main.Notebook;
 using static PZPK.Desktop.Common.ControlHelpers;
 
 public class EditorPanel(NoteBookModel vm): ComponentBase<NoteBookModel>(vm)

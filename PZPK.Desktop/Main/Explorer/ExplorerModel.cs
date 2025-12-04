@@ -1,8 +1,7 @@
 ﻿using PZPK.Desktop.Global;
-using PZPK.Desktop.Main;
 using System;
 
-namespace PZPK.Desktop.Modules.Explorer;
+namespace PZPK.Desktop.Main.Explorer;
 
 public class ExplorerModel
 {

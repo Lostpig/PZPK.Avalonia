@@ -1,7 +1,7 @@
 ﻿using Avalonia.Controls;
 using Avalonia.Markup.Declarative;
 
-namespace PZPK.Desktop.Modules.Notebook;
+namespace PZPK.Desktop.Main.Notebook;
 using static PZPK.Desktop.Common.ControlHelpers;
 
 public class NoteBookPage : ComponentBase

@@ -13,7 +13,7 @@ using SukiUI.Controls;
 using System;
 using System.Collections.Generic;
 
-namespace PZPK.Desktop.Modules.Explorer;
+namespace PZPK.Desktop.Main.Explorer;
 using static PZPK.Desktop.Common.ControlHelpers;
 
 public class ExplorerPanel(ExplorerModel vm) : ComponentBase<ExplorerModel>(vm)

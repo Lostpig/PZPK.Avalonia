@@ -2,7 +2,7 @@
 using Avalonia.Markup.Declarative;
 using PZPK.Desktop.Common;
 
-namespace PZPK.Desktop.Modules.Explorer;
+namespace PZPK.Desktop.Main.Explorer;
 using static PZPK.Desktop.Common.ControlHelpers;
 
 public class ExplorerPage : ComponentBase
