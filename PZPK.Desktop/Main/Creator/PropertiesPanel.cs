@@ -1,7 +1,8 @@
-﻿using Avalonia.Controls;
+﻿using System.Reflection.Emit;
+using Avalonia.Controls;
 using Avalonia.Markup.Declarative;
 using Avalonia.Styling;
-using AvaloniaEdit.Utils;
+
 using PZPK.Core;
 using PZPK.Desktop.Common;
 
@@ -13,16 +14,6 @@ public class PropertiesPanel(CreatorModel vm) : ComponentBase<CreatorModel>(vm)
     protected override StyleGroup? BuildStyles()
     {
         return [
-                new Style<TextBlock>(s => s.Class("Label"))
-                    .Col(0)
-                    .HorizontalAlignment(Avalonia.Layout.HorizontalAlignment.Left)
-                    .VerticalAlignment(Avalonia.Layout.VerticalAlignment.Center)
-                    .TextAlignment(Avalonia.Media.TextAlignment.Center),
-                new Style<TextBox>()
-                    .Col(2)
-                    .HorizontalAlignment(Avalonia.Layout.HorizontalAlignment.Right)
-                    .VerticalAlignment(Avalonia.Layout.VerticalAlignment.Center)
-                    .MinWidth(120),
                 new Style<Grid>(s => s.Class("Row"))
                     .Margin(12,4,4,0)
                     .Height(40)
@@ -35,17 +26,24 @@ public class PropertiesPanel(CreatorModel vm) : ComponentBase<CreatorModel>(vm)
         {
             ColumnDefinitions =
             [
-                new ColumnDefinition().Width(new GridLength(1, GridUnitType.Auto)).SharedSizeGroup("LabelColumn"),
-                new ColumnDefinition().Width(new GridLength(4, GridUnitType.Pixel)),
-                new ColumnDefinition().Width(new GridLength(1, GridUnitType.Star))
+                new ColumnDefinition().Width(200),
+                new ColumnDefinition().Width(15),
+                new ColumnDefinition().Width(GridLength.Star)
             ]
         };
 
         return grid
                 .Classes("Row")
                 .Children(
-                    PzText(label).Classes("Label"),
+                    PzText(label)
+                        .Col(0)
+                        .HorizontalAlignment(Avalonia.Layout.HorizontalAlignment.Left)
+                        .VerticalAlignment(Avalonia.Layout.VerticalAlignment.Center)
+                        .TextAlignment(Avalonia.Media.TextAlignment.Center),
                     control
+                        .Col(2)
+                        .HorizontalAlignment(Avalonia.Layout.HorizontalAlignment.Stretch)
+                        .VerticalAlignment(Avalonia.Layout.VerticalAlignment.Center)
                 );
     }
     protected override object Build(CreatorModel vm)
@@ -53,43 +51,88 @@ public class PropertiesPanel(CreatorModel vm) : ComponentBase<CreatorModel>(vm)
         var index = vm.Index;
         var props = vm.Properties;
 
-        return new ScrollViewer()
-            .Content(
-                VStackPanel(Avalonia.Layout.HorizontalAlignment.Stretch)
+        return Grid(null, "*, 40")
+            .Children(
+                new ScrollViewer()
+                    .Row(0)
+                    .Content(
+                        VStackPanel(Avalonia.Layout.HorizontalAlignment.Stretch)
+                            .Children(
+                                BuildRow("Files:", PzText(() => index.FilesCount.ToString())),
+                                BuildRow("Size:", PzText(() => Utility.ComputeFileSize(index.SumFilesSize()))),
+                                PzSeparatorV(),
+                                BuildRow("Name:", PzTextBox(() => props.Name, v => props.Name = v)),
+                                BuildRow("Password:", PzTextBox(() => props.Password, v => props.Password = v)),
+                                BuildRow("BlockSize:",
+                                    new ComboBox()
+                                        .ItemsSource(BlockSizes)
+                                        .ItemTemplate<int>(i =>
+                                                new FuncView<int>(i, s => PzText(() => Utility.ComputeFileSize(i)))
+                                            )
+                                        .SelectedItem(() => props.BlockSize, v => props.BlockSize = (int)v)
+                                    ),
+                                BuildRow("Description:", 
+                                        PzTextBox(() => props.Description, v => props.Description = v)
+                                            .VerticalContentAlignment(Avalonia.Layout.VerticalAlignment.Top)
+                                            .Height(120)
+                                    ).Height(120),
+                                Grid("200, 15, 150, 80")
+                                    .Classes("Row")
+                                    .Children(
+                                        PzText("Tags")
+                                            .Col(0)
+                                            .HorizontalAlignment(Avalonia.Layout.HorizontalAlignment.Left)
+                                            .VerticalAlignment(Avalonia.Layout.VerticalAlignment.Center)
+                                            .TextAlignment(Avalonia.Media.TextAlignment.Center),
+                                        PzTextBox(() => TempTag, v => TempTag = v)
+                                            .Col(2)
+                                            .HorizontalAlignment(Avalonia.Layout.HorizontalAlignment.Stretch)
+                                            .VerticalAlignment(Avalonia.Layout.VerticalAlignment.Center),
+                                        SukiButton("Add").Col(3).OnClick(_ => AddTag())
+                                    ),
+                                new WrapPanel()
+                                    .Margin(215, 0, 0, 0)
+                                    .Ref(out TagContainer),
+                                BuildRow("Resize Image:",
+                                    new ToggleSwitch()
+                                        .IsChecked(() => props.EnableImageResizing, v => props.EnableImageResizing = v ?? false)
+                                ),
+                                BuildRow("Image Format:",
+                                    new ComboBox()
+                                        .IsEnabled(() => props.EnableImageResizing)
+                                        .ItemsSource(ImageFormats)
+                                        .ItemTemplate<ImageResizerFormat>(f =>
+                                                new FuncView<ImageResizerFormat>(f, s => PzText(() => f.ToString()))
+                                            )
+                                        .SelectedItem(() => props.ImageOptions.Format, v => props.ImageOptions.Format = (ImageResizerFormat)v)
+                                ),
+                                BuildRow(" - Max size:",
+                                    new NumericUpDown()
+                                        .IsEnabled(() => props.EnableImageResizing)
+                                        .Value(() => props.ImageOptions.MaxSize, v => props.ImageOptions.MaxSize = (int)(v ?? 2160))
+                                ),
+                                BuildRow(" - Quility:",
+                                    new NumericUpDown()
+                                        .IsEnabled(() => props.EnableImageResizing)
+                                        .Value(() => props.ImageOptions.Quality, v => props.ImageOptions.Quality = (int)(v ?? 75))
+                                ),
+                                BuildRow(" - LossLess:",
+                                    new ToggleSwitch()
+                                        .IsEnabled(() => props.EnableImageResizing)
+                                        .IsChecked(() => props.ImageOptions.Lossless, v => props.ImageOptions.Lossless = v ?? false)
+                                )
+                            )
+                ),
+                new Canvas()
+                    .Row(1)
                     .Children(
-                        BuildRow("Files:", PzTextBox(() => index.FilesCount.ToString()).IsReadOnly(true)),
-                        BuildRow("Size:", PzTextBox(() => Utility.ComputeFileSize(index.SumFilesSize())).IsReadOnly(true)),
-                        PzSeparatorV(),
-                        BuildRow("Name:", PzTextBox(() => props.Name, v => props.Name = v)),
-                        BuildRow("Password:", PzTextBox(() => props.Password, v => props.Password = v)),
-                        BuildRow("BlockSize:",
-                            new ComboBox()
-                                .ItemsSource(BlockSizes)
-                                .ItemTemplate<int>(i => 
-                                        new FuncView<int>(i, s => PzText(() => Utility.ComputeFileSize(i)))
-                                    )
-                                .SelectedItem(() => props.BlockSize, v => props.BlockSize = (int)v)
-                            ),
-                        BuildRow("Resize Image:", 
-                            new ToggleSwitch()
-                            .IsChecked(() => props.EnableImageResizing, v => props.EnableImageResizing = v ?? false)
-                        ),
-                        BuildRow("Image Format:",
-                            new ComboBox()
-                                .ItemsSource(ImageFormats)
-                                .ItemTemplate<ImageResizerFormat>(f =>
-                                        new FuncView<ImageResizerFormat>(f, s => PzText(() => f.ToString()))
-                                    )
-                                .SelectedItem(() => props.ImageOptions.Format, v => props.ImageOptions.Format = (ImageResizerFormat)v)
-                        ),
-                        BuildRow("Quility:",
-                            new NumericUpDown().Value(() => props.ImageOptions.Quality, v => props.ImageOptions.Quality = (int)(v ?? 100))
-                        )
+                        SukiButton("Prev", "", "Flat").Canvas_Left(0).OnClick(_ => vm.PreviousStep()),
+                        SukiButton("Next", "Flat").Canvas_Right(0).OnClick(_ => vm.NextStep())
                     )
             );
     }
 
-    protected override void OnAfterInitialized()
+    protected override void OnCreated()
     {
         base.OnAfterInitialized();
         ViewModel?.OnStepChanged += StateHasChanged;
@@ -112,4 +155,51 @@ public class PropertiesPanel(CreatorModel vm) : ComponentBase<CreatorModel>(vm)
         ImageResizerFormat.Png,
         ImageResizerFormat.Webp,
     };
+
+    private WrapPanel TagContainer;
+    private string TempTag { get; set; } = "";
+    private void UpdateTags() {         
+        TagContainer.Children.Clear();
+        var props = ViewModel?.Properties;
+        if (props == null) return;
+        foreach (var tag in props.Tags)
+        {
+            var border = new Border()
+                .Padding(8, 4)
+                .Margin(4)
+                .CornerRadius(4)
+                .Background(Avalonia.Media.Brushes.LightGray)
+                .Child(
+                    HStackPanel().Children(
+                        PzText(tag)
+                            .VerticalAlignment(Avalonia.Layout.VerticalAlignment.Center),
+                        SukiButton("x", "Flat")
+                            .Width(16)
+                            .Height(16)
+                            .Margin(8, 0, 0, 0)
+                            .VerticalAlignment(Avalonia.Layout.VerticalAlignment.Center)
+                            .OnClick(_ =>
+                            {
+                                props.Tags.Remove(tag);
+                                UpdateTags();
+                            })
+                    )
+                );
+            TagContainer.Children.Add(border);
+        }
+    }
+    private void AddTag()
+    {
+        var props = ViewModel?.Properties;
+        if (props == null) return;
+        var tag = TempTag.Trim();
+        if (!string.IsNullOrEmpty(tag) && !props.Tags.Contains(tag))
+        {
+            props.Tags.Add(tag);
+            TempTag = "";
+
+            UpdateTags();
+            StateHasChanged();
+        }
+    }
 }

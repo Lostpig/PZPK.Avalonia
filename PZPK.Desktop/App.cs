@@ -1,10 +1,8 @@
-﻿using Avalonia.Controls;
+﻿using System;
 using Avalonia.Markup.Declarative;
 using PZPK.Desktop.Common;
 using PZPK.Desktop.ImagePreview;
 using PZPK.Desktop.Main;
-using SukiUI.Controls;
-using System;
 
 namespace PZPK.Desktop;
 
