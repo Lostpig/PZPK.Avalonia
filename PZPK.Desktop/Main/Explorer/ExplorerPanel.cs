@@ -97,6 +97,7 @@ public class ExplorerPanel(ExplorerModel vm) : ComponentBase<ExplorerModel>(vm)
     }
     protected override object Build(ExplorerModel vm)
     {
+        if (vm is null) throw new InvalidOperationException("ViewModel cannot be null");
         var suki = App.Instance.Suki;
         vm.OnPackageOpened += OnPackageOpened;
 
@@ -158,7 +159,7 @@ public class ExplorerPanel(ExplorerModel vm) : ComponentBase<ExplorerModel>(vm)
         }
         else
         {
-            EnterDirectory(model.Root);
+            EnterDirectory(model.Root, true);
         }
 
         StateHasChanged();
@@ -167,9 +168,9 @@ public class ExplorerPanel(ExplorerModel vm) : ComponentBase<ExplorerModel>(vm)
     {
         ViewModel?.ClosePackage();
     }
-    private void EnterDirectory(PZFolder folder)
+    private void EnterDirectory(PZFolder folder, bool forceUpdate = false)
     {
-        if (folder == Current) return;
+        if (folder == Current && !forceUpdate) return;
 
         if (ViewModel?.Model is not null)
         {

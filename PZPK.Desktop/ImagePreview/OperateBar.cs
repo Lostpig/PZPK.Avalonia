@@ -29,6 +29,7 @@ public class OperateBar(PreviewModel vm) : ComponentBase<PreviewModel>(vm)
 
     protected override object Build(PreviewModel vm)
     {
+        if (vm is null) throw new InvalidOperationException("ViewModel cannot be null");
         var bgColor = App.Instance.Suki.GetSukiColor("SukiControlBorderBrush");
 
         return VStackPanel(HorizontalAlignment.Center).Classes("container")

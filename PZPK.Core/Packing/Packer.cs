@@ -153,7 +153,7 @@ public static class Packer
         int indexLength = WriteIndex(writer, crypto, context);
         context.IndexComplete(indexOffset, indexLength);
 
-        Debug.Assert(context.TotalSize == writer.Position + HeaderSize);
+        Debug.Assert(context.TotalSize == writer.Position - HeaderSize);
         WriteHeader(writer, crypto, context);
 
         key.AsSpan().Clear();
@@ -176,7 +176,7 @@ public static class Packer
         PackingContext context = new(options, index, imageResizer, progress);
         return ExcutePack(writer, context);
     }
-    public static Task<long> PackAsync(
+    public static async Task<long> PackAsync(
         string destination, 
         IndexCreator index, 
         PackingOptions options, 
@@ -189,8 +189,12 @@ public static class Packer
             throw new OutputFileAlreadyExistsException(destination);
         }
 
-        using FileStream writer = new(destination, FileMode.Create, FileAccess.Write);
+        FileStream writer = new(destination, FileMode.Create, FileAccess.Write);
         PackingContext context = new(options, index, imageResizer, progress);
-        return Task.Run(() => ExcutePack(writer, context), cancelToken ?? CancellationToken.None);
+        var total = await Task.Run(() => ExcutePack(writer, context), cancelToken ?? CancellationToken.None);
+
+        await writer.DisposeAsync();
+
+        return total;
     }
 }

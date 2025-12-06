@@ -79,6 +79,7 @@ public class IndexPanel(CreatorModel vm) : ComponentBase<CreatorModel>(vm)
     }
     override protected object Build(CreatorModel vm)
     {
+        if (vm is null) throw new InvalidOperationException("ViewModel cannot be null");
         var suki = App.Instance.Suki;
 
         return Grid(null, "50, 1*, 40")
@@ -114,7 +115,7 @@ public class IndexPanel(CreatorModel vm) : ComponentBase<CreatorModel>(vm)
             );
     }
 
-    private IndexCreator Index = vm.Index;
+    private readonly IndexCreator Index = vm.Index;
     private PZIndexFolder Current = vm.Index.Root;
     private List<IPZItem> Items = [];
 

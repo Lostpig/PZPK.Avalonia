@@ -26,6 +26,7 @@ internal static class DetailExtractor
         crypto.DecryptStream(stream, header.DetailOffset, header.DetailSize, memory);
         using BinaryReader br = new(memory);
 
+        br.BaseStream.Seek(0, SeekOrigin.Begin);
         int nameLength = br.ReadInt32();
         var nameBuffer = buffer[..nameLength];
         br.Read(nameBuffer);

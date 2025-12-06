@@ -32,7 +32,8 @@ public class CreatorPage : ComponentBase
                         Grid().Children(
                             new IndexPanel(Model).IsVisible(() => Model.Step == 1),
                             new PropertiesPanel(Model).IsVisible(() => Model.Step == 2),
-                            new PackingPanel().IsVisible(() => Model.Step == 3)
+                            new PackingPanel(Model).IsVisible(() => Model.Step == 3),
+                            new CompletePanel(Model).IsVisible(() => Model.Step == 4)
                         )
                     )
             );

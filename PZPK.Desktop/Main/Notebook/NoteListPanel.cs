@@ -192,7 +192,6 @@ public class NoteListPanel : Border
 
         if (item != null) {
             Items.Remove(item);
-            ListContainer.Children.Remove(item);
 
             if (Items.Count > 0) 
             {

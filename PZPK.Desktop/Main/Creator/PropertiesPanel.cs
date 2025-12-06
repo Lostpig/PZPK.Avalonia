@@ -1,26 +1,65 @@
-﻿using System.Reflection.Emit;
-using Avalonia.Controls;
+﻿using Avalonia.Controls;
 using Avalonia.Markup.Declarative;
+using Avalonia.Media;
 using Avalonia.Styling;
-
+using Material.Icons;
 using PZPK.Core;
 using PZPK.Desktop.Common;
+using System;
+using System.Linq;
 
 namespace PZPK.Desktop.Main.Creator;
 using static Common.ControlHelpers;
 
+
 public class PropertiesPanel(CreatorModel vm) : ComponentBase<CreatorModel>(vm)
 {
+    private class TagItem : ContentControl
+    {
+        public string Data { get; init; }
+        public TagItem(string tag, PropertiesPanel parent)
+        {
+            Data = tag;
+
+            Content = new Border()
+                .Padding(8, 4)
+                .Margin(4)
+                .CornerRadius(4)
+                .Background(Brushes.LightGray)
+                .Child(
+                    HStackPanel().Children(
+                        PzText(tag)
+                            .VerticalAlignment(Avalonia.Layout.VerticalAlignment.Center),
+                        IconButton(MaterialIconKind.Close)
+                            .Width(24)
+                            .Height(24)
+                            .Margin(8, 0, 0, 0)
+                            .VerticalAlignment(Avalonia.Layout.VerticalAlignment.Center)
+                            .OnClick(_ =>
+                            {
+                                parent.RemoveTag(this);
+                            })
+                    )
+                );
+        }
+    }
+
     protected override StyleGroup? BuildStyles()
     {
         return [
                 new Style<Grid>(s => s.Class("Row"))
                     .Margin(12,4,4,0)
-                    .Height(40)
+                    .Height(40),
+                new StyleGroup(s => s.Is<Grid>().Class("Row").Child())
+                {
+                    new Style<ToggleSwitch>().Margin(35,0,0,0),
+                    new Style<ComboBox>().Margin(-6, 0),
+                    new Style<NumericUpDown>().Margin(-1, 0)
+                }
             ];
     }
 
-    private Grid BuildRow(string label, Control control)
+    private static Grid BuildRow(string label, Control control)
     {
         var grid = new Grid
         {
@@ -48,8 +87,11 @@ public class PropertiesPanel(CreatorModel vm) : ComponentBase<CreatorModel>(vm)
     }
     protected override object Build(CreatorModel vm)
     {
+        if (vm is null) throw new InvalidOperationException("ViewModel cannot be null");
         var index = vm.Index;
         var props = vm.Properties;
+        TagContainer = new WrapPanel().Margin(225, 0, 0, 0);
+        Tags = new PzControls<TagItem>(TagContainer.Children);
 
         return Grid(null, "*, 40")
             .Children(
@@ -76,7 +118,7 @@ public class PropertiesPanel(CreatorModel vm) : ComponentBase<CreatorModel>(vm)
                                             .VerticalContentAlignment(Avalonia.Layout.VerticalAlignment.Top)
                                             .Height(120)
                                     ).Height(120),
-                                Grid("200, 15, 150, 80")
+                                Grid("200, 15, 150, *")
                                     .Classes("Row")
                                     .Children(
                                         PzText("Tags")
@@ -88,11 +130,13 @@ public class PropertiesPanel(CreatorModel vm) : ComponentBase<CreatorModel>(vm)
                                             .Col(2)
                                             .HorizontalAlignment(Avalonia.Layout.HorizontalAlignment.Stretch)
                                             .VerticalAlignment(Avalonia.Layout.VerticalAlignment.Center),
-                                        SukiButton("Add").Col(3).OnClick(_ => AddTag())
+                                        SukiButton("Add")
+                                            .Col(3)
+                                            .Margin(10, 0)
+                                            .HorizontalAlignment(Avalonia.Layout.HorizontalAlignment.Left)
+                                            .OnClick(_ => AddTag())
                                     ),
-                                new WrapPanel()
-                                    .Margin(215, 0, 0, 0)
-                                    .Ref(out TagContainer),
+                                TagContainer,
                                 BuildRow("Resize Image:",
                                     new ToggleSwitch()
                                         .IsChecked(() => props.EnableImageResizing, v => props.EnableImageResizing = v ?? false)
@@ -126,7 +170,7 @@ public class PropertiesPanel(CreatorModel vm) : ComponentBase<CreatorModel>(vm)
                 new Canvas()
                     .Row(1)
                     .Children(
-                        SukiButton("Prev", "", "Flat").Canvas_Left(0).OnClick(_ => vm.PreviousStep()),
+                        SukiButton("Prev", "Accent", "Flat").Canvas_Left(0).OnClick(_ => vm.PreviousStep()),
                         SukiButton("Next", "Flat").Canvas_Right(0).OnClick(_ => vm.NextStep())
                     )
             );
@@ -138,8 +182,8 @@ public class PropertiesPanel(CreatorModel vm) : ComponentBase<CreatorModel>(vm)
         ViewModel?.OnStepChanged += StateHasChanged;
     }
 
-    private int[] BlockSizes = new int[]
-    {
+    private readonly int[] BlockSizes =
+    [
         Constants.Sizes.t_4KB,
         Constants.Sizes.t_64KB,
         Constants.Sizes.t_256KB,
@@ -148,46 +192,17 @@ public class PropertiesPanel(CreatorModel vm) : ComponentBase<CreatorModel>(vm)
         Constants.Sizes.t_8MB,
         Constants.Sizes.t_16MB,
         Constants.Sizes.t_64MB
-    };
-    private ImageResizerFormat[] ImageFormats = new ImageResizerFormat[]
-    {
+    ];
+    private readonly ImageResizerFormat[] ImageFormats =
+    [
         ImageResizerFormat.Jpeg,
         ImageResizerFormat.Png,
         ImageResizerFormat.Webp,
-    };
+    ];
 
     private WrapPanel TagContainer;
+    private PzControls<TagItem> Tags;
     private string TempTag { get; set; } = "";
-    private void UpdateTags() {         
-        TagContainer.Children.Clear();
-        var props = ViewModel?.Properties;
-        if (props == null) return;
-        foreach (var tag in props.Tags)
-        {
-            var border = new Border()
-                .Padding(8, 4)
-                .Margin(4)
-                .CornerRadius(4)
-                .Background(Avalonia.Media.Brushes.LightGray)
-                .Child(
-                    HStackPanel().Children(
-                        PzText(tag)
-                            .VerticalAlignment(Avalonia.Layout.VerticalAlignment.Center),
-                        SukiButton("x", "Flat")
-                            .Width(16)
-                            .Height(16)
-                            .Margin(8, 0, 0, 0)
-                            .VerticalAlignment(Avalonia.Layout.VerticalAlignment.Center)
-                            .OnClick(_ =>
-                            {
-                                props.Tags.Remove(tag);
-                                UpdateTags();
-                            })
-                    )
-                );
-            TagContainer.Children.Add(border);
-        }
-    }
     private void AddTag()
     {
         var props = ViewModel?.Properties;
@@ -195,11 +210,22 @@ public class PropertiesPanel(CreatorModel vm) : ComponentBase<CreatorModel>(vm)
         var tag = TempTag.Trim();
         if (!string.IsNullOrEmpty(tag) && !props.Tags.Contains(tag))
         {
-            props.Tags.Add(tag);
             TempTag = "";
+            props.Tags.Add(tag);
+            Tags.Add(new TagItem(tag, this));
 
-            UpdateTags();
             StateHasChanged();
+        }
+    }
+    private void RemoveTag(TagItem tag)
+    {
+        var props = ViewModel?.Properties;
+        if (props == null) return;
+
+        if (props.Tags.Contains(tag.Data))
+        {
+            props.Tags.Remove(tag.Data);
+            Tags.Remove(tag);
         }
     }
 }

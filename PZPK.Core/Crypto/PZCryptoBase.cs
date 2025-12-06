@@ -111,7 +111,7 @@ internal class PZCryptoBase : IDisposable
             writtenBytes = EncryptWithIV(readed, output);
             var written = output.Slice(0, writtenBytes);
 
-            destination.Write(output);
+            destination.Write(written);
 
             totalWritten += writtenBytes;
         }
@@ -140,7 +140,7 @@ internal class PZCryptoBase : IDisposable
             writtenBytes = DecryptWithIV(readed, output);
             var written = output.Slice(0, writtenBytes);
 
-            destination.Write(output);
+            destination.Write(written);
 
             totalWritten += writtenBytes;
         }

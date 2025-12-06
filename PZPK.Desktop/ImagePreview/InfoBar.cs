@@ -1,9 +1,10 @@
 ﻿using Avalonia.Controls;
+using Avalonia.Layout;
 using Avalonia.Markup.Declarative;
 using Avalonia.Media;
 using Avalonia.Styling;
 using PZPK.Desktop.Common;
-using Avalonia.Layout;
+using System;
 
 namespace PZPK.Desktop.ImagePreview;
 using static PZPK.Desktop.Common.ControlHelpers;
@@ -24,6 +25,7 @@ public class InfoBar(PreviewModel vm) : ComponentBase<PreviewModel>(vm)
     }
     protected override object Build(PreviewModel vm)
     {
+        if (vm is null) throw new InvalidOperationException("ViewModel cannot be null");
         var bgColor = App.Instance.Suki.GetSukiColor("SukiDialogBackground");
 
         return VStackPanel(HorizontalAlignment.Center).Classes("container")
