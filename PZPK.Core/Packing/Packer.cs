@@ -28,11 +28,13 @@ public static class Packer
 
             offset = writer.Position;
             string? newName = null;
+            long? newSize = null;
             if (context.ImageResizer != null && context.ImageResizer.CheckIsImageFile(file))
             {
                 using var imgStream = context.ImageResizer.ResizeImage(progressStream);
                 size = crypto.EncryptStream(imgStream, writer);
                 newName = Path.ChangeExtension(file.Name, context.ImageResizer.Extension);
+                newSize = imgStream.Length;
             }
             else
             {
@@ -40,7 +42,7 @@ public static class Packer
             }
 
             Debug.Assert(size == writer.Position - offset);
-            context.FileComplete(file, size, offset, newName);
+            context.FileComplete(file, size, offset, newName, newSize);
         }
     }
     private static void WriteHeader(FileStream writer, IPZCrypto crypto, PackingContext context)

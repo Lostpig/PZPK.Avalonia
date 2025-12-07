@@ -14,7 +14,7 @@ public class CreateProperties
     public string Description { get; set; } = "";
     public List<string> Tags { get; set; } = [];
     public string Password { get; set; } = "";
-    public int BlockSize { get; set; } = Constants.Sizes.t_4KB;
+    public int BlockSize { get; set; } = Constants.Sizes.t_1MB;
     public bool EnableImageResizing { get; set; } = true;
     public ImageResizerOptions ImageOptions { get; set; } = new();
     public bool Check()
@@ -35,6 +35,20 @@ public class CreateProperties
 
         return true;
     }
+    public void Reset()
+    {
+        Name = "";
+        Description = "";
+        Tags = [];
+        Password = "";
+        BlockSize = Constants.Sizes.t_1MB;
+
+        EnableImageResizing = true;
+        ImageOptions.MaxSize = 2160;
+        ImageOptions.Quality = 75;
+        ImageOptions.Format = ImageResizerFormat.Jpeg;
+        ImageOptions.Lossless = false;
+    }
 }
 public class PackingInfomation
 {
@@ -44,7 +58,7 @@ public class PackingInfomation
     public long Bytes { get; private set; } = 0;
     public long TotalBytes { get; private set; } = 0;
 
-    public double Percent => TotalBytes == 0 ? 0 : (double)Bytes / TotalBytes;
+    public double Percent => TotalBytes == 0 ? 0 : ((double)Bytes / TotalBytes) * 100.0;
     public string FilesText => $"{Files} / {TotalFiles}";
     public string BytesText => $"{Utility.ComputeFileSize(Bytes)} / {Utility.ComputeFileSize(TotalBytes)}";
 
@@ -54,6 +68,14 @@ public class PackingInfomation
         TotalFiles = totalFiles;
         Bytes = bytes;
         TotalBytes = totalBytes;
+    }
+    public void Reset()
+    {
+        Running = false;
+        Files = 0;
+        TotalFiles = 0;
+        Bytes = 0;
+        TotalBytes = 0;
     }
 
     public void Start()
@@ -65,15 +87,33 @@ public class PackingInfomation
         Running = false; 
     }
 }
+public class CompleteInfomation
+{
+    public string PackagePath { get; set; } = "";
+    public long PackageSize { get; set; } = 0;
+    public int FilesCount { get; set; } = 0;
+    public TimeSpan UsedTime { get; set; } = TimeSpan.Zero;
+    public double Speed
+    {
+        get
+        {
+            if (UsedTime.TotalSeconds == 0) return 0;
+            return PackageSize / UsedTime.TotalSeconds;
+        }
+    }
+}
 
 public class CreatorModel
 {
-    public IndexCreator Index;
-    public CreateProperties Properties;
-    public PackingInfomation PackingInfo;
-    private CancellationTokenSource? cancelSource;
+    public IndexCreator Index { get; init; }
+    public CreateProperties Properties { get; init; }
+    public PackingInfomation PackingInfo { get; init; }
+    private CancellationTokenSource? cancelSource { get; set; }
+    public CompleteInfomation CompleteInfo { get; init; }
 
-    //1:Index 2:Properties 3:Packing 4:Complete
+    /// <summary>
+    /// 1:Index 2:Properties 3:Packing 4:Complete
+    /// </summary>
     public int Step { 
         get; 
         set {
@@ -90,6 +130,7 @@ public class CreatorModel
         Index = new IndexCreator();
         Properties = new CreateProperties();
         PackingInfo = new PackingInfomation();
+        CompleteInfo = new CompleteInfomation();
     }
 
     public void NextStep()
@@ -100,7 +141,11 @@ public class CreatorModel
         }
         else if (Step == 2)
         {
-            if (Properties.Check()) Step++;
+            if (Properties.Check())
+            {
+                PackingInfo.Update(0, Index.FilesCount, 0, Index.SumFilesSize());
+                Step++;
+            }
         }
         else if (Step == 3)
         {
@@ -116,8 +161,9 @@ public class CreatorModel
     }
     public void Reset()
     {
-        Index = new IndexCreator();
-        Properties = new CreateProperties();
+        Index.Reset();
+        Properties.Reset();
+        PackingInfo.Reset();
         Step = 1;
     }
 
@@ -141,12 +187,14 @@ public class CreatorModel
                 Properties.Description,
                 [.. Properties.Tags]);
             IImageResizer? imageResizer = GetImageResizer();
-            Progress<PZProgressState> progress = new();
+            PZProgress<PZProgressState> progress = new();
             progress.ProgressChanged += (s, e) =>
             {
                 PackingInfo.Update(e.ProcessedFiles, e.Files, e.ProcessedBytes, e.Bytes);
                 OnPackingProgressed?.Invoke();
             };
+
+            DateTime startTime = DateTime.Now;
 
             cancelSource = new CancellationTokenSource();
             PackingInfo.Start();
@@ -161,6 +209,11 @@ public class CreatorModel
             }
             else
             {
+                CompleteInfo.PackagePath = savePath;
+                CompleteInfo.PackageSize = total;
+                CompleteInfo.UsedTime = DateTime.Now - startTime;
+                CompleteInfo.FilesCount = Index.FilesCount;
+
                 NextStep();
             }
 

@@ -26,7 +26,7 @@ public class ExplorerModel
             }
         }
     }
-    public void ClosePackage() 
+    public void ClosePackage()
     {
         Model?.Close();
         OnPackageClosed?.Invoke();

@@ -2,6 +2,7 @@
 using Avalonia.Markup.Declarative;
 using Avalonia.Media;
 using Avalonia.Styling;
+using HarfBuzzSharp;
 using Material.Icons;
 using PZPK.Core;
 using PZPK.Desktop.Common;
@@ -85,7 +86,7 @@ public class PropertiesPanel(CreatorModel vm) : ComponentBase<CreatorModel>(vm)
                         .VerticalAlignment(Avalonia.Layout.VerticalAlignment.Center)
                 );
     }
-    protected override object Build(CreatorModel vm)
+    protected override object Build(CreatorModel? vm)
     {
         if (vm is null) throw new InvalidOperationException("ViewModel cannot be null");
         var index = vm.Index;
@@ -178,13 +179,29 @@ public class PropertiesPanel(CreatorModel vm) : ComponentBase<CreatorModel>(vm)
 
     protected override void OnCreated()
     {
-        base.OnAfterInitialized();
-        ViewModel?.OnStepChanged += StateHasChanged;
+        base.OnCreated();
+        ViewModel?.OnStepChanged += OnStepChanged;
     }
+    private void OnStepChanged()
+    {
+        if (ViewModel?.Step != 2) return;
+
+        Tags.Clear();
+        var props = ViewModel?.Properties;
+        if (props != null)
+        {
+            foreach (var tag in props.Tags)
+            {
+                Tags.Add(new TagItem(tag, this));
+            }
+        }
+
+        StateHasChanged();
+    }
+
 
     private readonly int[] BlockSizes =
     [
-        Constants.Sizes.t_4KB,
         Constants.Sizes.t_64KB,
         Constants.Sizes.t_256KB,
         Constants.Sizes.t_1MB,

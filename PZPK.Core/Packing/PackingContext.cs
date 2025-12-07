@@ -54,10 +54,11 @@ internal class PackingContext
         ProgressState.CurrentProcessedBytes = processed;
         Progress?.Report(ProgressState);
     }
-    public void FileComplete(PZIndexFile file, long processedSize, long offset, string? newName)
+    public void FileComplete(PZIndexFile file, long processedSize, long offset, string? newName, long? newSize)
     {
         newName ??= file.Name;
-        PZFile pzFile = new(newName, file.Id, file.Pid, offset, processedSize, file.Size);
+        var originalSize = newSize ?? file.Size;
+        PZFile pzFile = new(newName, file.Id, file.Pid, offset, processedSize, originalSize);
         _files.Add(pzFile.Id, pzFile);
 
         EnsureFolder(pzFile.Pid);

@@ -77,7 +77,7 @@ public class IndexPanel(CreatorModel vm) : ComponentBase<CreatorModel>(vm)
 
         return controls;
     }
-    override protected object Build(CreatorModel vm)
+    override protected object Build(CreatorModel? vm)
     {
         if (vm is null) throw new InvalidOperationException("ViewModel cannot be null");
         var suki = App.Instance.Suki;
@@ -114,19 +114,28 @@ public class IndexPanel(CreatorModel vm) : ComponentBase<CreatorModel>(vm)
                     )
             );
     }
+    protected override void OnCreated()
+    {
+        base.OnCreated();
+        ViewModel?.OnStepChanged += OnStepChanged;
+    }
 
     private readonly IndexCreator Index = vm.Index;
     private PZIndexFolder Current = vm.Index.Root;
     private List<IPZItem> Items = [];
 
+    private void OnStepChanged()
+    {
+        if (ViewModel?.Step != 1) return;
+
+        Current = Index.Root;
+        UpdateList();
+    }
+
     private void OnItemDoubleTap(TappedEventArgs e)
     {
         if (e.Source is Control ctrl)
         {
-            // if (ctrl.DataContext is PZIndexFile file)
-            // {
-            //     ImagePreviewManager.OpenImage(file);
-            // }
             if (ctrl.DataContext is PZIndexFolder folder)
             {
                 EnterDirectory(folder);

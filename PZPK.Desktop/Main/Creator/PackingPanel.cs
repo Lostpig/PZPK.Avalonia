@@ -16,14 +16,25 @@ internal class PackingPanel(CreatorModel vm) : ComponentBase<CreatorModel>(vm)
 
         return VStackPanel(Avalonia.Layout.HorizontalAlignment.Center)
             .Children(
-                HStackPanel().Width(300)
+                new DockPanel().Height(40).Width(300)
                     .Children(
-                        PzTextBox(() => SavePath, v => SavePath = v)
-                            .IsReadOnly(true),
-                        SukiButton("Select")
-                            .Margin(20, 0, 0, 0)
-                            .OnClick(_ => SelectSavePath())
+                        PzText("SaveTo:")
+                            .VerticalAlignment(Avalonia.Layout.VerticalAlignment.Center)
+                            .Dock(Dock.Left),
+                        HStackPanel()
+                            .HorizontalAlignment(Avalonia.Layout.HorizontalAlignment.Right)
+                            .VerticalAlignment(Avalonia.Layout.VerticalAlignment.Center)
+                            .Dock(Dock.Right)
+                            .Children(
+                                SukiButton("Select")
+                                    .IsEnabled(() => !vm.PackingInfo.Running)
+                                    .OnClick(_ => SelectSavePath())
+                            )
                     ),
+                PzTextBox(() => SavePath, v => SavePath = v)
+                    .Margin(0, 10, 0, 0)
+                    .Width(300)
+                    .IsReadOnly(true),
                 new DockPanel().Height(40).Width(300).Margin(0, 10, 0, 0)
                     .Children(
                         PzText("Files:").Dock(Dock.Left),
@@ -65,10 +76,16 @@ internal class PackingPanel(CreatorModel vm) : ComponentBase<CreatorModel>(vm)
     {
         base.OnCreated();
 
-        ViewModel?.OnPackingProgressed += PackingPanel_OnPackingProgressed;
+        ViewModel?.OnStepChanged += OnStepChanged;
+        ViewModel?.OnPackingProgressed += OnPackingProgressed;
     }
 
-    private void PackingPanel_OnPackingProgressed()
+    private void OnStepChanged()
+    {
+        if (ViewModel?.Step != 3) return;
+        StateHasChanged();
+    }
+    private void OnPackingProgressed()
     {
         Dispatcher.UIThread.InvokeAsync(() =>
         {

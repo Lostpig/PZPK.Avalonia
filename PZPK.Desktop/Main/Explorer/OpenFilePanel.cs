@@ -5,18 +5,16 @@ using Avalonia.Platform.Storage;
 using Material.Icons;
 using PZPK.Desktop.Common;
 using SukiUI.Controls;
+using System;
 
 namespace PZPK.Desktop.Main.Explorer;
 using static PZPK.Desktop.Common.ControlHelpers;
 
-public class OpenFilePanel : ComponentBase
+public class OpenFilePanel(ExplorerModel vm) : ComponentBase<ExplorerModel>(vm)
 {
-    public OpenFilePanel(ExplorerModel service): base()
+    protected override object Build(ExplorerModel? vm)
     {
-        Service = service;
-    }
-    protected override object Build()
-    {
+        if (vm is null) throw new InvalidOperationException("ViewModel cannot be null");
         var primaryColor = App.Instance.Suki.GetSukiColor("SukiPrimaryColor");
 
         return new GlassCard()
@@ -56,7 +54,6 @@ public class OpenFilePanel : ComponentBase
             );
     }
 
-    private ExplorerModel Service { get; init; }
     private string SelectedPath { get; set; } = "";
     private string Password { get; set; } = "";
 
@@ -83,6 +80,6 @@ public class OpenFilePanel : ComponentBase
     }
     private void OpenPackage()
     {
-        Service.OpenPackage(SelectedPath, Password);
+        ViewModel?.OpenPackage(SelectedPath, Password);
     }
 }

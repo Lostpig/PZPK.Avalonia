@@ -7,7 +7,6 @@ using Material.Icons;
 using PZPK.Core;
 using PZPK.Desktop.Common;
 using PZPK.Desktop.ImagePreview;
-using PZPK.Desktop.Main;
 using SukiUI.Content;
 using SukiUI.Controls;
 using System;
@@ -95,7 +94,7 @@ public class ExplorerPanel(ExplorerModel vm) : ComponentBase<ExplorerModel>(vm)
 
         return controls;
     }
-    protected override object Build(ExplorerModel vm)
+    protected override object Build(ExplorerModel? vm)
     {
         if (vm is null) throw new InvalidOperationException("ViewModel cannot be null");
         var suki = App.Instance.Suki;
