@@ -20,7 +20,7 @@ using System.IO;
 namespace PZPK.Desktop.Main.Creator;
 using static Common.ControlHelpers;
 
-public class IndexPanel(CreatorModel vm) : ComponentBase<CreatorModel>(vm)
+public class IndexPanel : ComponentBase
 {
     protected override StyleGroup? BuildStyles()
     {
@@ -33,7 +33,7 @@ public class IndexPanel(CreatorModel vm) : ComponentBase<CreatorModel>(vm)
     {
         List<Control> controls = [];
         var current = Current;
-        var index = ViewModel?.Index;
+        var index = Model.Index;
 
         var normalBg = App.Instance.Suki.GetSukiColor("SukiBackground");
         var highlightBg = App.Instance.Suki.GetSukiColor("SukiStrongBackground");
@@ -77,9 +77,8 @@ public class IndexPanel(CreatorModel vm) : ComponentBase<CreatorModel>(vm)
 
         return controls;
     }
-    override protected object Build(CreatorModel? vm)
+    override protected object Build()
     {
-        if (vm is null) throw new InvalidOperationException("ViewModel cannot be null");
         var suki = App.Instance.Suki;
 
         return Grid(null, "50, 1*, 40")
@@ -103,8 +102,8 @@ public class IndexPanel(CreatorModel vm) : ComponentBase<CreatorModel>(vm)
                         SukiButton("Add Files").OnClick(_ => AddFiles()),
                         SukiButton("Add Folder").OnClick(_ => AddFolder()),
                         SukiButton("New Folder").OnClick(_ => NewFolder()),
-                        SukiButton("Resort").OnClick(_ => Resort()),
-                        SukiButton("Clear").OnClick(_ => Clear()),
+                        SukiButton("Resort", "Accent", "Outlined").OnClick(_ => Resort()),
+                        SukiButton("Clear", "Flat", "Warning").OnClick(_ => Clear()),
                         HStackPanel()
                             .HorizontalAlignment(HorizontalAlignment.Right)
                             .Dock(Dock.Right)
@@ -114,19 +113,26 @@ public class IndexPanel(CreatorModel vm) : ComponentBase<CreatorModel>(vm)
                     )
             );
     }
-    protected override void OnCreated()
+
+    public IndexPanel(CreatorModel model) : base(ViewInitializationStrategy.Lazy)
     {
-        base.OnCreated();
-        ViewModel?.OnStepChanged += OnStepChanged;
+        Model = model;
+        Index = model.Index;
+        Current = Index.Root;
+
+        Model.OnStepChanged += OnStepChanged;
+
+        Initialize();
     }
 
-    private readonly IndexCreator Index = vm.Index;
-    private PZIndexFolder Current = vm.Index.Root;
+    private readonly CreatorModel Model;
+    private readonly IndexCreator Index;
+    private PZIndexFolder Current;
     private List<IPZItem> Items = [];
 
     private void OnStepChanged()
     {
-        if (ViewModel?.Step != 1) return;
+        if (Model.Step != 1) return;
 
         Current = Index.Root;
         UpdateList();
@@ -164,7 +170,7 @@ public class IndexPanel(CreatorModel vm) : ComponentBase<CreatorModel>(vm)
 
     private void NewFolder()
     {
-        App.Instance.MainWindow.DialogManager.CreateDialog()
+        Model.Dialog.Manager.CreateDialog()
             .WithTitle("New Folder")
             .WithContent(new NameDialogContent())
             .WithActionButton("OK", (d) =>
@@ -174,7 +180,7 @@ public class IndexPanel(CreatorModel vm) : ComponentBase<CreatorModel>(vm)
                     var text = ndc.GetResult();
                     if (!string.IsNullOrWhiteSpace(text))
                     {
-                        ViewModel?.Index?.AddFolder(text.Trim(), Current);
+                        Index.AddFolder(text.Trim(), Current);
                         UpdateList();
                         d.Dismiss();
                     }
@@ -205,7 +211,7 @@ public class IndexPanel(CreatorModel vm) : ComponentBase<CreatorModel>(vm)
             }
             catch (Exception ex)
             {
-                Toast.Error(ex.Message);
+                Model.Toast.Error(ex.Message);
                 Logger.Instance.Log(ex.Message);
             }
             finally
@@ -237,7 +243,7 @@ public class IndexPanel(CreatorModel vm) : ComponentBase<CreatorModel>(vm)
             }
             catch (Exception ex)
             {
-                Toast.Error(ex.Message);
+                Model.Toast.Error(ex.Message);
                 Logger.Instance.Log(ex.Message);
             }
             finally
@@ -274,7 +280,7 @@ public class IndexPanel(CreatorModel vm) : ComponentBase<CreatorModel>(vm)
             w++;
         }
 
-        string dx = 'D' + w.ToString();
+        string dx = 'D' + (w + 1).ToString();
         int i = 0;
         foreach (var file in files)
         {
@@ -287,7 +293,7 @@ public class IndexPanel(CreatorModel vm) : ComponentBase<CreatorModel>(vm)
     }
     private async void Clear()
     {
-        var ok = await Dialog.Confirm("Sure to clear all files?");
+        var ok = await Model.Dialog.DeleteConfirm("Sure to clear all files?");
 
         if (ok)
         {
@@ -299,6 +305,6 @@ public class IndexPanel(CreatorModel vm) : ComponentBase<CreatorModel>(vm)
 
     private void Next()
     {
-        ViewModel?.NextStep();
+        Model.NextStep();
     }
 }

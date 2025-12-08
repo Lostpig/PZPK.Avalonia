@@ -22,10 +22,10 @@ public class ImagePreviewManager
 
     static public void OpenImage(PZFile file)
     {
-        if (PZPKPackageModel.Current == null) return;
+        if (PZPKPackage.Current == null) return;
         if (!FileTypeHelper.IsPicture(file)) return;
 
-        var idx = PZPKPackageModel.Current.Package.Index;
+        var idx = PZPKPackage.Current.Package.Index;
         var folder = idx.GetFolder(file.Pid);
         var files = idx.GetFiles(folder, false);
         var pictures = files.Where(f => FileTypeHelper.IsPicture(f)).ToList();

@@ -15,35 +15,59 @@ using TextMateSharp.Grammars;
 namespace PZPK.Desktop.Main.Notebook;
 using static PZPK.Desktop.Common.ControlHelpers;
 
-public class EditorPanel(NoteBookModel vm): ComponentBase<NoteBookModel>(vm)
+public class EditorPanel: ComponentBase
 {
-    private TextEditor BuildEditor()
+    private readonly NoteBookModel Model;
+    private TextEditor Editor { get; set; }
+    private RegistryOptions RegOptions { get; set; }
+    private TextMate.Installation TextMateInstallation { get; set; }
+    private readonly List<FontFamily> Fonts = [.. FontManager.Current.SystemFonts.OrderBy(f => f.Name)];
+
+    private Language SelectedLanguage { get; set; }
+    private FontFamily Font { get; set; } = FontFamily.Parse("Consolas");
+    private string ThemeText { get; set; } = Enum.GetName<ThemeName>(ThemeName.DarkPlus) ?? "DarkPlus";
+    private readonly Dictionary<string, ThemeName> Themes = [];
+    private int EditFontSize = 14;
+
+    private string Title { get; set; } = "";
+    private string Content { get; set; } = "";
+
+    private static readonly int[] FontSizes = [12, 14, 16, 18, 20, 24, 28, 32, 40, 48, 56, 64, 72];
+
+    public EditorPanel(NoteBookModel model) : base(ViewInitializationStrategy.Lazy)
     {
+        Model = model;
         RegOptions = new RegistryOptions(ThemeName.DarkPlus);
         SelectedLanguage = RegOptions.GetLanguageByExtension(".md");
 
-        Editor = new TextEditor();
-        Editor.FontFamily = Font;
-        Editor.FontSize = EditFontSize;
-        Editor.Background = Brushes.Transparent;
-        Editor.ShowLineNumbers = true;
+        Editor = new()
+        {
+            FontFamily = Font,
+            FontSize = EditFontSize,
+            Background = Brushes.Transparent,
+            ShowLineNumbers = true
+        };
         Editor.Options.ShowSpaces = true;
         Editor.FlowDirection = FlowDirection.LeftToRight;
         Editor.Resources.Add("TextAreaSelectionBrush", Brushes.DarkBlue);
-        // Editor.Options.HighlightCurrentLine = true;
 
-        return Editor;
+        TextMateInstallation = Editor.InstallTextMate(RegOptions);
+        var scopeName = RegOptions.GetScopeByLanguageId(SelectedLanguage.Id);
+        TextMateInstallation.SetGrammar(scopeName);
+
+        Initialize();
+
+        Model.NoteChanged += OnNoteChanged;
     }
-    protected override object Build(NoteBookModel? vm)
+
+    protected override object Build()
     {
-        InitializeModel();
         foreach (var theme in Enum.GetValues<ThemeName>())
         {
             var name = Enum.GetName<ThemeName>(theme)!;
             Themes.Add(name, theme);
         }
 
-        var editor = BuildEditor();
         return Grid(null, "80, 45, 1*").
             Children(
                 Grid("*, 200")
@@ -76,47 +100,22 @@ public class EditorPanel(NoteBookModel vm): ComponentBase<NoteBookModel>(vm)
                             .SelectedItem(() => Font, v => Font = (FontFamily)v)
                             .OnSelectionChanged(_ => UpdateFont()),
                         new ComboBox()
-                            .ItemsSource(new int[] { 12, 14, 16, 18, 20, 24, 28, 32, 40, 48, 56, 64, 72 })
+                            .ItemsSource(FontSizes)
                             .SelectedItem(() => EditFontSize, v => EditFontSize = (int)v)
-                            .OnSelectionChanged(_ => editor.FontSize = EditFontSize)
+                            .OnSelectionChanged(_ => Editor.FontSize = EditFontSize)
                     ),
                 new SukiUI.Controls.GlassCard()
                     .Row(2)
                     .Margin(30, 0, 30, 20)
                     .Content(
-                        editor
+                        Editor
                     )
             );
     }
-    protected override void OnAfterInitialized()
-    {
-        base.OnAfterInitialized();
-        TextMateInstallation = Editor.InstallTextMate(RegOptions);
-        var scopeName = RegOptions.GetScopeByLanguageId(SelectedLanguage.Id);
-        TextMateInstallation.SetGrammar(scopeName);
-    }
 
-    private TextEditor Editor;
-    private RegistryOptions RegOptions;
-    private TextMate.Installation TextMateInstallation;
-    private List<FontFamily> Fonts = FontManager.Current.SystemFonts.OrderBy(f => f.Name).ToList();
-
-    private Language SelectedLanguage { get; set; }
-    private FontFamily Font { get; set; } = FontFamily.Parse("Consolas");
-    private string ThemeText { get; set; } = Enum.GetName<ThemeName>(ThemeName.DarkPlus) ?? "DarkPlus";
-    private Dictionary<string, ThemeName> Themes = new();
-    private int EditFontSize = 14;
-
-    private string Title { get; set; } = "";
-    private string Content { get; set; } = "";
-
-    private void InitializeModel()
-    {
-        ViewModel?.NoteChanged += OnNoteChanged;
-    }
     private void OnNoteChanged()
     {
-        var note = ViewModel?.Note;
+        var note = Model.Note;
 
         Title = note?.Title ?? "";
         Content = note?.Content ?? "";
@@ -129,7 +128,7 @@ public class EditorPanel(NoteBookModel vm): ComponentBase<NoteBookModel>(vm)
     private void SaveNote()
     {
         Content = Editor.Text;
-        ViewModel?.ModifyNote(Title, Content);
+        Model.ModifyNote(Title, Content);
     }
     private void UpdateLanguage()
     {
@@ -151,10 +150,10 @@ public class EditorPanel(NoteBookModel vm): ComponentBase<NoteBookModel>(vm)
     }
     private async void OnDelete()
     {
-        var ok = await Dialog.Confirm("Sure to delete?");
+        var ok = await Model.Dialog.DeleteConfirm("Sure to delete?");
         if (ok)
         {
-            ViewModel?.DeleteNote();
+            Model.DeleteNote();
         }
     }
 }

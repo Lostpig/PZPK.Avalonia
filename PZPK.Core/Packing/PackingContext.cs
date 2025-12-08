@@ -10,6 +10,7 @@ internal class PackingContext
     public IImageResizer? ImageResizer { get; init; }
     public IndexCreator Index { get; init; }
     public PZProgressState ProgressState { get; init; }
+    public CancellationToken? CancelToken { get; init; }
 
     private readonly Dictionary<int, PZFile> _files = new();
     private readonly Dictionary<int, PZFolder> _folders = new();
@@ -22,12 +23,13 @@ internal class PackingContext
 
     public long TotalSize { get; private set; }
 
-    public PackingContext(PackingOptions options, IndexCreator index, IImageResizer? imageResizer, IProgress<PZProgressState>? progress)
+    public PackingContext(PackingOptions options, IndexCreator index, IImageResizer? imageResizer, IProgress<PZProgressState>? progress, CancellationToken? cancelToken)
     {
         Options = options;
         ImageResizer = imageResizer;
         Progress = progress;
         Index = index;
+        CancelToken = cancelToken;
 
         Files = Index.GetAllFiles();
         ProgressState = new PZProgressState();

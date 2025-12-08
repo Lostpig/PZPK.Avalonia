@@ -4,13 +4,13 @@ using System.IO;
 
 namespace PZPK.Desktop.Global;
 
-public class PZPKPackageModel
+public class PZPKPackage
 {
     static public bool HasOpened => Current != null;
-    public static PZPKPackageModel? Current { get; private set; }
+    public static PZPKPackage? Current { get; private set; }
     static public void Open(string file, string password)
     {
-        Current = new PZPKPackageModel(file, password);
+        Current = new PZPKPackage(file, password);
     }
 
     public Package Package { get; init; }
@@ -19,7 +19,7 @@ public class PZPKPackageModel
     public PackageIndex Index => Package.Index;
     public PZFolder Root => Index.Root;
 
-    private PZPKPackageModel(string file, string password)
+    private PZPKPackage(string file, string password)
     {
         var stream = File.Open(file, FileMode.Open, FileAccess.Read);
 

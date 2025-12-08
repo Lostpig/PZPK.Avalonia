@@ -8,12 +8,10 @@ using System.IO;
 namespace PZPK.Desktop.Main.Creator;
 using static Common.ControlHelpers;
 
-internal class PackingPanel(CreatorModel vm) : ComponentBase<CreatorModel>(vm)
+internal class PackingPanel : ComponentBase
 {
-    protected override object Build(CreatorModel? vm)
+    protected override object Build()
     {
-        if (vm is null) throw new InvalidOperationException("ViewModel cannot be null");
-
         return VStackPanel(Avalonia.Layout.HorizontalAlignment.Center)
             .Children(
                 new DockPanel().Height(40).Width(300)
@@ -27,62 +25,65 @@ internal class PackingPanel(CreatorModel vm) : ComponentBase<CreatorModel>(vm)
                             .Dock(Dock.Right)
                             .Children(
                                 SukiButton("Select")
-                                    .IsEnabled(() => !vm.PackingInfo.Running)
+                                    .IsEnabled(() => !Model.PackingInfo.Running)
                                     .OnClick(_ => SelectSavePath())
                             )
                     ),
-                PzTextBox(() => SavePath, v => SavePath = v)
+                PzTextBox(() => Model.PackingInfo.SavePath, v => Model.PackingInfo.SavePath = v)
                     .Margin(0, 10, 0, 0)
                     .Width(300)
                     .IsReadOnly(true),
                 new DockPanel().Height(40).Width(300).Margin(0, 10, 0, 0)
                     .Children(
                         PzText("Files:").Dock(Dock.Left),
-                        PzText(() => vm.PackingInfo.FilesText)
+                        PzText(() => Model.PackingInfo.FilesText)
                             .HorizontalAlignment(Avalonia.Layout.HorizontalAlignment.Right)
                             .Dock(Dock.Right)
                     ),
                 new DockPanel().Height(40).Width(300).Margin(0, 10, 0, 0)
                     .Children(
                         PzText("Bytes:").Dock(Dock.Left),
-                        PzText(() => vm.PackingInfo.BytesText)
+                        PzText(() => Model.PackingInfo.BytesText)
                             .HorizontalAlignment(Avalonia.Layout.HorizontalAlignment.Right)
                             .Dock(Dock.Right)
                     ),
                 new ProgressBar()
                     .Minimum(0)
                     .Maximum(100)
-                    .Value(() => vm.PackingInfo.Percent)
+                    .Value(() => Model.PackingInfo.Percent)
                     .Height(20)
                     .Width(480)
                     .Margin(0, 30, 0, 0),
                 HStackPanel().HorizontalAlignment(Avalonia.Layout.HorizontalAlignment.Center)
                     .Margin(0, 30, 0, 0)
                     .Children(
+                        SukiButton("Prev", "Accent", "Flat").Width(120)
+                            .Margin(0, 0, 20, 0)
+                            .IsEnabled(() => !Model.PackingInfo.Running)
+                            .OnClick(_ => Model.PreviousStep()),
                         SukiButton("Start").Width(120)
-                            .IsVisible(() => !vm.PackingInfo.Running)
+                            .IsVisible(() => !Model.PackingInfo.Running)
                             .OnClick(_ => StartPacking()),
-                        SukiButton("Cancel", "Flat", "Accent").Width(120)
-                            .IsVisible(() => vm.PackingInfo.Running)
-                            .OnClick(_ => CancelPacking()),
-                        SukiButton("Prev", "Accent").Width(120)
-                            .Margin(20, 0, 0, 0)
-                            .IsEnabled(() => !vm.PackingInfo.Running)
-                            .OnClick(_ => Prev())
+                        SukiButton("Cancel", "Danger").Width(120)
+                            .IsVisible(() => Model.PackingInfo.Running)
+                            .OnClick(_ => CancelPacking())
                     )
             );
     }
-    protected override void OnCreated()
+    public PackingPanel(CreatorModel model) : base(ViewInitializationStrategy.Lazy)
     {
-        base.OnCreated();
+        Model = model;
+        Model.OnStepChanged += OnStepChanged;
+        Model.OnPackingProgressed += OnPackingProgressed;
 
-        ViewModel?.OnStepChanged += OnStepChanged;
-        ViewModel?.OnPackingProgressed += OnPackingProgressed;
+        Initialize();
     }
+
+    private readonly CreatorModel Model;
 
     private void OnStepChanged()
     {
-        if (ViewModel?.Step != 3) return;
+        if (Model.Step != 3) return;
         StateHasChanged();
     }
     private void OnPackingProgressed()
@@ -93,7 +94,6 @@ internal class PackingPanel(CreatorModel vm) : ComponentBase<CreatorModel>(vm)
         });
     }
 
-    private string SavePath { get; set; } = "";
     private async void SelectSavePath()
     {
         TopLevel topLevel = TopLevel.GetTopLevel(this)!;
@@ -108,11 +108,11 @@ internal class PackingPanel(CreatorModel vm) : ComponentBase<CreatorModel>(vm)
             var localPath = file.Path.LocalPath;
             if (File.Exists(localPath))
             {
-                Toast.Error("File already exists.");
+                Model.Toast.Error("File already exists.");
             }
             else
             {
-                SavePath = localPath;
+                Model.PackingInfo.SavePath = localPath;
             }
 
             StateHasChanged();
@@ -121,21 +121,22 @@ internal class PackingPanel(CreatorModel vm) : ComponentBase<CreatorModel>(vm)
 
     private void StartPacking()
     {
-        if (string.IsNullOrWhiteSpace(SavePath))
+        if (string.IsNullOrWhiteSpace(Model.PackingInfo.SavePath))
         {
             return;
         }
 
-        ViewModel?.Start(SavePath);
+        Model.Start(Model.PackingInfo.SavePath);
         StateHasChanged();
     }
-    private void CancelPacking()
+    private async void CancelPacking()
     {
-        ViewModel?.Cancel();
-        StateHasChanged();
-    }
-    private void Prev()
-    {
-        ViewModel?.PreviousStep();
+        var sure = await Model.Dialog.WarningConfirm("Are you sure you want to cancel packing?");
+
+        if (sure)
+        {
+            Model.Cancel();
+            StateHasChanged();
+        }
     }
 }

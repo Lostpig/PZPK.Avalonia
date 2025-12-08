@@ -34,13 +34,17 @@ internal static class ControlHelpers
         };
     }
 
-    public static TextBlock PzText(Func<string> func)
+    public static TextBlock PzText(Func<string> func, params string[] classes)
     {
-        return new TextBlock().Text(func);
+        var ctrl = new TextBlock().Text(func);
+        foreach (var c in classes) ctrl.Classes.Add(c);
+        return ctrl;
     }
-    public static TextBlock PzText(string text)
+    public static TextBlock PzText(string text, params string[] classes)
     {
-        return new TextBlock() { Text = text };
+        var ctrl = new TextBlock() { Text = text };
+        foreach (var c in classes) ctrl.Classes.Add(c);
+        return ctrl;
     }
 
     public static TextBox PzTextBox(Func<string> func, Action<string>? onChange = null)

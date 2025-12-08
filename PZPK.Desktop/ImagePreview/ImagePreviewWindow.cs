@@ -25,9 +25,8 @@ struct MouseState
     public double LastY = 0;
     public bool Active = false;
 }
-public class ImagePreviewWindow : SukiWindow
+public class ImagePreviewWindow : PZWindowBase
 {
-    private readonly ISukiToastManager ToastManager = new SukiToastManager();
     private readonly PreviewModel Model;
     private readonly Image ImageRef;
     private readonly OperateBar OperateBarRef;
@@ -181,7 +180,7 @@ public class ImagePreviewWindow : SukiWindow
         File = newFile;
         try
         {
-            var bytes = PZPKPackageModel.Current!.Package.ExtractFile(File);
+            var bytes = PZPKPackage.Current!.Package.ExtractFile(File);
             using var bitmapStream = new MemoryStream(bytes);
             bitmapStream.Seek(0, SeekOrigin.Begin);
             Bitmap bitmap = new(bitmapStream);
@@ -210,11 +209,7 @@ public class ImagePreviewWindow : SukiWindow
         catch (Exception ex)
         {
             Debug.WriteLine(ex.Message);
-            ToastManager.CreateToast()
-                .WithTitle("Error")
-                .WithContent(ex.Message)
-                .Dismiss().After(TimeSpan.FromSeconds(3))
-                .Queue();
+            Toast.Error(ex.Message);
             ImageRef.Source = null;
         }
     }

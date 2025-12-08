@@ -98,7 +98,7 @@ internal class PZCryptoBase : IDisposable
         BlockReader reader = new(wrapper);
 
         Span<byte> input = new byte[blockSize];
-        Span<byte> output = new byte[global::PZPK.Core.Crypto.PZCryptoBase.ComputeEncryptedBlockSize(blockSize)];
+        Span<byte> output = new byte[ComputeEncryptedBlockSize(blockSize)];
         long totalWritten = 0;
 
         int readedBytes;

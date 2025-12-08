@@ -16,6 +16,7 @@ public static class Packer
 
         void currentProgress(long readed, long total)
         {
+            context.CancelToken?.ThrowIfCancellationRequested();
             context.FileProgress(readed, total);
         }
 
@@ -24,21 +25,21 @@ public static class Packer
         foreach (var file in context.Files)
         {
             using var fs = File.OpenRead(file.Source);
-            using var progressStream = new ProgressStream(fs, 0, fs.Length, currentProgress);
+            // using var progressStream = new ProgressStream(fs, 0, fs.Length, currentProgress);
 
             offset = writer.Position;
             string? newName = null;
             long? newSize = null;
             if (context.ImageResizer != null && context.ImageResizer.CheckIsImageFile(file))
             {
-                using var imgStream = context.ImageResizer.ResizeImage(progressStream);
-                size = crypto.EncryptStream(imgStream, writer);
+                using var imgStream = context.ImageResizer.ResizeImage(fs);
+                size = crypto.EncryptStream(imgStream, writer, currentProgress);
                 newName = Path.ChangeExtension(file.Name, context.ImageResizer.Extension);
                 newSize = imgStream.Length;
             }
             else
             {
-                size = crypto.EncryptStream(progressStream, writer);
+                size = crypto.EncryptStream(fs, writer, currentProgress);
             }
 
             Debug.Assert(size == writer.Position - offset);
@@ -175,7 +176,7 @@ public static class Packer
         }
 
         using FileStream writer = new(destination, FileMode.Create, FileAccess.Write);
-        PackingContext context = new(options, index, imageResizer, progress);
+        PackingContext context = new(options, index, imageResizer, progress, null);
         return ExcutePack(writer, context);
     }
     public static async Task<long> PackAsync(
@@ -192,7 +193,7 @@ public static class Packer
         }
 
         FileStream writer = new(destination, FileMode.Create, FileAccess.Write);
-        PackingContext context = new(options, index, imageResizer, progress);
+        PackingContext context = new(options, index, imageResizer, progress, cancelToken);
         var total = await Task.Run(() => ExcutePack(writer, context), cancelToken ?? CancellationToken.None);
 
         await writer.DisposeAsync();

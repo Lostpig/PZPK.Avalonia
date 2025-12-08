@@ -120,14 +120,14 @@ public class NoteListPanel : Border
 
     private void InitializeModel()
     {
-        ViewModel?.NoteBookChanged += NoteBookChanged;
-        ViewModel?.NoteModified += UpdateItem;
-        ViewModel?.NoteDeleted += DeleteItem;
+        ViewModel.NoteBookChanged += NoteBookChanged;
+        ViewModel.NoteModified += UpdateItem;
+        ViewModel.NoteDeleted += DeleteItem;
     }
 
     private void NoteBookChanged()
     {
-        var notebook = ViewModel?.Notebook;
+        var notebook = ViewModel.Notebook;
 
         if (notebook != null)
         {
@@ -150,7 +150,7 @@ public class NoteListPanel : Border
     }
     private void AddNote()
     {
-        var notebook = ViewModel?.Notebook;
+        var notebook = ViewModel.Notebook;
         if (notebook is null) return;
 
         var newNote = notebook.AddNote();
@@ -177,7 +177,7 @@ public class NoteListPanel : Border
             if (n.IsSelected && n != item) n.IsSelected = false;
         }
 
-        ViewModel?.SelectNote(item.Data);
+        ViewModel.SelectNote(item.Data);
     }
     private void DeleteItem(int id)
     {
@@ -199,17 +199,17 @@ public class NoteListPanel : Border
             }
             else
             {
-                ViewModel?.SelectNote(null);
+                ViewModel.SelectNote(null);
             }
         }
     }
 
     private void SaveNoteBook()
     {
-        ViewModel?.Save();
+        ViewModel.Save();
     }
     private void CloseNoteBook()
     {
-        ViewModel?.Close();
+        ViewModel.Close();
     }
 }

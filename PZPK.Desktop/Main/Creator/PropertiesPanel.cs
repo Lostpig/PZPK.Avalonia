@@ -2,18 +2,15 @@
 using Avalonia.Markup.Declarative;
 using Avalonia.Media;
 using Avalonia.Styling;
-using HarfBuzzSharp;
 using Material.Icons;
 using PZPK.Core;
 using PZPK.Desktop.Common;
 using System;
-using System.Linq;
 
 namespace PZPK.Desktop.Main.Creator;
 using static Common.ControlHelpers;
 
-
-public class PropertiesPanel(CreatorModel vm) : ComponentBase<CreatorModel>(vm)
+public class PropertiesPanel: ComponentBase
 {
     private class TagItem : ContentControl
     {
@@ -86,13 +83,10 @@ public class PropertiesPanel(CreatorModel vm) : ComponentBase<CreatorModel>(vm)
                         .VerticalAlignment(Avalonia.Layout.VerticalAlignment.Center)
                 );
     }
-    protected override object Build(CreatorModel? vm)
+    protected override object Build()
     {
-        if (vm is null) throw new InvalidOperationException("ViewModel cannot be null");
-        var index = vm.Index;
-        var props = vm.Properties;
-        TagContainer = new WrapPanel().Margin(225, 0, 0, 0);
-        Tags = new PzControls<TagItem>(TagContainer.Children);
+        var index = Model.Index;
+        var props = Model.Properties;
 
         return Grid(null, "*, 40")
             .Children(
@@ -171,23 +165,28 @@ public class PropertiesPanel(CreatorModel vm) : ComponentBase<CreatorModel>(vm)
                 new Canvas()
                     .Row(1)
                     .Children(
-                        SukiButton("Prev", "Accent", "Flat").Canvas_Left(0).OnClick(_ => vm.PreviousStep()),
-                        SukiButton("Next", "Flat").Canvas_Right(0).OnClick(_ => vm.NextStep())
+                        SukiButton("Prev", "Accent", "Flat").Canvas_Left(0).OnClick(_ => Model.PreviousStep()),
+                        SukiButton("Next", "Flat").Canvas_Right(0).OnClick(_ => Model.NextStep())
                     )
             );
     }
 
-    protected override void OnCreated()
+    public PropertiesPanel(CreatorModel model): base(ViewInitializationStrategy.Lazy)
     {
-        base.OnCreated();
-        ViewModel?.OnStepChanged += OnStepChanged;
+        Model = model;
+        Model.OnStepChanged += OnStepChanged;
+
+        TagContainer = new WrapPanel().Margin(225, 0, 0, 0);
+        Tags = new PzControls<TagItem>(TagContainer.Children);
+
+        Initialize();
     }
     private void OnStepChanged()
     {
-        if (ViewModel?.Step != 2) return;
+        if (Model.Step != 2) return;
 
         Tags.Clear();
-        var props = ViewModel?.Properties;
+        var props = Model.Properties;
         if (props != null)
         {
             foreach (var tag in props.Tags)
@@ -199,7 +198,7 @@ public class PropertiesPanel(CreatorModel vm) : ComponentBase<CreatorModel>(vm)
         StateHasChanged();
     }
 
-
+    private readonly CreatorModel Model;
     private readonly int[] BlockSizes =
     [
         Constants.Sizes.t_64KB,
@@ -217,13 +216,12 @@ public class PropertiesPanel(CreatorModel vm) : ComponentBase<CreatorModel>(vm)
         ImageResizerFormat.Webp,
     ];
 
-    private WrapPanel TagContainer;
-    private PzControls<TagItem> Tags;
+    private WrapPanel TagContainer { get; init; }
+    private PzControls<TagItem> Tags { get; init; }
     private string TempTag { get; set; } = "";
     private void AddTag()
     {
-        var props = ViewModel?.Properties;
-        if (props == null) return;
+        var props = Model.Properties;
         var tag = TempTag.Trim();
         if (!string.IsNullOrEmpty(tag) && !props.Tags.Contains(tag))
         {
@@ -236,9 +234,7 @@ public class PropertiesPanel(CreatorModel vm) : ComponentBase<CreatorModel>(vm)
     }
     private void RemoveTag(TagItem tag)
     {
-        var props = ViewModel?.Properties;
-        if (props == null) return;
-
+        var props = Model.Properties;
         if (props.Tags.Contains(tag.Data))
         {
             props.Tags.Remove(tag.Data);

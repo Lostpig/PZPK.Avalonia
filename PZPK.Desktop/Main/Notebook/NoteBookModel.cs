@@ -5,7 +5,7 @@ using System;
 namespace PZPK.Desktop.Main.Notebook;
 using PZNotebook = PZPK.Core.Note.NoteBook;
 
-public class NoteBookModel
+public class NoteBookModel : PageModelBase
 {
     public PZNotebook? Notebook { get; private set; }
     public Note? Note { get; private set; }

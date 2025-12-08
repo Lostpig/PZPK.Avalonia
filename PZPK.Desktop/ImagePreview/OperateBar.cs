@@ -5,12 +5,11 @@ using Avalonia.Styling;
 using PZPK.Desktop.Common;
 using System;
 using Avalonia.Layout;
-using System.Linq;
 
 namespace PZPK.Desktop.ImagePreview;
 using static PZPK.Desktop.Common.ControlHelpers;
 
-public class OperateBar(PreviewModel vm) : ComponentBase<PreviewModel>(vm)
+public class OperateBar: ComponentBase
 {
     protected override StyleGroup? BuildStyles()
     {
@@ -27,9 +26,8 @@ public class OperateBar(PreviewModel vm) : ComponentBase<PreviewModel>(vm)
         ];
     }
 
-    protected override object Build(PreviewModel vm)
+    protected override object Build()
     {
-        if (vm is null) throw new InvalidOperationException("ViewModel cannot be null");
         var bgColor = App.Instance.Suki.GetSukiColor("SukiControlBorderBrush");
 
         return VStackPanel(HorizontalAlignment.Center).Classes("container")
@@ -45,7 +43,7 @@ public class OperateBar(PreviewModel vm) : ComponentBase<PreviewModel>(vm)
                                 .Classes("items-stack")
                                 .Children(
                                     SukiButton("-").OnClick(_ => ScaleChange?.Invoke(-0.1)),
-                                    PzText(() => vm.ScalePercent),
+                                    PzText(() => Model.ScalePercent),
                                     SukiButton("+").OnClick(_ => ScaleChange?.Invoke(0.1)),
                                     SukiButton("OriginalSize").OnClick(_ => ToOriginSize?.Invoke()),
                                     SukiButton("FitToWidth").OnClick(_ => FitToWidth?.Invoke()),
@@ -55,7 +53,7 @@ public class OperateBar(PreviewModel vm) : ComponentBase<PreviewModel>(vm)
                                     SukiButton("Next").OnClick(_ => ImageChange?.Invoke(1)),
                                     PzSeparatorH(),
                                     new ComboBox().Width(120)
-                                        .SelectedIndex(() => (int)vm.Lock, i => vm.Lock = (LockMode)i)
+                                        .SelectedIndex(() => (int)Model.Lock, i => Model.Lock = (LockMode)i)
                                         .Items(
                                             new ComboBoxItem().Content("None"),
                                             new ComboBoxItem().Content("Lock scale"),
@@ -75,4 +73,11 @@ public class OperateBar(PreviewModel vm) : ComponentBase<PreviewModel>(vm)
     public event Action? ToOriginSize;
     public event Action? FitToWidth;
     public event Action? FitToHeight;
+
+    private readonly PreviewModel Model;
+    public OperateBar(PreviewModel model) : base(ViewInitializationStrategy.Lazy)
+    {
+        Model = model;
+        Initialize();
+    }
 }

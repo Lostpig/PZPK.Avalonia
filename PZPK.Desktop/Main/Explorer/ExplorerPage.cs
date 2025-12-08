@@ -9,17 +9,21 @@ public class ExplorerPage : ComponentBase
 {
     protected override object Build()
     {
-        _model.OnPackageOpened += StateHasChanged;
-        _model.OnPackageClosed += StateHasChanged;
+        Model.OnPackageOpened += StateHasChanged;
+        Model.OnPackageClosed += StateHasChanged;
+        Model.OnExtractingChanged += _ => StateHasChanged();
 
         return new Panel()
             .Children(
-                new OpenFilePanel(_model)
-                    .IsVisible(() => _model.Model is null),
-                new ExplorerPanel(_model)
-                    .IsVisible(() => _model.Model is not null)
+                new ExtractingPanel(Model)
+                    .ZIndex(99)
+                    .IsVisible(() => Model.Extracting),
+                new OpenFilePanel(Model)
+                    .IsVisible(() => Model.Package is null),
+                new ExplorerPanel(Model)
+                    .IsVisible(() => Model.Package is not null)
             );
     }
 
-    private ExplorerModel _model = new();
+    private readonly ExplorerModel Model = new();
 }

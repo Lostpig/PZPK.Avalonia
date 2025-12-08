@@ -68,6 +68,8 @@ public class Package : IDisposable
 
         void currentProgress(long readed, long total)
         {
+            cancelToken?.ThrowIfCancellationRequested();
+
             state.CurrentBytes = total;
             state.CurrentProcessedBytes = readed;
             progress?.Report(state);
@@ -75,7 +77,7 @@ public class Package : IDisposable
         return Task.Run(() => ExtractFileStream(file, destination, currentProgress), cancelToken ?? CancellationToken.None);
     }
 
-    public int ExtractFolder(PZFolder folder, DirectoryInfo destination, IProgress<PZProgressState>? progress = default)
+    public int ExtractFolder(PZFolder folder, DirectoryInfo destination, IProgress<PZProgressState>? progress = default, CancellationToken? cancelToken = null)
     {
         if (!destination.Exists)
         {
@@ -89,6 +91,8 @@ public class Package : IDisposable
         state.Bytes = files.Sum(f => f.Size);
         void currentProgress(long readed, long total)
         {
+            cancelToken?.ThrowIfCancellationRequested();
+
             state.CurrentBytes = total;
             state.CurrentProcessedBytes = readed;
             progress?.Report(state);

@@ -52,6 +52,8 @@ public class CreateProperties
 }
 public class PackingInfomation
 {
+    public string SavePath { get; set; } = "";
+
     public bool Running { get; private set; } = false;
     public int Files { get; private set; }  = 0;
     public int TotalFiles { get; private set; } = 0;
@@ -103,12 +105,12 @@ public class CompleteInfomation
     }
 }
 
-public class CreatorModel
+public class CreatorModel : PageModelBase
 {
     public IndexCreator Index { get; init; }
     public CreateProperties Properties { get; init; }
     public PackingInfomation PackingInfo { get; init; }
-    private CancellationTokenSource? cancelSource { get; set; }
+    private CancellationTokenSource? CancelSource { get; set; }
     public CompleteInfomation CompleteInfo { get; init; }
 
     /// <summary>
@@ -196,15 +198,15 @@ public class CreatorModel
 
             DateTime startTime = DateTime.Now;
 
-            cancelSource = new CancellationTokenSource();
+            CancelSource = new CancellationTokenSource();
             PackingInfo.Start();
-            long total = await Packer.PackAsync(savePath, Index, options, progress, imageResizer, cancelSource.Token);
+            long total = await Packer.PackAsync(savePath, Index, options, progress, imageResizer, CancelSource.Token);
             PackingInfo.Complete();
 
-            if (cancelSource.IsCancellationRequested)
+            if (CancelSource.IsCancellationRequested)
             {
                 PackingInfo.Update(0, Index.FilesCount, 0, Index.SumFilesSize());
-                Toast.ShowToast("Info", "Packing canceled!");
+                Toast.Warning("Info", "Packing canceled!");
                 OnPackingProgressed?.Invoke();
             }
             else
@@ -214,17 +216,18 @@ public class CreatorModel
                 CompleteInfo.UsedTime = DateTime.Now - startTime;
                 CompleteInfo.FilesCount = Index.FilesCount;
 
+                Toast.Success("Success", "Packing complete!");
                 NextStep();
             }
 
-            cancelSource = null;
+            CancelSource = null;
         }
     }
     public void Cancel()
     {
-        if (cancelSource != null && !cancelSource.IsCancellationRequested)
+        if (CancelSource != null && !CancelSource.IsCancellationRequested)
         {
-            cancelSource.Cancel();
+            CancelSource.Cancel();
         }
     }
 }

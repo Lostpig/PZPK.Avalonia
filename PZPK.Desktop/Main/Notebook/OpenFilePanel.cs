@@ -14,7 +14,7 @@ using System.IO;
 namespace PZPK.Desktop.Main.Notebook;
 using static PZPK.Desktop.Common.ControlHelpers;
 
-public class OpenFilePanel(NoteBookModel vm) : ComponentBase<NoteBookModel>(vm)
+public class OpenFilePanel : ComponentBase
 {
     private StackPanel BuildOpenTab()
     {
@@ -50,7 +50,6 @@ public class OpenFilePanel(NoteBookModel vm) : ComponentBase<NoteBookModel>(vm)
                         .OnClick(_ => OpenNotebook())
                 );
     }
-
     private StackPanel BuildCreateTab()
     {
         var primaryColor = App.Instance.Suki.GetSukiColor("SukiPrimaryColor");
@@ -89,12 +88,11 @@ public class OpenFilePanel(NoteBookModel vm) : ComponentBase<NoteBookModel>(vm)
                         .OnClick(_ => CreateNotebook())
                 );
     }
-
-    protected override object Build(NoteBookModel? vm)
+    protected override object Build()
     {
         return new GlassCard()
             .Width(380)
-            .Height(420)
+            .Height(450)
             .Content(
                 new TabControl().Items(
                     new TabItem().Header("Open").Content(BuildOpenTab()),
@@ -103,6 +101,12 @@ public class OpenFilePanel(NoteBookModel vm) : ComponentBase<NoteBookModel>(vm)
             );
     }
 
+    public OpenFilePanel(NoteBookModel model): base(ViewInitializationStrategy.Lazy)
+    {
+        Model = model;
+        Initialize();
+    }
+    private NoteBookModel Model;
     private string SelectedPath = "";
     private string Password = "";
 
@@ -145,7 +149,7 @@ public class OpenFilePanel(NoteBookModel vm) : ComponentBase<NoteBookModel>(vm)
             var localPath = file.Path.LocalPath;
             if (File.Exists(localPath))
             {
-                Toast.Error("File already exists.");
+                Model.Toast.Error("File already exists.");
             }
             else
             {
@@ -158,11 +162,11 @@ public class OpenFilePanel(NoteBookModel vm) : ComponentBase<NoteBookModel>(vm)
 
     private void OpenNotebook()
     {
-        ViewModel?.Open(SelectedPath, Password);
+        Model.Open(SelectedPath, Password);
     }
     private void CreateNotebook()
     {
-        ViewModel?.Create(CreatePath, CreatePw, CreateRepeatPw);
+        Model.Create(CreatePath, CreatePw, CreateRepeatPw);
     }
 }
 

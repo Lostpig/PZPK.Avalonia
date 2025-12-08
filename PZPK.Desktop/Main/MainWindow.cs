@@ -1,19 +1,15 @@
 ﻿using Avalonia.Controls;
 using Avalonia.Platform;
+using PZPK.Desktop.Global;
 using SukiUI.Controls;
-using SukiUI.Dialogs;
-using SukiUI.Toasts;
 using System;
 
 namespace PZPK.Desktop.Main;
 
 using static Common.ControlHelpers;
 
-public class MainWindow : SukiWindow
+public class MainWindow : PZWindowBase
 {
-    public ISukiToastManager ToastManager { get; init; }
-    public ISukiDialogManager DialogManager { get; init; }
-
     public MainWindow() : base()
     {
         var sideMenu = new SukiSideMenu()
@@ -35,18 +31,10 @@ public class MainWindow : SukiWindow
 
         Content = sideMenu;
 
-        ToastManager = new SukiToastManager();
-        DialogManager = new SukiDialogManager();
-        var ToastHost = new SukiToastHost { Manager = ToastManager };
-        var DialogHost = new SukiDialogHost() { Manager = DialogManager };
-
-        Hosts.Add(ToastHost);
-        Hosts.Add(DialogHost);
-
         var icon = AssetLoader.Open(new Uri($"avares://PZPK.Desktop/avalonia-logo.ico"));
         Icon = new WindowIcon(icon);
 
-        Title = "PZPK Desktop Mvu";
+        Title = "PZPK Desktop";
         Width = 1280;
         Height = 720;
     }

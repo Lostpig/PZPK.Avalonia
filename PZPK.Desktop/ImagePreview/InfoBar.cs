@@ -9,7 +9,7 @@ using System;
 namespace PZPK.Desktop.ImagePreview;
 using static PZPK.Desktop.Common.ControlHelpers;
 
-public class InfoBar(PreviewModel vm) : ComponentBase<PreviewModel>(vm)
+public class InfoBar: ComponentBase
 {
     protected override StyleGroup? BuildStyles()
     {
@@ -23,9 +23,8 @@ public class InfoBar(PreviewModel vm) : ComponentBase<PreviewModel>(vm)
                 .VerticalAlignment(VerticalAlignment.Center)
         ];
     }
-    protected override object Build(PreviewModel vm)
+    protected override object Build()
     {
-        if (vm is null) throw new InvalidOperationException("ViewModel cannot be null");
         var bgColor = App.Instance.Suki.GetSukiColor("SukiDialogBackground");
 
         return VStackPanel(HorizontalAlignment.Center).Classes("container")
@@ -40,17 +39,24 @@ public class InfoBar(PreviewModel vm) : ComponentBase<PreviewModel>(vm)
                             .Height(40)
                             .Classes("items-stack")
                             .Children(
-                                PzText(() => vm.FileName),
+                                PzText(() => Model.FileName),
                                 PzSeparatorH(),
-                                PzText(() => vm.Current.ToString()),
+                                PzText(() => Model.Current.ToString()),
                                 PzText("/"),
-                                PzText(() => vm.Total.ToString()),
+                                PzText(() => Model.Total.ToString()),
                                 PzSeparatorH(),
-                                PzText(() => vm.SizeText),
+                                PzText(() => Model.SizeText),
                                 PzSeparatorH(),
-                                PzText(() => vm.FileSizeText)
+                                PzText(() => Model.FileSizeText)
                             )
                     )
             );
+    }
+
+    private readonly PreviewModel Model;
+    public InfoBar(PreviewModel model) : base(ViewInitializationStrategy.Lazy)
+    {
+        Model = model;
+        Initialize();
     }
 }
