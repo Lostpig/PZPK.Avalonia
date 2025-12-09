@@ -1,5 +1,4 @@
 ﻿using PZPK.Core.Note;
-using PZPK.Desktop.Main;
 using System;
 
 namespace PZPK.Desktop.Main.Notebook;
@@ -7,6 +6,17 @@ using PZNotebook = PZPK.Core.Note.NoteBook;
 
 public class NoteBookModel : PageModelBase
 {
+    private static NoteBookModel? _instance;
+    public static NoteBookModel Instance
+    {
+        get
+        {
+            _instance ??= new();
+            return _instance;
+        }
+    }
+
+
     public PZNotebook? Notebook { get; private set; }
     public Note? Note { get; private set; }
 
@@ -14,6 +24,8 @@ public class NoteBookModel : PageModelBase
     public Action? NoteBookChanged;
     public Action<int>? NoteDeleted;
     public Action<Note>? NoteModified;
+
+    private NoteBookModel() { }
 
     public void SelectNote(Note? note)
     {

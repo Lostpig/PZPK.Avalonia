@@ -55,6 +55,18 @@ public class Package : IDisposable
         var length = _crypto.DecryptFile(_stream, file, decrypted);
         return decrypted[..length].ToArray();
     }
+
+    public long ExtractFileToPath(PZFile file, string destination, Action<long, long>? progress = default)
+    {
+        var dir = Path.GetDirectoryName(destination);
+        if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
+        {
+            Directory.CreateDirectory(dir);
+        }
+
+        using FileStream fs = File.Create(destination);
+        return _crypto.DecryptStream(_stream, file.Offset, file.Size, fs, progress);
+    }
     public long ExtractFileStream(PZFile file, Stream destination, Action<long, long>? progress = default)
     {
         return _crypto.DecryptStream(_stream, file.Offset, file.Size, destination, progress);
@@ -102,8 +114,7 @@ public class Package : IDisposable
         {
             string resolveFilePath = Index.GetResolvePath(file, folder);
             string dest = Path.Combine(destination.FullName, resolveFilePath);
-            using FileStream fs = File.Create(dest);
-            ExtractFileStream(file, fs, currentProgress);
+            ExtractFileToPath(file, dest, currentProgress);
 
             state.ProcessedBytes += file.Size;
             state.ProcessedFiles++;
@@ -114,7 +125,63 @@ public class Package : IDisposable
     }
     public Task<int> ExtractFolderAsync(PZFolder folder, DirectoryInfo destination, IProgress<PZProgressState>? progress = default, CancellationToken? cancelToken = null)
     {
-        return Task.Run(() => ExtractFolder(folder, destination, progress), cancelToken ?? CancellationToken.None);
+        return Task.Run(() => ExtractFolder(folder, destination, progress, cancelToken), cancelToken ?? CancellationToken.None);
+    }
+
+    public int ExtractBatch(List<IPZItem> items, DirectoryInfo destination, IProgress<PZProgressState>? progress = default, CancellationToken? cancelToken = null)
+    {
+        if (items.Count == 0) return 0;
+        if (!destination.Exists)
+        {
+            destination.Create();
+        }
+
+        PZFolder parentFolder = Index.GetFolder(items[0].Pid);
+        List<PZFile> totalFiles = [];
+        foreach (var item in items)
+        {
+            if (item.Pid != parentFolder.Id)
+            {
+                throw new ArgumentException("All items must be in the same parent folder.");
+            }
+
+            if (item is PZFile file)
+            {
+                totalFiles.Add(file);
+            }
+            else if (item is PZFolder folder)
+            {
+                totalFiles.AddRange(Index.GetFiles(folder, true));
+            }
+        }
+
+        PZProgressState state = new();
+        state.Reset();
+        state.Files = totalFiles.Count;
+        state.Bytes = totalFiles.Sum(f => f.Size);
+        void currentProgress(long readed, long total)
+        {
+            cancelToken?.ThrowIfCancellationRequested();
+            state.CurrentBytes = total;
+            state.CurrentProcessedBytes = readed;
+            progress?.Report(state);
+        }
+
+        foreach (var file in totalFiles)
+        {
+            string resolveFilePath = Index.GetResolvePath(file, parentFolder);
+            string dest = Path.Combine(destination.FullName, resolveFilePath);
+            ExtractFileToPath(file, dest, currentProgress);
+
+            state.ProcessedBytes += file.Size;
+            state.ProcessedFiles++;
+            progress?.Report(state);
+        }
+        return state.Files;
+    }
+    public Task<int> ExtractBatchAsync(List<IPZItem> items, DirectoryInfo destination, IProgress<PZProgressState>? progress = default, CancellationToken? cancelToken = null)
+    {
+        return Task.Run(() => ExtractBatch(items, destination, progress, cancelToken), cancelToken ?? CancellationToken.None);
     }
 
     public PZFileStream GetFileStream(PZFile file)

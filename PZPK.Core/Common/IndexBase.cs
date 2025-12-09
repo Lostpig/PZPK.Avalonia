@@ -2,7 +2,18 @@
 
 namespace PZPK.Core;
 
-public abstract class IndexBase<TFolder, TFile> where TFolder : IPZFolder where TFile : IPZFile
+public interface IPZIndex<TFolder, TFile> where TFolder : IPZFolder where TFile : IPZFile
+{
+    TFolder GetFolder(int id);
+    TFile GetFile(int id);
+    List<TFile> GetFiles(TFolder folder, bool recursive);
+    List<TFolder> GetFolders(TFolder parent, bool recursive);
+    List<TFile> GetAllFiles();
+    List<TFolder> GetAllFolders();
+    TFolder Root { get; }
+    int FilesCount { get; }
+}
+public abstract class IndexBase<TFolder, TFile> : IPZIndex<TFolder, TFile> where TFolder : IPZFolder where TFile : IPZFile
 {
     protected abstract IDictionary<int, TFile> Files { get; }
     protected abstract IDictionary<int, TFolder> Folders { get; }
@@ -99,7 +110,7 @@ public abstract class IndexBase<TFolder, TFile> where TFolder : IPZFolder where 
         while (stack.Count > 0)
         {
             var f = stack.Pop();
-            sb.Append("/" + f.Name);
+            sb.Append(f.Name + Path.DirectorySeparatorChar);
         }
         return sb.ToString();
     }
@@ -107,7 +118,7 @@ public abstract class IndexBase<TFolder, TFile> where TFolder : IPZFolder where 
     {
         var parent = GetFolder(file.Pid);
         string folderNames = GetResolvePath(parent, resolveFolder);
-        return folderNames + "/" + file.Name;
+        return folderNames + file.Name;
     }
     public string GetFullPath(TFolder folder)
     {

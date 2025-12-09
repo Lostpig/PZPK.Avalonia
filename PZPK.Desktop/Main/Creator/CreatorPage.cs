@@ -44,5 +44,5 @@ public class CreatorPage : ComponentBase
         Model.OnStepChanged += StateHasChanged;
     }
 
-    private readonly CreatorModel Model = new();
+    private readonly CreatorModel Model = CreatorModel.Instance;
 }

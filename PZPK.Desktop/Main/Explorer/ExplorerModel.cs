@@ -1,10 +1,10 @@
-﻿using Avalonia.Controls;
-using Avalonia.Markup.Declarative;
-using PZPK.Core;
+﻿using PZPK.Core;
 using PZPK.Core.Utility;
 using PZPK.Desktop.Common;
 using PZPK.Desktop.Global;
+using PZPK.Desktop.Main.Creator;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,6 +22,16 @@ public record ExtractingInfo : PZProgressState
 
 public class ExplorerModel : PageModelBase
 {
+    private static ExplorerModel? _instance;
+    public static ExplorerModel Instance
+    {
+        get
+        {
+            _instance ??= new();
+            return _instance;
+        }
+    }
+
     public PZPKPackage? Package => PZPKPackage.Current;
 
     public event Action? OnPackageOpened;
@@ -42,6 +52,7 @@ public class ExplorerModel : PageModelBase
     } = false;
     public ExtractingInfo ExtractingState = new();
 
+    private ExplorerModel() { }
     public void OpenPackage(string path, string password)
     {
         if (!string.IsNullOrWhiteSpace(path) && !string.IsNullOrWhiteSpace(password))
@@ -123,11 +134,6 @@ public class ExplorerModel : PageModelBase
             return;
         }
         DirectoryInfo destDir = new(dest);
-        if (destDir.Exists)
-        {
-            Toast.Error("Directory already exists.");
-            return;
-        }
 
         PZProgress<PZProgressState> progress = new();
         progress.ProgressChanged += (s, e) =>
@@ -143,6 +149,46 @@ public class ExplorerModel : PageModelBase
         {
             Extracting = true;
             var count = await Package.Package.ExtractFolderAsync(folder, destDir, progress, ExtractingState.CancelSource.Token);
+            Toast.Success($"Total {count} files extracted successfully.");
+        }
+        catch (OperationCanceledException)
+        {
+            Toast.Warning("Extraction cancelled.");
+        }
+        catch (Exception ex)
+        {
+            Toast.Error($"Extraction failed: {ex.Message}");
+            Logger.Instance.Log(ex.ToString());
+        }
+        finally
+        {
+            Extracting = false;
+            ExtractingState.CancelSource = null;
+        }
+    }
+    public async void ExtractBatch(List<IPZItem> items, string dest)
+    {
+        if (Package == null)
+        {
+            Toast.Error("No package opened.");
+            return;
+        }
+        DirectoryInfo destDir = new(dest);
+
+        PZProgress<PZProgressState> progress = new();
+        progress.ProgressChanged += (s, e) =>
+        {
+            ExtractingState.CopyFrom(e);
+            OnExtractingProgressed?.Invoke();
+        };
+
+        ExtractingState.Reset();
+        ExtractingState.CancelSource = new CancellationTokenSource();
+
+        try
+        {
+            Extracting = true;
+            var count = await Package.Package.ExtractBatchAsync(items, destDir, progress, ExtractingState.CancelSource.Token);
             Toast.Success($"Total {count} files extracted successfully.");
         }
         catch (OperationCanceledException)

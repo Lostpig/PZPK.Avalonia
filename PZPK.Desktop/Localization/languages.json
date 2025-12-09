@@ -1,0 +1,19 @@
+{
+  "languages": [
+    {
+      "value": "zh-CN",
+      "name": "中文"
+    },
+    {
+      "value": "en",
+      "name": "English"
+    }
+  ],
+  "default": "zh-CN",
+  "fields": [
+    "Explorer",
+    "Creator",
+    "Notebook",
+    "Setting"
+  ]
+}

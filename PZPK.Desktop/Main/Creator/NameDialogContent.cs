@@ -7,9 +7,9 @@ using static Common.ControlHelpers;
 internal class NameDialogContent : ContentControl
 {
     private TextBox _textbox;
-    public NameDialogContent()
+    public NameDialogContent(string originalName)
     {
-        _textbox = new TextBox();
+        _textbox = new TextBox().Text(originalName);
         Content = VStackPanel(Avalonia.Layout.HorizontalAlignment.Stretch)
             .Children(
                 PzText("Name:").Margin(0,0,0,15),

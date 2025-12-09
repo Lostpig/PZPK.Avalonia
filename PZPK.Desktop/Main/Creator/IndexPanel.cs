@@ -1,6 +1,7 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Markup.Declarative;
 using Avalonia.Platform.Storage;
@@ -16,8 +17,11 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace PZPK.Desktop.Main.Creator;
+
 using static Common.ControlHelpers;
 
 public class IndexPanel : ComponentBase
@@ -77,6 +81,16 @@ public class IndexPanel : ComponentBase
 
         return controls;
     }
+    private ContextMenu BuildItemMenu()
+    {
+        return new ContextMenu()
+            .Items(
+                new MenuItem().Header("Rename").OnClick(OnItemRename),
+                new MenuItem().Header("Delete").OnClick(OnItemDelete),
+                new MenuItem().Header("Property").OnClick(OnItemProperty)
+            );
+    }
+
     override protected object Build()
     {
         var suki = App.Instance.Suki;
@@ -89,11 +103,11 @@ public class IndexPanel : ComponentBase
                     .VerticalAlignment(VerticalAlignment.Center)
                     .Background(() => suki.GetSukiColor("SukiGlassCardBackground"))
                     .Child(
-                        HStackPanel().Children(() => BuildFolderStack())
+                        HStackPanel().Children(BuildFolderStack)
                     ),
                 new ListBox().Row(1)
                     .SelectionMode(SelectionMode.Multiple)
-                    .ItemTemplate(new PZItemTemplate())
+                    .ItemTemplate(new PZItemTemplate(BuildItemMenu()))
                     .ItemsSource(() => Items)
                     .OnDoubleTapped(OnItemDoubleTap),
                 new DockPanel().Row(2)
@@ -102,7 +116,7 @@ public class IndexPanel : ComponentBase
                         SukiButton("Add Files").OnClick(_ => AddFiles()),
                         SukiButton("Add Folder").OnClick(_ => AddFolder()),
                         SukiButton("New Folder").OnClick(_ => NewFolder()),
-                        SukiButton("Resort", "Accent", "Outlined").OnClick(_ => Resort()),
+                        SukiButton("Resort", "Accent").OnClick(_ => Resort()),
                         SukiButton("Clear", "Flat", "Warning").OnClick(_ => Clear()),
                         HStackPanel()
                             .HorizontalAlignment(HorizontalAlignment.Right)
@@ -168,26 +182,15 @@ public class IndexPanel : ComponentBase
         StateHasChanged();
     }
 
-    private void NewFolder()
+    private async void NewFolder()
     {
-        Model.Dialog.Manager.CreateDialog()
-            .WithTitle("New Folder")
-            .WithContent(new NameDialogContent())
-            .WithActionButton("OK", (d) =>
-            {
-                if (d.Content is NameDialogContent ndc)
-                {
-                    var text = ndc.GetResult();
-                    if (!string.IsNullOrWhiteSpace(text))
-                    {
-                        Index.AddFolder(text.Trim(), Current);
-                        UpdateList();
-                        d.Dismiss();
-                    }
-                }
-            })
-            .WithActionButton("Cancel", _ => { }, true)
-            .TryShow();
+        var name = await ShowNameDialog("Create folder");
+
+        if (!string.IsNullOrEmpty(name))
+        {
+            Index.AddFolder(name, Current);
+            UpdateList();
+        }
     }
     private async void AddFiles()
     {
@@ -301,6 +304,88 @@ public class IndexPanel : ComponentBase
             Index.Clear();
             UpdateList();
         }
+    }
+
+    private async void OnItemRename(RoutedEventArgs e)
+    {
+        if (e.Source is Control c)
+        {
+            if (c.DataContext is PZIndexFile f)
+            {
+                var newName = await ShowNameDialog("Rename file", f.Name);
+                if (!string.IsNullOrEmpty(newName) && newName != f.Name)
+                {
+                    Index.RenameFile(f, newName);
+                    UpdateList();
+                }
+            }
+            else if (c.DataContext is PZIndexFolder fo)
+            {
+                var newName = await ShowNameDialog("Rename folder", fo.Name);
+                if (!string.IsNullOrEmpty(newName) && newName != fo.Name)
+                {
+                    Index.RenameFolder(fo, newName);
+                    UpdateList();
+                }
+            }
+        }
+    }
+    private async void OnItemDelete(RoutedEventArgs e)
+    {
+        if (e.Source is Control c)
+        {
+            if (c.DataContext is PZIndexFile f)
+            {
+                Index.RemoveFile(f);
+                UpdateList();
+            }
+            else if (c.DataContext is PZIndexFolder fo)
+            {
+                Index.RemoveFolder(fo);
+                UpdateList();
+            }
+        }
+    }
+    private void OnItemProperty(RoutedEventArgs e)
+    {
+        if (e.Source is Control c && c.DataContext is IPZItem item)
+        {
+            if (item is PZIndexFolder fo)
+            {
+                var files = Index.GetFiles(fo, true);
+                var size = files.Sum(f => f.Size);
+                item = new ViewFolder(fo, files.Count, size);
+            }
+
+            Model.Dialog.ShowContentDialog("Property", new ItemDialogContent(item));
+        }
+    }
+
+    private async Task<string?> ShowNameDialog(string title, string originName = "")
+    {
+        var content = new NameDialogContent(originName);
+        var builder = Model.Dialog.Manager.CreateDialog()
+            .WithTitle(title)
+            .WithContent(content);
+
+        var completion = new TaskCompletionSource<string?>();
+        builder.WithActionButton("OK", (d) =>
+        {
+            var text = content.GetResult();
+            if (!string.IsNullOrEmpty(text))
+            {
+                completion.SetResult(text.Trim());
+                d.Dismiss();
+            }
+        });
+        builder.WithActionButton("Cancel", (d) =>
+        {
+            completion.SetResult(null);
+            d.Dismiss();
+        });
+        builder.TryShow();
+
+        return await completion.Task;
     }
 
     private void Next()

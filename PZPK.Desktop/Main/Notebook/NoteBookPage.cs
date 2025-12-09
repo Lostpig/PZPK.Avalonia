@@ -23,7 +23,7 @@ public class NoteBookPage : ComponentBase
             );
     }
 
-    private NoteBookModel Model { get; init; } = new();
+    private NoteBookModel Model { get; init; } = NoteBookModel.Instance;
     private void InitializeModel()
     {
         // Model.NoteChanged += StateHasChanged;

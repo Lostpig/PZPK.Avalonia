@@ -107,6 +107,15 @@ public class CompleteInfomation
 
 public class CreatorModel : PageModelBase
 {
+    private static CreatorModel? _instance;
+    public static CreatorModel Instance 
+    {
+        get {
+            _instance ??= new CreatorModel();
+            return _instance;
+        }
+    }
+
     public IndexCreator Index { get; init; }
     public CreateProperties Properties { get; init; }
     public PackingInfomation PackingInfo { get; init; }
@@ -127,7 +136,7 @@ public class CreatorModel : PageModelBase
     public event Action? OnStepChanged;
     public event Action? OnPackingProgressed;
 
-    public CreatorModel()
+    private CreatorModel()
     {
         Index = new IndexCreator();
         Properties = new CreateProperties();

@@ -1,6 +1,4 @@
-﻿using Avalonia.Controls;
-using Avalonia.Controls.Templates;
-using Avalonia.Markup.Declarative;
+﻿using Avalonia.Controls.Templates;
 using Material.Icons;
 using PZPK.Desktop.Main.Creator;
 using PZPK.Desktop.Main.Explorer;
@@ -13,16 +11,30 @@ namespace PZPK.Desktop.Main;
 internal class Routes
 {
     static public readonly PageRecord[] Pages = [
-        new PageRecord("Explorer", MaterialIconKind.Explore, typeof(ExplorerPage)),
-        new PageRecord("Creator", MaterialIconKind.Create, typeof(CreatorPage)),
-        new PageRecord("Notebook", MaterialIconKind.Book, typeof(NoteBookPage)),
+        new PageRecord(() => LOC.Explorer, MaterialIconKind.Explore, typeof(ExplorerPage)),
+        new PageRecord(() => LOC.Creator, MaterialIconKind.Create, typeof(CreatorPage)),
+        new PageRecord(() => LOC.Notebook, MaterialIconKind.Book, typeof(NoteBookPage)),
 #if DEBUG
-        new PageRecord("Dev", MaterialIconKind.DeveloperBoard, typeof(Dev.DevPage)),
+        new PageRecord(() => "Dev", MaterialIconKind.DeveloperBoard, typeof(Dev.DevPage)),
 #endif
     ];
 }
 
-internal record PageRecord(string PageName, MaterialIconKind Icon, Type PageType);
+internal class PageRecord
+{
+    public PageRecord(Func<string> PageNameGetter, MaterialIconKind icon, Type pageType)
+    {
+        Icon = icon;
+        PageType = pageType;
+        _getter = PageNameGetter;
+    }
+
+    private Func<string> _getter;
+    public MaterialIconKind Icon { get; init; }
+    public Type PageType { get; init; }
+    public string PageName => _getter();
+
+}
 internal class PageLocator : IDataTemplate
 {
     private readonly Dictionary<Type, ComponentBase> _views = [];

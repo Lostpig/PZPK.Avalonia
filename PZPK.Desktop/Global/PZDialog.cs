@@ -88,4 +88,13 @@ public class PZDialog
             .WithActionButton("Close", _ => { }, true, "Flat")
             .TryShow();
     }
+
+    public void ShowContentDialog(string title, object content)
+    {
+        Manager.CreateDialog()
+            .WithTitle(title)
+            .WithContent(content)
+            .WithActionButton("Close", _ => { }, true)
+            .TryShow();
+    }
 }

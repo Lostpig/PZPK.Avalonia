@@ -12,7 +12,7 @@ using PZPK.Desktop.ImagePreview;
 using SukiUI.Content;
 using SukiUI.Controls;
 using System.Collections.Generic;
-using System.Diagnostics;
+using System.Linq;
 
 namespace PZPK.Desktop.Main.Explorer;
 using static PZPK.Desktop.Common.ControlHelpers;
@@ -100,8 +100,8 @@ public class ExplorerPanel : ComponentBase
     {
         return new ContextMenu()
             .Items(
-                new MenuItem().Header("Preview"),
-                new MenuItem().Header("Extract").OnClick(OnItemExtract)
+                new MenuItem().Header("Extract").OnClick(OnItemExtract),
+                new MenuItem().Header("Property").OnClick(OnItemProperty)
             );
     }
 
@@ -129,11 +129,7 @@ public class ExplorerPanel : ComponentBase
                     .Child(
                         HStackPanel().Children(() => BuildFolderStack())
                     ),
-                new ListBox().Row(2)
-                    .SelectionMode(SelectionMode.Multiple)
-                    .ItemTemplate(new PZItemTemplate(BuildItemMenu()))
-                    .ItemsSource(() => Items)
-                    .OnDoubleTapped(OnItemDoubleTap)
+                ItemContainer.Row(2)
             );
     }
 
@@ -145,11 +141,18 @@ public class ExplorerPanel : ComponentBase
     private MaterialIconKind TypeIcon = MaterialIconKind.File;
     private PZFolder? Current;
     private List<IPZItem> Items = [];
+    private ListBox ItemContainer;
 
     public ExplorerPanel(ExplorerModel model): base(ViewInitializationStrategy.Lazy)
     {
         Model = model;
         Model.OnPackageOpened += OnPackageOpened;
+
+        ItemContainer = new ListBox()
+                    .SelectionMode(SelectionMode.Multiple)
+                    .ItemTemplate(new PZItemTemplate(BuildItemMenu()))
+                    .ItemsSource(() => Items)
+                    .OnDoubleTapped(OnItemDoubleTap);
 
         Initialize();
     }
@@ -221,29 +224,94 @@ public class ExplorerPanel : ComponentBase
 
     private async void OnItemExtract(RoutedEventArgs e)
     {
-        Debug.WriteLine(e.ToString());
+        if (ItemContainer.SelectedItems is null) return;
+        if (ItemContainer.SelectedItems.Count == 0) return;
 
-        if (e.Source is MenuItem mi)
+        if (ItemContainer.SelectedItems.Count == 1)
         {
-            if (mi.DataContext is PZFile file)
+            var item = ItemContainer.SelectedItems[0];
+            if (item is PZFile file)
             {
-                TopLevel topLevel = TopLevel.GetTopLevel(this)!;
-                var dest = await topLevel.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
-                {
-                    Title = "Extract file",
-                    SuggestedFileName = file.Name,
-                    DefaultExtension = file.Extension,
-                });
-
-                if (dest is not null)
-                {
-                    Model.ExtractFile(file, dest.Path.LocalPath);
-                }
+                ExtractFile(file);
+            }
+            else if (item is PZFolder folder)
+            {
+                ExtractFolder(folder);
             }
         }
+        else
+        {
+            List<IPZItem> items = [];
+            foreach (var selected in ItemContainer.SelectedItems)
+            {
+                if (selected is IPZItem item)
+                {
+                    items.Add(item);
+                }
+            }
+
+            ExtractBatch(items);
+        }
     }
+    private async void ExtractFile(PZFile file)
+    {
+        TopLevel topLevel = TopLevel.GetTopLevel(this)!;
+        var dest = await topLevel.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+        {
+            Title = "Extract file",
+            SuggestedFileName = file.Name,
+            DefaultExtension = file.Extension,
+        });
+
+        if (dest is not null)
+        {
+            Model.ExtractFile(file, dest.Path.LocalPath);
+        }
+    }
+    private async void ExtractFolder(PZFolder folder)
+    {
+        TopLevel topLevel = TopLevel.GetTopLevel(this)!;
+        var dest = await topLevel.StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
+        {
+            Title = "Select extraction folder",
+        });
+        if (dest is not null)
+        {
+            Model.ExtractFolder(folder, dest[0].Path.LocalPath);
+        }
+    }
+    private async void ExtractBatch(List<IPZItem> items)
+    {
+        TopLevel topLevel = TopLevel.GetTopLevel(this)!;
+        var dest = await topLevel.StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
+        {
+            Title = "Select extraction folder",
+        });
+        if (dest is not null)
+        {
+            Model.ExtractBatch(items, dest[0].Path.LocalPath);
+        }
+    }
+    private void OnItemProperty(RoutedEventArgs e)
+    {
+        if (Model.Package is null) return;
+
+        if (e.Source is Control c && c.DataContext is IPZItem item)
+        {
+            if (item is PZFolder fo)
+            {
+                var files = Model.Package.Index.GetFiles(fo, true);
+                var size = files.Sum(f => f.Size);
+                item = new ViewFolder(fo, files.Count, size);
+            }
+
+            Model.Dialog.ShowContentDialog("Property", new ItemDialogContent(item));
+        }
+    }
+
     private async void OnExtractAll()
     {
-        Model.DebugExtract();
+        if (Model.Package is null) return;
+        ExtractFolder(Model.Package.Root);
     }
 }

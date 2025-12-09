@@ -25,5 +25,5 @@ public class ExplorerPage : ComponentBase
             );
     }
 
-    private readonly ExplorerModel Model = new();
+    private readonly ExplorerModel Model = ExplorerModel.Instance;
 }
