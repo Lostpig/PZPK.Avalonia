@@ -40,11 +40,6 @@ public class ImagePreviewWindow : PZWindowBase
     public ImagePreviewWindow() : base()
     {
         Model = new();
-        var ToastHost = new SukiToastHost
-        {
-            Manager = ToastManager
-        };
-        Hosts.Add(ToastHost);
 
         ImageRef = new Image()
             .HorizontalAlignment(Avalonia.Layout.HorizontalAlignment.Stretch)

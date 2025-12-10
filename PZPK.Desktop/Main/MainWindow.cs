@@ -1,5 +1,6 @@
 ﻿using Avalonia.Platform;
 using PZPK.Desktop.Global;
+using PZPK.Desktop.Localization;
 using SukiUI.Controls;
 using System.Reflection;
 
@@ -22,16 +23,16 @@ public class MainWindow : PZWindowBase
         Width = 1280;
         Height = 720;
 
-        Render();
-    }
-
-    public void Render()
-    {
-        var sideMenu = new SukiSideMenu()
+        Sidemenu = new SukiSideMenu()
         {
             IsSearchEnabled = false
         };
+        Initialize();
+    }
 
+    private SukiSideMenu Sidemenu;
+    private void Initialize()
+    {
         foreach (var p in Routes.Pages)
         {
             var item = new SukiSideMenuItem()
@@ -41,9 +42,24 @@ public class MainWindow : PZWindowBase
                 PageContent = p
             };
 
-            sideMenu.Items.Add(item);
+            Sidemenu.Items.Add(item);
         }
 
-        Content = sideMenu;
+        Content = Sidemenu;
+    }
+
+    public void BindingTranslate(Translate translate)
+    {
+        translate.LanguageChanged += UpdateState;
+    }
+    protected void UpdateState()
+    {
+        foreach (var item in Sidemenu.Items)
+        {
+            if (item is SukiSideMenuItem ssmi)
+            {
+                ssmi.Header = ((PageRecord)ssmi.PageContent).PageName;
+            }
+        }
     }
 }

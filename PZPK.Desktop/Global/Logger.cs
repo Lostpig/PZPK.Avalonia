@@ -47,4 +47,10 @@ internal class Logger
     {
         Debug.WriteLine(message);
     }
+
+    public void Error(Exception ex)
+    {
+        Log(ex.Message);
+        Log(ex.StackTrace ?? "");
+    }
 }

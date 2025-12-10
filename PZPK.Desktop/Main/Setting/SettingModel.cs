@@ -1,15 +1,8 @@
 ﻿using Avalonia.Styling;
-using PZPK.Desktop.Global;
 using PZPK.Desktop.Localization;
-using PZPK.Desktop.Main.Notebook;
 using SukiUI;
 using SukiUI.Models;
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace PZPK.Desktop.Main.Setting;
 
@@ -25,36 +18,50 @@ public class SettingModel : PageModelBase
         }
     }
 
-
-    public JsonSettings Settings => Global.Settings.Default;
-    private readonly SukiTheme _theme;
+    public SukiTheme Theme { get; init; }
+    public bool IsLightTheme
+    {
+        get => Theme.ActiveBaseTheme == ThemeVariant.Light;
+        set 
+        {
+            var bt = value == true ? ThemeVariant.Light : ThemeVariant.Dark;
+            Theme.ChangeBaseTheme(bt);
+            Settings.Set(bt);
+        }
+    }
+    public SukiColorTheme? ColorTheme => Theme.ActiveColorTheme;
+    public IList<LanguageItem> Languages { get; init; }
+    public LanguageItem? ActiveLanguage 
+    { 
+        get; 
+        set
+        {
+            field = value;
+            ChangeLanguge(value);
+        }
+    }
 
     public SettingModel()
     {
-        _theme = SukiTheme.GetInstance();
-        
+        Theme = SukiTheme.GetInstance();
+        Languages = App.Instance.Translate.Languages;
+
+        var current = Languages.FirstOrDefault(l => l.Value == App.Instance.Translate.Current);
+        ActiveLanguage = current;
     }
 
-    public void ToggleBaseTheme()
-    {
-        _theme.SwitchBaseTheme();
-    }
     public void ChangeColorTheme(SukiColorTheme theme)
     {
-        _theme.ChangeColorTheme(theme);
+        Theme.ChangeColorTheme(theme);
+        Settings.Set(theme);
     }
-    public async void ChangeLanguge(LanguageItem language)
+    public async void ChangeLanguge(LanguageItem? language)
     {
-        var tl = App.Instance.Translate;
+        if (language is null) return;
 
+        var tl = App.Instance.Translate;
         if (tl.Current == language.Value) return;
 
-        var ok = await Dialog.WarningConfirm("Change language will restart appliation, sure to change?");
-
-        if (ok)
-        {
-            await Task.Delay(1000);
-            App.Instance.MainWindow.Render();
-        }
+        tl.ChangeLanguage(language);
     }
 }

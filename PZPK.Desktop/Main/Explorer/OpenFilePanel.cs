@@ -9,7 +9,7 @@ using SukiUI.Controls;
 namespace PZPK.Desktop.Main.Explorer;
 using static PZPK.Desktop.Common.ControlHelpers;
 
-public class OpenFilePanel : ComponentBase
+public class OpenFilePanel : PZComponentBase
 {
     protected override object Build()
     {

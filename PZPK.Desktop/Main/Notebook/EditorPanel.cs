@@ -15,7 +15,7 @@ using TextMateSharp.Grammars;
 namespace PZPK.Desktop.Main.Notebook;
 using static PZPK.Desktop.Common.ControlHelpers;
 
-public class EditorPanel: ComponentBase
+public class EditorPanel: PZComponentBase
 {
     private readonly NoteBookModel Model;
     private TextEditor Editor { get; set; }

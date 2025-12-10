@@ -1,7 +1,4 @@
-﻿using PZPK.Desktop.Global;
-using System;
-using System.Collections.Generic;
-using System.IO;
+﻿using System.IO;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -30,10 +27,11 @@ public class LanguageJson
 
 public class Translate
 {
-    const string DefaultLanguage = "zh-CN";
+    const string DefaultLanguage = "en";
     public string Current { get; private set; } = DefaultLanguage;
     private readonly List<LanguageItem> _languages = new();
     public IList<LanguageItem> Languages => _languages;
+    public event Action? LanguageChanged;
 
     public void Initialize()
     {
@@ -51,24 +49,29 @@ public class Translate
         _languages.Clear();
         _languages.AddRange(langJson.Languages);
 
-        string userSetLang = ReadLanguageSet();
+        string userSetLang = GetSetting();
         LoadLanguage(userSetLang);
         Current = userSetLang;
     }
-
-    private string ReadLanguageSet()
+    public void ChangeLanguage(LanguageItem lang)
     {
-        string? userSetCurrent = Settings.Default.Language;
+        if (Current == lang.Value) return;
+
+        Current = lang.Value;
+        LoadLanguage(lang.Value);
+        Settings.Set(lang);
+
+        LanguageChanged?.Invoke();
+    }
+    private string GetSetting()
+    {
+        string? userSetCurrent = Settings.Get(SettingsField.Language);
         if (String.IsNullOrEmpty(userSetCurrent))
         {
             userSetCurrent = DefaultLanguage;
-            Settings.Default.Language = userSetCurrent;
+            Settings.Set(SettingsField.Language, userSetCurrent);
         }
         return userSetCurrent;
-    }
-    private void SaveLanguageSet(string lang)
-    {
-        Settings.Default.Language = lang;
     }
     private void LoadLanguage(string lang)
     {

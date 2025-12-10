@@ -2,6 +2,7 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+using PZPKRecorderGenerator.Helpers;
 using System.Text;
 using System.Xml.Linq;
 
@@ -24,20 +25,19 @@ public class I18NGenerator : IIncrementalGenerator
             {
                 throw new Exception("cannot read languages.json file.");
             }
+            var languagesJson = Helpers.I18NHelper.DeserializeLanguage(jsonText);
+            if (languagesJson == null)
+            {
+                throw new ArgumentException("Language json cannot load!");
+            }
 
-            var sourceText = GetLocalizeDictSource(jsonText);
+            var sourceText = GetLocalizeDictSource(languagesJson);
             spc.AddSource("I18N.g.cs", sourceText);
         });
     }
 
-    private static SourceText GetLocalizeDictSource(string languageJsonText)
+    private static SourceText GetLocalizeDictSource(LanguageJson languagesJson)
     {
-        var languagesJson = Helpers.I18NHelper.DeserializeLanguage(languageJsonText);
-        if (languagesJson == null)
-        {
-            throw new ArgumentException("Language json cannot load!");
-        }
-
         var sourceText = SyntaxFactory
             .NamespaceDeclaration(SyntaxFactory.ParseName("PZPK.I18N"))
             .AddUsings(

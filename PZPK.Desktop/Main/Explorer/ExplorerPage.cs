@@ -1,11 +1,9 @@
-﻿using Avalonia.Controls;
-using Avalonia.Markup.Declarative;
-using PZPK.Desktop.Common;
+﻿using PZPK.Desktop.Common;
 
 namespace PZPK.Desktop.Main.Explorer;
 using static PZPK.Desktop.Common.ControlHelpers;
 
-public class ExplorerPage : ComponentBase
+public class ExplorerPage : PZComponentBase
 {
     protected override object Build()
     {

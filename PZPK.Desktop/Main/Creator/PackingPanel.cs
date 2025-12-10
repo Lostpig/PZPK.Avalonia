@@ -8,7 +8,7 @@ using System.IO;
 namespace PZPK.Desktop.Main.Creator;
 using static Common.ControlHelpers;
 
-internal class PackingPanel : ComponentBase
+internal class PackingPanel : PZComponentBase
 {
     protected override object Build()
     {

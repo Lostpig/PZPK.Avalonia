@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 namespace PZPK.Desktop.Main.Explorer;
 using static PZPK.Desktop.Common.ControlHelpers;
 
-public class ExtractingPanel: ComponentBase
+public class ExtractingPanel: PZComponentBase
 {
     private StackPanel BuildContent()
     {

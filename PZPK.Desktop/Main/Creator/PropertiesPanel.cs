@@ -10,7 +10,7 @@ using System;
 namespace PZPK.Desktop.Main.Creator;
 using static Common.ControlHelpers;
 
-public class PropertiesPanel: ComponentBase
+public class PropertiesPanel: PZComponentBase
 {
     private class TagItem : ContentControl
     {
@@ -103,9 +103,7 @@ public class PropertiesPanel: ComponentBase
                                 BuildRow("BlockSize:",
                                     new ComboBox()
                                         .ItemsSource(BlockSizes)
-                                        .ItemTemplate<int>(i =>
-                                                new FuncView<int>(i, s => PzText(() => Utility.ComputeFileSize(i)))
-                                            )
+                                        .ItemTemplate<int>(i => PzText(Utility.ComputeFileSize(i)))
                                         .SelectedItem(() => props.BlockSize, v => props.BlockSize = (int)v)
                                     ),
                                 BuildRow("Description:", 
@@ -140,9 +138,7 @@ public class PropertiesPanel: ComponentBase
                                     new ComboBox()
                                         .IsEnabled(() => props.EnableImageResizing)
                                         .ItemsSource(ImageFormats)
-                                        .ItemTemplate<ImageResizerFormat>(f =>
-                                                new FuncView<ImageResizerFormat>(f, s => PzText(() => f.ToString()))
-                                            )
+                                        .ItemTemplate<ImageResizerFormat>(f => PzText(f.ToString()))
                                         .SelectedItem(() => props.ImageOptions.Format, v => props.ImageOptions.Format = (ImageResizerFormat)v)
                                 ),
                                 BuildRow(" - Max size:",

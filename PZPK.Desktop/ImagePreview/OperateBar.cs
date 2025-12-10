@@ -9,7 +9,7 @@ using Avalonia.Layout;
 namespace PZPK.Desktop.ImagePreview;
 using static PZPK.Desktop.Common.ControlHelpers;
 
-public class OperateBar: ComponentBase
+public class OperateBar: PZComponentBase
 {
     protected override StyleGroup? BuildStyles()
     {

@@ -7,7 +7,7 @@ using System.Collections.Generic;
 namespace PZPK.Desktop.Main.Creator;
 using static Common.ControlHelpers;
 
-public class CreatorPage : ComponentBase
+public class CreatorPage : PZComponentBase
 {
     protected override object Build()
     {

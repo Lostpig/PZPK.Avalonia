@@ -10,7 +10,7 @@ using System.Text;
 namespace PZPK.Desktop.Main.Dev;
 using static PZPK.Desktop.Common.ControlHelpers;
 
-internal class DevPage : ComponentBase
+internal class DevPage : PZComponentBase
 {
     protected override object Build()
     {

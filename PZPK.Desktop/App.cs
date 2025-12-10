@@ -28,6 +28,8 @@ internal class App
         Translate = new();
         try
         {
+            Settings.Load();
+            Settings.ApplySetting();
             Translate.Initialize();
         }
         catch
@@ -36,6 +38,7 @@ internal class App
         }
 
         MainWindow = new MainWindow();
+        MainWindow.BindingTranslate(Translate);
         MainWindow.OnClosed((_) =>
         {
             ImagePreviewManager.CloseActiveWindow();

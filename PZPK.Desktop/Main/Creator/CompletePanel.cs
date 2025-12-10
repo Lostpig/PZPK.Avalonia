@@ -5,7 +5,7 @@ using System;
 namespace PZPK.Desktop.Main.Creator;
 using static Common.ControlHelpers;
 
-public class CompletePanel : ComponentBase
+public class CompletePanel : PZComponentBase
 {
     protected override object Build()
     {

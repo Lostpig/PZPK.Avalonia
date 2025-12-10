@@ -1,10 +1,6 @@
 ﻿using PZPK.Core;
 using PZPK.Core.Utility;
 using PZPK.Desktop.Common;
-using PZPK.Desktop.Global;
-using PZPK.Desktop.Main.Creator;
-using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -64,8 +60,9 @@ public class ExplorerModel : PageModelBase
             }
             catch (Exception ex)
             {
-                Toast.Error(ex.Message);
-                Logger.Instance.Log(ex.Message);
+                
+                Toast.Error(string.Format(LOC.Err_message, ex.Message));
+                Logger.Instance.Error(ex);
             }
         }
     }
@@ -79,13 +76,13 @@ public class ExplorerModel : PageModelBase
     {
         if (Package == null)
         {
-            Toast.Error("No package opened.");
+            Toast.Error(LOC.Err_PackageNotOpen);
             return;
         }
 
         if (File.Exists(dest))
         {
-            Toast.Error("File already exists.");
+            Toast.Error(LOC.Err_FileExistsed);
             return;
         }
 
@@ -109,16 +106,16 @@ public class ExplorerModel : PageModelBase
             }
 
             var count = await Package.Package.ExtractFileAsync(file, fs, progress, ExtractingState.CancelSource.Token);
-            Toast.Success($"file extracted successfully.");
+            Toast.Success(string.Format(LOC.Msg_ExtractedSuccess, 1));
         }
         catch (OperationCanceledException)
         {
-            Toast.Warning("Extraction cancelled.");
+            Toast.Warning(LOC.Warn_ExtractCancel);
         }
         catch (Exception ex)
         {
-            Toast.Error($"Extraction failed: {ex.Message}");
-            Logger.Instance.Log(ex.ToString());
+            Toast.Error(string.Format(LOC.Err_ExtractFailed, ex.Message));
+            Logger.Instance.Error(ex);
         }
         finally
         {
@@ -130,7 +127,7 @@ public class ExplorerModel : PageModelBase
     {
         if (Package == null)
         {
-            Toast.Error("No package opened.");
+            Toast.Error(LOC.Err_PackageNotOpen);
             return;
         }
         DirectoryInfo destDir = new(dest);
@@ -149,16 +146,16 @@ public class ExplorerModel : PageModelBase
         {
             Extracting = true;
             var count = await Package.Package.ExtractFolderAsync(folder, destDir, progress, ExtractingState.CancelSource.Token);
-            Toast.Success($"Total {count} files extracted successfully.");
+            Toast.Success(string.Format(LOC.Msg_ExtractedSuccess, count));
         }
         catch (OperationCanceledException)
         {
-            Toast.Warning("Extraction cancelled.");
+            Toast.Warning(LOC.Warn_ExtractCancel);
         }
         catch (Exception ex)
         {
-            Toast.Error($"Extraction failed: {ex.Message}");
-            Logger.Instance.Log(ex.ToString());
+            Toast.Error(string.Format(LOC.Err_ExtractFailed, ex.Message));
+            Logger.Instance.Error(ex);
         }
         finally
         {
@@ -170,7 +167,7 @@ public class ExplorerModel : PageModelBase
     {
         if (Package == null)
         {
-            Toast.Error("No package opened.");
+            Toast.Error(LOC.Err_PackageNotOpen);
             return;
         }
         DirectoryInfo destDir = new(dest);
@@ -189,16 +186,16 @@ public class ExplorerModel : PageModelBase
         {
             Extracting = true;
             var count = await Package.Package.ExtractBatchAsync(items, destDir, progress, ExtractingState.CancelSource.Token);
-            Toast.Success($"Total {count} files extracted successfully.");
+            Toast.Success(string.Format(LOC.Msg_ExtractedSuccess, count));
         }
         catch (OperationCanceledException)
         {
-            Toast.Warning("Extraction cancelled.");
+            Toast.Warning(LOC.Warn_ExtractCancel);
         }
         catch (Exception ex)
         {
-            Toast.Error($"Extraction failed: {ex.Message}");
-            Logger.Instance.Log(ex.ToString());
+            Toast.Error(string.Format(LOC.Err_ExtractFailed, ex.Message));
+            Logger.Instance.Error(ex);
         }
         finally
         {

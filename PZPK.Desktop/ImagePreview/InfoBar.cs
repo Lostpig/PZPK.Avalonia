@@ -9,7 +9,7 @@ using System;
 namespace PZPK.Desktop.ImagePreview;
 using static PZPK.Desktop.Common.ControlHelpers;
 
-public class InfoBar: ComponentBase
+public class InfoBar: PZComponentBase
 {
     protected override StyleGroup? BuildStyles()
     {

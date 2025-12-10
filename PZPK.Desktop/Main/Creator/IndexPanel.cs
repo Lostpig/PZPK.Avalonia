@@ -1,20 +1,15 @@
 ﻿using Avalonia;
-using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
-using Avalonia.Markup.Declarative;
 using Avalonia.Platform.Storage;
 using Avalonia.Styling;
 using Material.Icons;
 using PZPK.Core;
 using PZPK.Core.Packing;
 using PZPK.Desktop.Common;
-using PZPK.Desktop.Global;
 using SukiUI.Content;
 using SukiUI.Dialogs;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -24,7 +19,7 @@ namespace PZPK.Desktop.Main.Creator;
 
 using static Common.ControlHelpers;
 
-public class IndexPanel : ComponentBase
+public class IndexPanel : PZComponentBase
 {
     protected override StyleGroup? BuildStyles()
     {
@@ -235,7 +230,7 @@ public class IndexPanel : ComponentBase
             AllowMultiple = false
         });
 
-        if (folders.Count >= 1)
+        if (folders is not null && folders.Count >= 1)
         {
             var folder = folders[0].Path.LocalPath;
             try

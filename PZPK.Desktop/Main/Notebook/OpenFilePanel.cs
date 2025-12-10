@@ -14,7 +14,7 @@ using System.IO;
 namespace PZPK.Desktop.Main.Notebook;
 using static PZPK.Desktop.Common.ControlHelpers;
 
-public class OpenFilePanel : ComponentBase
+public class OpenFilePanel : PZComponentBase
 {
     private StackPanel BuildOpenTab()
     {

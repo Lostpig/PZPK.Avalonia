@@ -1,23 +1,21 @@
 ﻿using Avalonia;
-using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
-using Avalonia.Markup.Declarative;
 using Avalonia.Platform.Storage;
 using Material.Icons;
 using PZPK.Core;
+using PZPK.Core.Extract;
 using PZPK.Desktop.Common;
 using PZPK.Desktop.ImagePreview;
 using SukiUI.Content;
 using SukiUI.Controls;
-using System.Collections.Generic;
 using System.Linq;
 
 namespace PZPK.Desktop.Main.Explorer;
 using static PZPK.Desktop.Common.ControlHelpers;
 
-public class ExplorerPanel : ComponentBase
+public class ExplorerPanel : PZComponentBase
 {
     private Border BuildPackageDetail()
     {
@@ -32,10 +30,10 @@ public class ExplorerPanel : ComponentBase
             .Child(
                 VStackPanel()
                     .Children(
-                        PzText(() => "PackageName: " + PackageName).Margin(0, 0, 0, 8),
-                        PzText(() => "Description: " + Description).Margin(0, 0, 0, 8),
-                        PzText(() => "Tags: " + Tags).Margin(0, 0, 0, 8),
-                        PzText(() => Info)
+                        PzText(() => $"{LOC.PackageName}: {PackageName}").Margin(0, 0, 0, 8),
+                        PzText(() => $"{LOC.Description}: {Description}").Margin(0, 0, 0, 8),
+                        PzText(() => $"{LOC.Tags}: {Tags}").Margin(0, 0, 0, 8),
+                        PzText(() => FormatInfomation())
                     )
             );
     }
@@ -44,8 +42,8 @@ public class ExplorerPanel : ComponentBase
         return VStackPanel()
             .VerticalAlignment(VerticalAlignment.Center)
             .Children(
-                SukiButton("Extract All").Margin(0, 0, 0, 10).OnClick(_ => OnExtractAll()),
-                SukiButton("Close", "Outlined", "Accent").OnClick(_ => ClosePackage())
+                SukiButton(LOC.ExtractAll).Margin(0, 0, 0, 10).OnClick(_ => OnExtractAll()),
+                SukiButton(LOC.Close, "Outlined", "Accent").OnClick(_ => ClosePackage())
             );
     }
     private List<Control> BuildFolderStack()
@@ -100,8 +98,8 @@ public class ExplorerPanel : ComponentBase
     {
         return new ContextMenu()
             .Items(
-                new MenuItem().Header("Extract").OnClick(OnItemExtract),
-                new MenuItem().Header("Property").OnClick(OnItemProperty)
+                new MenuItem().Header(LOC.Extract).OnClick(OnItemExtract),
+                new MenuItem().Header(LOC.Property).OnClick(OnItemProperty)
             );
     }
 
@@ -137,7 +135,6 @@ public class ExplorerPanel : ComponentBase
     private string Description = "";
     private string PackageName = "";
     private string Tags = "";
-    private string Info = "";
     private MaterialIconKind TypeIcon = MaterialIconKind.File;
     private PZFolder? Current;
     private List<IPZItem> Items = [];
@@ -156,6 +153,18 @@ public class ExplorerPanel : ComponentBase
 
         Initialize();
     }
+    private string FormatInfomation()
+    {
+        if (Model.Package is null) return "";
+
+        var header = Model.Package.Header;
+        string version = header.Version.ToString();
+        string size = Utility.ComputeFileSize(header.FileSize);
+        string blockSize = Utility.ComputeFileSize(header.BlockSize);
+        string createTime = header.CreateTime.ToString("yyyy-MM-dd HH:mm:ss");
+
+        return $"{LOC.Version}: {version} | {LOC.Size}: {size} | {LOC.BlockSize}: {blockSize} | {LOC.CreateTime}: {createTime}";
+    }
     private void OnPackageOpened()
     {
         var package = Model.Package;
@@ -163,7 +172,6 @@ public class ExplorerPanel : ComponentBase
         Description = package?.Detail.Description ?? "";
         PackageName = package?.Detail.Name ?? "";
         Tags = string.Join(',', package?.Detail.Tags ?? []);
-        Info = package is not null ? $"FileType: {package.Header.Type} | Version: {package.Header.Version} | Size: {Utility.ComputeFileSize(package.Header.FileSize)}" : "";
         TypeIcon = package?.Header.Type switch
         {
             PZType.Package => MaterialIconKind.Package,
@@ -258,7 +266,7 @@ public class ExplorerPanel : ComponentBase
         TopLevel topLevel = TopLevel.GetTopLevel(this)!;
         var dest = await topLevel.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
         {
-            Title = "Extract file",
+            Title = LOC.ExtractFile,
             SuggestedFileName = file.Name,
             DefaultExtension = file.Extension,
         });
@@ -273,9 +281,9 @@ public class ExplorerPanel : ComponentBase
         TopLevel topLevel = TopLevel.GetTopLevel(this)!;
         var dest = await topLevel.StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
         {
-            Title = "Select extraction folder",
+            Title = LOC.SelectDirectory,
         });
-        if (dest is not null)
+        if (dest is not null && dest.Count > 0)
         {
             Model.ExtractFolder(folder, dest[0].Path.LocalPath);
         }
@@ -285,9 +293,9 @@ public class ExplorerPanel : ComponentBase
         TopLevel topLevel = TopLevel.GetTopLevel(this)!;
         var dest = await topLevel.StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
         {
-            Title = "Select extraction folder",
+            Title = LOC.SelectDirectory,
         });
-        if (dest is not null)
+        if (dest is not null && dest.Count > 0)
         {
             Model.ExtractBatch(items, dest[0].Path.LocalPath);
         }
@@ -305,7 +313,7 @@ public class ExplorerPanel : ComponentBase
                 item = new ViewFolder(fo, files.Count, size);
             }
 
-            Model.Dialog.ShowContentDialog("Property", new ItemDialogContent(item));
+            Model.Dialog.ShowContentDialog(LOC.Property, new ItemDialogContent(item));
         }
     }
 

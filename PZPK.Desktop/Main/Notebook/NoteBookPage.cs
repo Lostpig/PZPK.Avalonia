@@ -4,7 +4,7 @@ using Avalonia.Markup.Declarative;
 namespace PZPK.Desktop.Main.Notebook;
 using static PZPK.Desktop.Common.ControlHelpers;
 
-public class NoteBookPage : ComponentBase
+public class NoteBookPage : PZComponentBase
 {
     protected override object Build()
     {

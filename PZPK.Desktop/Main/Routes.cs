@@ -3,8 +3,7 @@ using Material.Icons;
 using PZPK.Desktop.Main.Creator;
 using PZPK.Desktop.Main.Explorer;
 using PZPK.Desktop.Main.Notebook;
-using System;
-using System.Collections.Generic;
+using PZPK.Desktop.Main.Setting;
 
 namespace PZPK.Desktop.Main;
 
@@ -14,6 +13,7 @@ internal class Routes
         new PageRecord(() => LOC.Explorer, MaterialIconKind.Explore, typeof(ExplorerPage)),
         new PageRecord(() => LOC.Creator, MaterialIconKind.Create, typeof(CreatorPage)),
         new PageRecord(() => LOC.Notebook, MaterialIconKind.Book, typeof(NoteBookPage)),
+        new PageRecord(() => LOC.Setting, MaterialIconKind.Settings, typeof(SettingPage)),
 #if DEBUG
         new PageRecord(() => "Dev", MaterialIconKind.DeveloperBoard, typeof(Dev.DevPage)),
 #endif
@@ -37,7 +37,7 @@ internal class PageRecord
 }
 internal class PageLocator : IDataTemplate
 {
-    private readonly Dictionary<Type, ComponentBase> _views = [];
+    private readonly Dictionary<Type, PZComponentBase> _views = [];
 
     public Control Build(object? param)
     {
@@ -48,9 +48,9 @@ internal class PageLocator : IDataTemplate
                 return page;
             }
 
-            if (pr.PageType.IsAssignableTo(typeof(ComponentBase)))
+            if (pr.PageType.IsAssignableTo(typeof(PZComponentBase)))
             {
-                page = Activator.CreateInstance(pr.PageType) as ComponentBase;
+                page = Activator.CreateInstance(pr.PageType) as PZComponentBase;
 
                 if (page is not null)
                 {
