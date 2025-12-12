@@ -5,6 +5,7 @@ using System.Text.Json.Serialization;
 
 namespace PZPK.Desktop.Localization;
 
+
 public record LanguageItem(string Name, string Value)
 {
     [JsonPropertyName("name")]
@@ -13,23 +14,44 @@ public record LanguageItem(string Name, string Value)
     [JsonPropertyName("value")]
     public string Value { get; set; } = Value;
 }
-public class LanguageJson
+public record LocalizationNameSpace
 {
-    [JsonPropertyName("languages")]
-    public List<LanguageItem> Languages { get; set; } = new();
+    [JsonPropertyName("namespace")]
+    public string NameSpace { get; set; } = string.Empty;
 
     [JsonPropertyName("fields")]
-    public List<string> Fields { get; set; } = new();
+    public List<string> Fields { get; set; } = [];
+}
+public record LanguageJson
+{
+    [JsonPropertyName("languages")]
+    public List<LanguageItem> Languages { get; set; } = [];
+
+    [JsonPropertyName("namespaces")]
+    public List<LocalizationNameSpace> Namespaces { get; set; } = [];
 
     [JsonPropertyName("default")]
     public string DefaultLanguage { get; set; } = string.Empty;
+}
+
+public record FieldsJson
+{
+    [JsonPropertyName("namespaces")]
+    public List<FieldsJsonNameSpace> Namespaces { get; set; } = [];
+}
+public record FieldsJsonNameSpace
+{
+    [JsonPropertyName("namespace")]
+    public string NameSpace { get; set; } = string.Empty;
+    [JsonPropertyName("fields")]
+    public Dictionary<string, string> Fields { get; set; } = [];
 }
 
 public class Translate
 {
     const string DefaultLanguage = "en";
     public string Current { get; private set; } = DefaultLanguage;
-    private readonly List<LanguageItem> _languages = new();
+    private readonly List<LanguageItem> _languages = [];
     public IList<LanguageItem> Languages => _languages;
     public event Action? LanguageChanged;
 
@@ -39,13 +61,7 @@ public class Translate
         string langFilePath = Path.Join(rootPath, "Localization", "languages.json");
 
         var langText = File.ReadAllText(langFilePath);
-        var langJson = JsonSerializer.Deserialize<LanguageJson>(langText);
-
-        if (langJson == null)
-        {
-            throw new Exception();
-        }
-
+        var langJson = JsonSerializer.Deserialize<LanguageJson>(langText) ?? throw new Exception("languages.json deserialize failed");
         _languages.Clear();
         _languages.AddRange(langJson.Languages);
 
@@ -63,7 +79,7 @@ public class Translate
 
         LanguageChanged?.Invoke();
     }
-    private string GetSetting()
+    private static string GetSetting()
     {
         string? userSetCurrent = Settings.Get(SettingsField.Language);
         if (String.IsNullOrEmpty(userSetCurrent))
@@ -73,14 +89,16 @@ public class Translate
         }
         return userSetCurrent;
     }
-    private void LoadLanguage(string lang)
+    private static void LoadLanguage(string lang)
     {
-        string rootPath = System.AppDomain.CurrentDomain.BaseDirectory;
+        string rootPath = AppDomain.CurrentDomain.BaseDirectory;
         string langPath = Path.Join(rootPath, "Localization", $"{lang}.json");
 
         string langJson = File.ReadAllText(langPath, Encoding.UTF8);
-        Dictionary<string, string>? map = JsonSerializer.Deserialize<Dictionary<string, string>>(langJson);
-        if (map != null) I18N.Localization.Update(map);
+        FieldsJson? langFields = JsonSerializer.Deserialize<FieldsJson>(langJson);
+        if (langFields != null) {
+            langFields.Namespaces.ForEach(ns => I18N.Updater.Update(ns.NameSpace, ns.Fields));
+        }
         else throw new Exception("Language file load error: language map is null");
     }
 }

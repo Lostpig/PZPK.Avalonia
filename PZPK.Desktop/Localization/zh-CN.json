@@ -1,44 +1,66 @@
 {
-  "Explorer": "浏览",
-  "Creator": "创建",
-  "Notebook": "笔记",
-  "Setting": "设置",
-  "Theme": "主题",
-  "Light": "亮色",
-  "Dark": "暗色",
-  "Color": "颜色",
-  "Language": "语言",
-  "Open": "打开",
-  "Close": "关闭",
-  "OK": "确定",
-  "Cancel": "取消",
-  "Select": "选择",
-  "Password": "密码",
-  "File": "文件",
-  "Folder": "文件夹",
-  "Count": "数量",
-  "Byte": "字节",
-  "PackageName": "包名称",
-  "Description": "描述",
-  "Tags": "标签",
-  "Tag": "标签",
-  "Extract": "提取",
-  "ExtractAll": "全部提取",
-  "ExtractFile": "提取文件",
-  "ExtractingDDD": "提取中...",
-  "Property": "属性",
-  "FileType": "文件类型",
-  "Version": "版本",
-  "Size": "大小",
-  "SelectDirectory": "选择目录",
-  "PZPKFile": "PZPK文件",
-  "Msg_OpenPZPKFile": "打开 PZPK 文件",
-  "Msg_ExtractedSuccess": "合计 {0} 个文件已提取成功！",
-  "Warn_ExtractCancel": "提取已取消！",
-  "Err_message": "错误: {0}",
-  "Err_ExtractFailed": "错误: 提取失败！{0}",
-  "Err_PackageNotOpen": "错误: 未找到打开的Package实例！",
-  "Err_FileExistsed": "错误: 文件已存在！",
-  "BlockSize": "块大小",
-  "CreateTime": "创建时间"
+  "namespaces": [
+    {
+      "namespace": "Base",
+      "fields": {
+        "Explorer": "MISS_Explorer",
+        "Creator": "MISS_Creator",
+        "Notebook": "MISS_Notebook",
+        "Setting": "MISS_Setting",
+        "Theme": "MISS_Theme",
+        "Light": "MISS_Light",
+        "Dark": "MISS_Dark",
+        "Color": "MISS_Color",
+        "Language": "MISS_Language",
+        "Open": "MISS_Open",
+        "Close": "MISS_Close",
+        "OK": "MISS_OK",
+        "Cancel": "MISS_Cancel",
+        "Select": "MISS_Select",
+        "Password": "MISS_Password",
+        "File": "MISS_File",
+        "Folder": "MISS_Folder",
+        "Count": "MISS_Count",
+        "Byte": "MISS_Byte"
+      }
+    },
+    {
+      "namespace": "Explorer",
+      "fields": {
+        "PackageName": "MISS_PackageName",
+        "Description": "MISS_Description",
+        "Tags": "MISS_Tags",
+        "Tag": "MISS_Tag",
+        "Extract": "MISS_Extract",
+        "ExtractAll": "MISS_ExtractAll",
+        "ExtractFile": "MISS_ExtractFile",
+        "ExtractingDDD": "MISS_ExtractingDDD",
+        "Property": "MISS_Property",
+        "FileType": "MISS_FileType",
+        "Version": "MISS_Version",
+        "Size": "MISS_Size",
+        "BlockSize": "MISS_BlockSize",
+        "SelectDirectory": "MISS_SelectDirectory",
+        "PZPKFile": "MISS_PZPKFile",
+        "CreateTime": "MISS_CreateTime"
+      }
+    },
+    {
+      "namespace": "Error",
+      "fields": {
+        "Error": "MISS_Error",
+        "ExtractFailed": "MISS_ExtractFailed",
+        "PackageNotOpen": "MISS_PackageNotOpen",
+        "FileExistsed": "MISS_FileExistsed"
+      }
+    },
+    {
+      "namespace": "Message",
+      "fields": {
+        "OpenPZPKFile": "MISS_OpenPZPKFile",
+        "ExtractedSuccess": "MISS_ExtractedSuccess",
+        "ExtractCancelWarning": "MISS_ExtractCancelWarning"
+      }
+    }
+  ]
 }

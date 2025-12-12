@@ -1,46 +1,66 @@
 {
-  "Explorer": "Explorer",
-  "Creator": "Creator",
-  "Notebook": "Notebook",
-  "Setting": "Setting",
-  "Theme": "MISS_Theme",
-  "Light": "MISS_Light",
-  "Dark": "MISS_Dark",
-  "Color": "MISS_Color",
-  "Language": "MISS_Language",
-  "Open": "MISS_Open",
-  "Close": "MISS_Close",
-  "OK": "MISS_OK",
-  "Cancel": "MISS_Cancel",
-  "Select": "MISS_Select",
-  "Password": "MISS_Password",
-  "File": "MISS_File",
-  "Folder": "MISS_Folder",
-  "Count": "MISS_Count",
-  "Byte": "MISS_Byte",
-  "PackageName": "MISS_PackageName",
-  "Description": "MISS_Description",
-  "Tags": "MISS_Tags",
-  "Tag": "MISS_Tag",
-  "Extract": "MISS_Extract",
-  "ExtractAll": "MISS_ExtractAll",
-  "ExtractFile": "MISS_ExtractFile",
-  "ExtractingDDD": "MISS_ExtractingDDD",
-  "Property": "MISS_Property",
-  "FileType": "MISS_FileType",
-  "Version": "MISS_Version",
-  "Size": "MISS_Size",
-  "SelectDirectory": "MISS_SelectDirectory",
-  "PZPKFile": "MISS_PZPKFile",
-  "Msg_OpenPZPKFile": "MISS_Msg_OpenPZPKFile",
-  "Msg_ExtractedSuccess": "MISS_Msg_ExtractedSuccess",
-  "Warn_ExtractCancel": "MISS_Warn_ExtractCancel",
-  "Err_message": "MISS_Err_message",
-  "Err_ExtractFailed": "MISS_Err_ExtractFailed",
-  "Err_PackageNotFound": "MISS_Err_PackageNotFound",
-  "Err_PackageNotOpen": "MISS_Err_PackageNotOpen",
-  "Err_FileExisted": "MISS_Err_FileExisted",
-  "BlockSize": "MISS_BlockSize",
-  "CreateTime": "MISS_CreateTime",
-  "Err_FileExistsed": "MISS_Err_FileExistsed"
+  "namespaces": [
+    {
+      "namespace": "Base",
+      "fields": {
+        "Explorer": "MISS_Explorer",
+        "Creator": "MISS_Creator",
+        "Notebook": "MISS_Notebook",
+        "Setting": "MISS_Setting",
+        "Theme": "MISS_Theme",
+        "Light": "MISS_Light",
+        "Dark": "MISS_Dark",
+        "Color": "MISS_Color",
+        "Language": "MISS_Language",
+        "Open": "MISS_Open",
+        "Close": "MISS_Close",
+        "OK": "MISS_OK",
+        "Cancel": "MISS_Cancel",
+        "Select": "MISS_Select",
+        "Password": "MISS_Password",
+        "File": "MISS_File",
+        "Folder": "MISS_Folder",
+        "Count": "MISS_Count",
+        "Byte": "MISS_Byte"
+      }
+    },
+    {
+      "namespace": "Explorer",
+      "fields": {
+        "PackageName": "MISS_PackageName",
+        "Description": "MISS_Description",
+        "Tags": "MISS_Tags",
+        "Tag": "MISS_Tag",
+        "Extract": "MISS_Extract",
+        "ExtractAll": "MISS_ExtractAll",
+        "ExtractFile": "MISS_ExtractFile",
+        "ExtractingDDD": "MISS_ExtractingDDD",
+        "Property": "MISS_Property",
+        "FileType": "MISS_FileType",
+        "Version": "MISS_Version",
+        "Size": "MISS_Size",
+        "BlockSize": "MISS_BlockSize",
+        "SelectDirectory": "MISS_SelectDirectory",
+        "PZPKFile": "MISS_PZPKFile",
+        "CreateTime": "MISS_CreateTime"
+      }
+    },
+    {
+      "namespace": "Error",
+      "fields": {
+        "Error": "MISS_Error",
+        "ExtractFailed": "MISS_ExtractFailed",
+        "PackageNotOpen": "MISS_PackageNotOpen",
+        "FileExistsed": "MISS_FileExistsed"
+      }
+    },
+    {
+      "namespace": "Message",
+      "fields": {
+        "OpenPZPKFile": "MISS_OpenPZPKFile",
+        "ExtractedSuccess": "MISS_ExtractedSuccess",
+        "ExtractCancelWarning": "MISS_ExtractCancelWarning"
+      }
+    }
+  ]
 }

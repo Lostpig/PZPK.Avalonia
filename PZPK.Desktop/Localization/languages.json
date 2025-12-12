@@ -10,52 +10,76 @@
     }
   ],
   "default": "zh-CN",
-  "fields": [
-    "Explorer",
-    "Creator",
-    "Notebook",
-    "Setting",
-    "Theme",
-    "Light",
-    "Dark",
-    "Color",
-    "Language",
-    "Open",
-    "Close",
-    "OK",
-    "Cancel",
-    "Select",
-    "Password",
-    "File",
-    "Folder",
-    "Count",
-    "Byte",
-
-    "PackageName",
-    "Description",
-    "Tags",
-    "Tag",
-    "Extract",
-    "ExtractAll",
-    "ExtractFile",
-    "ExtractingDDD",
-    "Property",
-    "FileType",
-    "Version",
-    "Size",
-    "BlockSize",
-    "SelectDirectory",
-    "PZPKFile",
-    "CreateTime",
-
-    "Msg_OpenPZPKFile",
-    "Msg_ExtractedSuccess",
-
-    "Warn_ExtractCancel",
-
-    "Err_message",
-    "Err_ExtractFailed",
-    "Err_PackageNotOpen",
-    "Err_FileExistsed"
+  "namespaces": [
+    {
+      "namespace": "Base",
+      "fields": [
+          "Explorer",
+          "Creator",
+          "Notebook",
+          "Setting",
+          "Theme",
+          "Light",
+          "Dark",
+          "Color",
+          "Language",
+          "Open",
+          "Close",
+          "OK",
+          "Cancel",
+          "Select",
+          "Password",
+          "File",
+          "Folder",
+          "Count",
+          "Byte",
+          "Size",
+          "Delete",
+          "Next",
+          "Prev"
+      ]
+    },
+    {
+      "namespace": "PZPK",
+      "fields": [
+        "PackageName",
+        "Description",
+        "Tags",
+        "Tag",
+        "Extract",
+        "ExtractAll",
+        "ExtractFile",
+        "ExtractingDDD",
+        "Property",
+        "FileType",
+        "Version",
+        "BlockSize",
+        "SelectDirectory",
+        "PZPKFile",
+        "CreateTime",
+        "AddFile",
+        "AddDirectory",
+        "CreateFolder",
+        "ResortFiles",
+        "Rename"
+      ]
+    },
+    {
+      "namespace": "Error",
+      "fields": [
+        "Message",
+        "ExtractFailed",
+        "PackageNotOpen",
+        "FileExistsed"
+      ]
+    },
+    {
+      "namespace": "Message",
+      "fields": [
+        "OpenPZPKFile",
+        "ExtractedSuccess",
+        "ExtractCancelWarning"
+      ]
+    }
   ]
 }

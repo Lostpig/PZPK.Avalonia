@@ -20,13 +20,22 @@ internal record LanguageItem(string Name, string Value)
     public string Value { get; set; } = Value;
 }
 
+internal record LocalizationNameSpace
+{
+    [JsonPropertyName("namespace")]
+    public string NameSpace { get; set; } = string.Empty;
+
+    [JsonPropertyName("fields")]
+    public List<string> Fields { get; set; } = new ();
+}
+
 internal class LanguageJson
 {
     [JsonPropertyName("languages")]
     public List<LanguageItem> Languages { get; set; } = new ();
 
-    [JsonPropertyName("fields")]
-    public List<string> Fields { get; set; } = new();
+    [JsonPropertyName("namespaces")]
+    public List<LocalizationNameSpace> NSList { get; set; } = new();
 
     [JsonPropertyName("default")]
     public string DefaultLanguage { get; set; } = string.Empty;

@@ -4,7 +4,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using PZPKRecorderGenerator.Helpers;
 using System.Text;
-using System.Xml.Linq;
 
 namespace PZPKRecorderGenerator;
 
@@ -20,11 +19,7 @@ public class I18NGenerator : IIncrementalGenerator
         {
             if (Path.GetFileNameWithoutExtension(tfs.Path) != "languages") return;
 
-            var jsonText = tfs.GetText()?.ToString();
-            if (jsonText == null)
-            {
-                throw new Exception("cannot read languages.json file.");
-            }
+            var jsonText = (tfs.GetText()?.ToString()) ?? throw new Exception("cannot read languages.json file.");
             var languagesJson = Helpers.I18NHelper.DeserializeLanguage(jsonText);
             if (languagesJson == null)
             {
@@ -41,49 +36,63 @@ public class I18NGenerator : IIncrementalGenerator
         var sourceText = SyntaxFactory
             .NamespaceDeclaration(SyntaxFactory.ParseName("PZPK.I18N"))
             .AddUsings(
-                SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("System.Collections.Generic"))
+                SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("System.Collections.Generic")),
+                SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("System.Diagnostics"))
             )
-            .AddMembers(
-                SyntaxFactory.ClassDeclaration("Localization")
-                    .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword))
-                    .AddModifiers(SyntaxFactory.Token(SyntaxKind.StaticKeyword))
-                    .AddMembers(GetFieldProterties(languagesJson))
-                    .AddMembers(GetUpdateMethod(languagesJson))
-            )
+            .AddMembers(CreateLocalizationNS(languagesJson.NSList))
+            .AddMembers(CreateUpdaterClass(languagesJson.NSList))
             .NormalizeWhitespace()
             .GetText(Encoding.UTF8);
 
         return sourceText;
     }
-    private static MemberDeclarationSyntax[] GetFieldProterties(Helpers.LanguageJson language)
+
+    private static MemberDeclarationSyntax[] CreateLocalizationNS(List<LocalizationNameSpace> locNs)
     {
-        return language.Fields.Select(field =>
+        return locNs
+            .Select(item => SyntaxFactory.ClassDeclaration(item.NameSpace)
+                .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword))
+                .AddModifiers(SyntaxFactory.Token(SyntaxKind.StaticKeyword))
+                .AddMembers(CreateFieldProterties(item.Fields))
+            ).ToArray();
+    }
+    private static MemberDeclarationSyntax[] CreateFieldProterties(List<string> fields)
+    {
+        return fields.Select(field =>
             SyntaxFactory.PropertyDeclaration(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.StringKeyword)), field)
                 .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword))
                 .AddModifiers(SyntaxFactory.Token(SyntaxKind.StaticKeyword))
                 .WithAccessorList(
                     SyntaxFactory.AccessorList(
-                        SyntaxFactory.List<AccessorDeclarationSyntax>(
-                            new[]
-                            {
+                        SyntaxFactory.List(
+                            [
                                 SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
                                     .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)),
                                 SyntaxFactory.AccessorDeclaration(SyntaxKind.SetAccessorDeclaration)
                                     .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken))
-                            }
+                            ]
                         )
                     )
                 )
         ).ToArray();
     }
-    private static MemberDeclarationSyntax GetUpdateMethod(Helpers.LanguageJson language)
+
+    private static MemberDeclarationSyntax CreateUpdaterClass(List<LocalizationNameSpace> locNs)
     {
-        var fields = language.Fields.Select(f => $"{f} = getText(\"{f}\");");
+        return SyntaxFactory.ClassDeclaration("Updater")
+                .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword))
+                .AddModifiers(SyntaxFactory.Token(SyntaxKind.StaticKeyword))
+                .AddMembers(locNs.Select(CreateUpdateMethod).ToArray())
+                .AddMembers(CreateCommonUpdateMethod(locNs));
+    }
+    private static MemberDeclarationSyntax CreateUpdateMethod(LocalizationNameSpace item)
+    {
+        var fieldsCode = item.Fields.Select(f => $"{item.NameSpace}.{f} = getText(\"{f}\");");
 
         var code = $@"
-            public static void Update(Dictionary<string, string> dict)
+            public static void Update{item.NameSpace}(Dictionary<string, string> dict)
             {{
-                {string.Join("\r\n", fields)}
+                {string.Join("\r\n", fieldsCode)}
                 
                 string getText(string key)
                 {{
@@ -96,6 +105,23 @@ public class I18NGenerator : IIncrementalGenerator
             }}
         ";
 
-        return SyntaxFactory.ParseMemberDeclaration(code);
+        return SyntaxFactory.ParseMemberDeclaration(code)!;
+    }
+    private static MemberDeclarationSyntax CreateCommonUpdateMethod(List<LocalizationNameSpace> items) 
+    {
+        var itemsCode = items.Select(i => $"case \"{i.NameSpace}\": Update{i.NameSpace}(dict); break;");
+
+        var code = $@"
+            public static void Update(string ns, Dictionary<string, string> dict)
+            {{
+                switch (ns) 
+                {{
+                    {string.Join("\r\n", itemsCode)}
+                    default: Debug.WriteLine(""Unavailable localization namespace "" + ns); break;
+                }}
+            }}
+        ";
+
+        return SyntaxFactory.ParseMemberDeclaration(code)!;
     }
 }
