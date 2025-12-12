@@ -1,10 +1,6 @@
-﻿using Avalonia.Controls;
-using Avalonia.Layout;
-using Avalonia.Markup.Declarative;
+﻿using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Styling;
-using PZPK.Desktop.Common;
-using System;
 
 namespace PZPK.Desktop.ImagePreview;
 using static PZPK.Desktop.Common.ControlHelpers;
@@ -23,7 +19,7 @@ public class InfoBar: PZComponentBase
                 .VerticalAlignment(VerticalAlignment.Center)
         ];
     }
-    protected override object Build()
+    protected override Control Build()
     {
         var bgColor = App.Instance.Suki.GetSukiColor("SukiDialogBackground");
 
@@ -39,24 +35,17 @@ public class InfoBar: PZComponentBase
                             .Height(40)
                             .Classes("items-stack")
                             .Children(
-                                PzText(() => Model.FileName),
+                                PzText(Model.FileName),
                                 PzSeparatorH(),
-                                PzText(() => Model.Current.ToString()),
-                                PzText("/"),
-                                PzText(() => Model.Total.ToString()),
+                                PzText(Model.IndexText),
                                 PzSeparatorH(),
-                                PzText(() => Model.SizeText),
+                                PzText(Model.SizeText),
                                 PzSeparatorH(),
-                                PzText(() => Model.FileSizeText)
+                                PzText(Model.FileSizeText)
                             )
                     )
             );
     }
 
-    private readonly PreviewModel Model;
-    public InfoBar(PreviewModel model) : base(ViewInitializationStrategy.Lazy)
-    {
-        Model = model;
-        Initialize();
-    }
+    private static PreviewModel Model => PreviewModel.Instance;
 }

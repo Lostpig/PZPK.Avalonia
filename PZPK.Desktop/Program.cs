@@ -1,12 +1,10 @@
 ﻿using Avalonia;
-using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Markup.Declarative;
 using Avalonia.Markup.Xaml.Styling;
 using Avalonia.Media;
 using Material.Icons.Avalonia;
+using PZPK.Desktop.Main;
 using SukiUI;
-using System;
 
 namespace PZPK.Desktop;
 
@@ -36,7 +34,7 @@ internal sealed class Program
                 b.Instance?.Styles.Add(new SukiTheme() { ThemeColor = SukiUI.Enums.SukiColor.Blue });
                 b.Instance?.Styles.Add(new MaterialIconStyles(null));
                 b.Instance?.Styles.Add(EditorStyle);
-                b.Instance?.DataTemplates.Add(new Main.PageLocator());
+                b.Instance?.DataTemplates.Add(PageLocator.Instance);
             })
 #if DEBUG
             .UseHotReload()

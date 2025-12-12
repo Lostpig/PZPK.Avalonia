@@ -1,14 +1,9 @@
 ﻿using Avalonia.Styling;
-using HarfBuzzSharp;
 using PZPK.Desktop.Localization;
 using SukiUI;
 using SukiUI.Models;
 using System.IO;
-using System.Linq;
 using System.Text.Json;
-using System.Text.Json.Serialization;
-using TextMateSharp.Themes;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace PZPK.Desktop.Global;
 

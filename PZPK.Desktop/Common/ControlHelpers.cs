@@ -1,16 +1,12 @@
-﻿using Avalonia.Controls;
-using Avalonia.Controls.Shapes;
+﻿using Avalonia.Controls.Shapes;
 using Avalonia.Layout;
-using Avalonia.Markup.Declarative;
 using Avalonia.Media;
 using Material.Icons;
 using Material.Icons.Avalonia;
-using SukiUI.Content;
 using SukiUI.Controls;
-using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Data;
+using System.Reactive.Linq;
+using System.Reactive.Subjects;
 
 namespace PZPK.Desktop.Common;
 
@@ -46,10 +42,16 @@ internal static class ControlHelpers
         foreach (var c in classes) ctrl.Classes.Add(c);
         return ctrl;
     }
-
-    public static TextBox PzTextBox(Func<string> func, Action<string>? onChange = null)
+    public static TextBlock PzText(IObservable<string> obs, params string[] classes)
     {
-        return new TextBox().Text(func, onChange);
+        var ctrl = new TextBlock().Text(obs);
+        foreach (var c in classes) ctrl.Classes.Add(c);
+        return ctrl;
+    }
+
+    public static TextBox PzTextBox(ISubject<string> subject)
+    {
+        return new TextBox().Text(subject);
     }
 
     public static Button SukiButton(string text, params string[] classes)
@@ -113,26 +115,11 @@ internal static class ControlHelpers
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center,
         };
-        void setter(MaterialIconKind v) => icon.Kind = v;
+        static void setter(MaterialIcon i, MaterialIconKind v) => i.Kind = v;
 
-        icon._set(setter, func, null, null);
+        icon._set(setter, func);
 
         return icon;
-    }
-
-    public static TPanel Children<TPanel>(this TPanel container, Func<ICollection<Control>> func)
-        where TPanel : Panel
-    {
-        void setter(ICollection<Control> v)
-        {
-            container.Children.Clear();
-            foreach (var child in v)
-                container.Children.Add(child);
-        }
-
-        container._set(setter, func, null, null);
-
-        return container;
     }
 
     public static Rectangle PzSeparatorV(int height = 1, IBrush? color = null)
@@ -158,15 +145,15 @@ internal static class ControlHelpers
 
     public static Stepper Index(this Stepper control, Func<int> func)
     {
-        void setter(int v) => control.Index = v;
-        control._set(setter, func, null, null);
+        static void setter(Stepper c, int v) => c.Index = v;
+        control._set(setter, func);
 
         return control;
     }
     public static Stepper Steps(this Stepper control, Func<IEnumerable> func)
     {
-        void setter(IEnumerable v) => control.Steps = v;
-        control._set(setter, func, null, null);
+        static void setter(Stepper c, IEnumerable v) => c.Steps = v;
+        control._set(setter, func);
 
         return control;
     }

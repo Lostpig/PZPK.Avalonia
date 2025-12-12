@@ -62,4 +62,30 @@ public class MainWindow : PZWindowBase
             }
         }
     }
+
+    public void DebugReRender()
+    {
+        Sidemenu.Items.Clear();
+        Sidemenu.Content = null;
+        PageLocator.Instance.Reset();
+
+        Sidemenu = new SukiSideMenu()
+        {
+            IsSearchEnabled = false
+        };
+
+        foreach (var p in Routes.Pages)
+        {
+            var item = new SukiSideMenuItem()
+            {
+                Icon = MaterialIcon(p.Icon),
+                Header = p.PageName,
+                PageContent = p
+            };
+
+            Sidemenu.Items.Add(item);
+        }
+
+        Content = Sidemenu;
+    }
 }

@@ -1,10 +1,6 @@
-﻿using Avalonia.Controls;
-using Avalonia.Markup.Declarative;
+﻿using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Styling;
-using PZPK.Desktop.Common;
-using System;
-using Avalonia.Layout;
 
 namespace PZPK.Desktop.ImagePreview;
 using static PZPK.Desktop.Common.ControlHelpers;
@@ -26,12 +22,12 @@ public class OperateBar: PZComponentBase
         ];
     }
 
-    protected override object Build()
+    protected override Control Build()
     {
         var bgColor = App.Instance.Suki.GetSukiColor("SukiControlBorderBrush");
 
         return VStackPanel(HorizontalAlignment.Center).Classes("container")
-                .Background(new SolidColorBrush(Colors.Transparent))
+                .Background(Brushes.Transparent)
                 .Children(
                     new Border()
                         .Padding(5)
@@ -42,42 +38,27 @@ public class OperateBar: PZComponentBase
                                 .Height(40)
                                 .Classes("items-stack")
                                 .Children(
-                                    SukiButton("-").OnClick(_ => ScaleChange?.Invoke(-0.1)),
-                                    PzText(() => Model.ScalePercent),
-                                    SukiButton("+").OnClick(_ => ScaleChange?.Invoke(0.1)),
-                                    SukiButton("OriginalSize").OnClick(_ => ToOriginSize?.Invoke()),
-                                    SukiButton("FitToWidth").OnClick(_ => FitToWidth?.Invoke()),
-                                    SukiButton("FitToHeight").OnClick(_ => FitToHeight?.Invoke()),
+                                    SukiButton("-").OnClick(_ => Model.Scale.Reducer(s => s - 0.1)),
+                                    PzText(Model.ScalePercent),
+                                    SukiButton("+").OnClick(_ => Model.Scale.Reducer(s => s + 0.1)),
+                                    SukiButton("OriginalSize").OnClick(_ => Model.Scale.OnNext(1)),
+                                    SukiButton("FitToWidth").OnClick(_ => Model.FitToWidth()),
+                                    SukiButton("FitToHeight").OnClick(_ => Model.FitToHeight()),
                                     PzSeparatorH(),
-                                    SukiButton("Prev").OnClick(_ => ImageChange?.Invoke(-1)),
-                                    SukiButton("Next").OnClick(_ => ImageChange?.Invoke(1)),
+                                    SukiButton("Prev").OnClick(_ => Model.Current.Reducer(i => i - 1)),
+                                    SukiButton("Next").OnClick(_ => Model.Current.Reducer(i => i + 1)),
                                     PzSeparatorH(),
-                                    new ComboBox().Width(120)
-                                        .SelectedIndex(() => (int)Model.Lock, i => Model.Lock = (LockMode)i)
-                                        .Items(
-                                            new ComboBoxItem().Content("None"),
-                                            new ComboBoxItem().Content("Lock scale"),
-                                            new ComboBoxItem().Content("Lock fit to height"),
-                                            new ComboBoxItem().Content("Lock fit to width")
-                                        ),
+                                    new ComboBox()
+                                        .Width(120)
+                                        .ItemsSource(Enum.GetValues<LockMode>())
+                                        .SelectedItem(subject: Model.Lock)
+                                        .ItemTemplate<LockMode>(l => PzText(PreviewModel.LockModeName(l))),
                                     PzSeparatorH(),
-                                    SukiButton("FullScreen").OnClick(_ => ToggleFullScreen?.Invoke())
+                                    SukiButton("FullScreen").OnClick(_ => Model.FullScreen.Reducer(f => !f))
                                 )
                         )
                 );
     }
 
-    public event Action<double>? ScaleChange;
-    public event Action<int>? ImageChange;
-    public event Action? ToggleFullScreen;
-    public event Action? ToOriginSize;
-    public event Action? FitToWidth;
-    public event Action? FitToHeight;
-
-    private readonly PreviewModel Model;
-    public OperateBar(PreviewModel model) : base(ViewInitializationStrategy.Lazy)
-    {
-        Model = model;
-        Initialize();
-    }
+    private static PreviewModel Model => PreviewModel.Instance;
 }

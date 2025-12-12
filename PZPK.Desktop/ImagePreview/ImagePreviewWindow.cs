@@ -1,19 +1,12 @@
 ﻿using Avalonia;
-using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
-using Avalonia.Markup.Declarative;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using PZPK.Core;
-using PZPK.Desktop.Common;
-using PZPK.Desktop.Global;
-using SukiUI.Controls;
-using SukiUI.Toasts;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Reactive.Linq;
 
 namespace PZPK.Desktop.ImagePreview;
 using static PZPK.Desktop.Common.ControlHelpers;
@@ -27,20 +20,17 @@ struct MouseState
 }
 public class ImagePreviewWindow : PZWindowBase
 {
-    private readonly PreviewModel Model;
+    private static PreviewModel Model => PreviewModel.Instance;
     private readonly Image ImageRef;
     private readonly OperateBar OperateBarRef;
     private readonly InfoBar InfoBarRef;
     private readonly ScrollViewer ScrollRef;
     private bool FileChangedFlag = false;
-    private int Index = 0;
     private PZFile? File;
     private List<PZFile> Files = [];
 
     public ImagePreviewWindow() : base()
     {
-        Model = new();
-
         ImageRef = new Image()
             .HorizontalAlignment(Avalonia.Layout.HorizontalAlignment.Stretch)
             .VerticalAlignment(Avalonia.Layout.VerticalAlignment.Stretch)
@@ -48,8 +38,8 @@ public class ImagePreviewWindow : PZWindowBase
 
         RenderOptions.SetBitmapInterpolationMode(ImageRef, BitmapInterpolationMode.HighQuality);
 
-        OperateBarRef = new OperateBar(Model).ZIndex(1).Row(0);
-        InfoBarRef = new InfoBar(Model).ZIndex(1).Row(2);
+        OperateBarRef = new OperateBar().ZIndex(1).Row(0);
+        InfoBarRef = new InfoBar().ZIndex(1).Row(2);
         ScrollRef = new ScrollViewer()
             .HorizontalScrollBarVisibility(ScrollBarVisibility.Hidden)
             .VerticalScrollBarVisibility(ScrollBarVisibility.Hidden)
@@ -70,34 +60,22 @@ public class ImagePreviewWindow : PZWindowBase
                 InfoBarRef
             );
 
-        InitOperates();
+        InitializeOperators();
     }
 
-    public void OpenImage(PZFile file, List<PZFile> files)
+    private List<IDisposable> _subscriptions = [];
+    private void InitializeOperators()
     {
-        Index = files.IndexOf(file);
-        Index = Index < 0 ? 0 : Index;
-        Files = files;
-
-        LoadImage();
-        UpdateChildBars();
-    }
-    public void DevOpenImage(string imgFile)
-    {
-        Index = 0;
-        Files = [];
-
-        var f = System.IO.File.OpenRead(imgFile);
-        var bytes = new byte[f.Length];
-        f.ReadExactly(bytes);
-        var memStream = new MemoryStream(bytes);
-        memStream.Seek(0, SeekOrigin.Begin);
-
-        var bitmap = new Bitmap(memStream);
-
-        ImageRef.Source = bitmap;
-        Model.OriginSize = bitmap.PixelSize;
-        Model.Scale = 1;
+        _subscriptions.AddRange(
+            Observable.FromEventPattern<SizeChangedEventArgs>(
+                h => ScrollRef.SizeChanged += h,
+                h => ScrollRef.SizeChanged -= h
+            ).Select(e => e.EventArgs.NewSize).Subscribe(Model.ContainerSize.OnNext),
+            Model.Current.Subscribe(LoadImage),
+            Observable.When(
+                Model.Size.And(Model.Scale).Then((size, scale) => (size, scale))
+            ).Throttle(TimeSpan.FromMilliseconds(250)).Subscribe(UpdateImageScale)
+        );
     }
 
     protected void OnScrollLayoutUpdated(EventArgs e)
@@ -110,66 +88,38 @@ public class ImagePreviewWindow : PZWindowBase
         FileChangedFlag = false;
     }
 
-    private void InitOperates()
+    public void OpenImage(PZFile file, List<PZFile> files)
     {
-        OperateBarRef.ImageChange += ChangeImage;
-        OperateBarRef.ScaleChange += ChangeScale;
-        OperateBarRef.ToOriginSize += ToOriginSize;
-        OperateBarRef.FitToWidth += FitToWidth;
-        OperateBarRef.FitToHeight += FitToHeight;
-        OperateBarRef.ToggleFullScreen += ToggleFullScreen;
-    }
-    private void ChangeImage(int diff)
-    {
-        int after = Index + diff;
-        if (after < 0) after = 0;
-        if (after >= Files.Count) after = Files.Count - 1;
+        Files = files;
+        var index = files.IndexOf(file);
+        index = index < 0 ? 0 : index;
 
-        if (Index != after)
-        {
-            Index = after;
-            LoadImage();
-            UpdateChildBars();
-        }
+        Model.Current.OnNext(index);
+        Model.FileName.OnNext(File?.Name ?? "");
+        Model.Total.OnNext(Files.Count);
     }
-    private void ChangeScale(double changeValue)
+    public void DevOpenImage(string imgFile)
     {
-        double newScale = Model.Scale + changeValue;
-        if (newScale < 0.1) newScale = 0.1;
-        else if (newScale > 5) newScale = 5;
+        var f = System.IO.File.OpenRead(imgFile);
+        var bytes = new byte[f.Length];
+        f.ReadExactly(bytes);
+        var memStream = new MemoryStream(bytes);
+        memStream.Seek(0, SeekOrigin.Begin);
 
-        Model.Scale = newScale;
-        UpdateImageScale();
-        UpdateChildBars();
-    }
-    private void FitToHeight()
-    {
-        if (ImageRef.Source == null) return;
-        double viewerHeight = ScrollRef.Bounds.Height;
-        double imageHeight = ImageRef.Source.Size.Height;
-        Model.Scale = viewerHeight / imageHeight;
-        UpdateImageScale();
-        UpdateChildBars();
-    }
-    private void FitToWidth()
-    {
-        if (ImageRef.Source == null) return;
-        double viewerWidth = ScrollRef.Bounds.Width;
-        double imageWidth = ImageRef.Source.Size.Width;
-        Model.Scale = viewerWidth / imageWidth;
-        UpdateImageScale();
-        UpdateChildBars();
-    }
-    private void ToOriginSize()
-    {
-        Model.Scale = 1;
-        UpdateImageScale();
-        UpdateChildBars();
+        var bitmap = new Bitmap(memStream);
+
+        ImageRef.Source = bitmap;
+
+        File = null;
+        Files = [];
+        Model.Current.OnNext(0);
+        Model.FileName.OnNext("Dev Test");
+        Model.Total.OnNext(Files.Count);
     }
 
-    private async void LoadImage()
+    private async void LoadImage(int index)
     {
-        var newFile = Files[Index];
+        var newFile = Files[index];
         if (newFile == File) return;
 
         File = newFile;
@@ -181,21 +131,20 @@ public class ImagePreviewWindow : PZWindowBase
             Bitmap bitmap = new(bitmapStream);
 
             ImageRef.Source = bitmap;
-            Model.OriginSize = bitmap.PixelSize;
+            Model.Size.OnNext(bitmap.PixelSize);
 
-            switch (Model.Lock)
+            switch (Model.Lock.Value)
             {
                 case LockMode.FitWidth:
-                    FitToWidth();
+                    Model.FitToWidth();
                     break;
                 case LockMode.FitHeight:
-                    FitToHeight();
+                    Model.FitToHeight();
                     break;
                 case LockMode.None:
-                    ToOriginSize();
+                    Model.Scale.OnNext(1);
                     break;
                 default:
-                    UpdateImageScale();
                     break;
             }
 
@@ -208,15 +157,14 @@ public class ImagePreviewWindow : PZWindowBase
             ImageRef.Source = null;
         }
     }
-    private void UpdateImageScale()
+    private void UpdateImageScale((PixelSize, double) sns)
     {
-        double renderWidth = Model.OriginSize.Width * Model.Scale;
-        double renderHeight = Model.OriginSize.Height * Model.Scale;
+        var (size, scale) = sns;
+        double renderWidth = size.Width * scale;
+        double renderHeight = size.Height * scale;
 
         ImageRef.Width = renderWidth;
         ImageRef.Height = renderHeight;
-
-        // Model.RenderedSize = new(renderWidth, renderHeight);
     }
 
     private MouseState MState = new();
@@ -235,11 +183,11 @@ public class ImagePreviewWindow : PZWindowBase
         }
         else if (p.Properties.IsXButton1Pressed)
         {
-            ChangeImage(-1);
+            Model.Current.Reducer(i => i - 1);
         }
         else if (p.Properties.IsXButton2Pressed)
         {
-            ChangeImage(1);
+            Model.Current.Reducer(i => i + 1);
         }
     }
     private void OnMouseUp(PointerReleasedEventArgs e)
@@ -271,23 +219,11 @@ public class ImagePreviewWindow : PZWindowBase
 
         if (e.Delta.Y > 0)
         {
-            ChangeScale(0.1);
+            Model.Scale.Reducer(s => s + 0.1);
         }
         else if (e.Delta.Y < 0)
         {
-            ChangeScale(-0.1);
+            Model.Scale.Reducer(s => s - 0.1);
         }
-    }
-
-    private void UpdateChildBars()
-    {
-        Model.FileName = File?.Name ?? "";
-        Model.Total = Files.Count;
-        Model.Current = Index + 1;
-        Model.SizeText = $"{Model.OriginSize.Width} x {Model.OriginSize.Height}";
-        Model.FileSizeText = Utility.ComputeFileSize(File?.OriginSize ?? 0);
-
-        InfoBarRef.UpdateState();
-        OperateBarRef.UpdateState();
     }
 }

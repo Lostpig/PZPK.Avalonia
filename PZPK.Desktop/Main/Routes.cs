@@ -10,34 +10,42 @@ namespace PZPK.Desktop.Main;
 internal class Routes
 {
     static public readonly PageRecord[] Pages = [
-        new PageRecord(() => LOC.Explorer, MaterialIconKind.Explore, typeof(ExplorerPage)),
-        new PageRecord(() => LOC.Creator, MaterialIconKind.Create, typeof(CreatorPage)),
-        new PageRecord(() => LOC.Notebook, MaterialIconKind.Book, typeof(NoteBookPage)),
-        new PageRecord(() => LOC.Setting, MaterialIconKind.Settings, typeof(SettingPage)),
+        new PageRecord(() => LOC.Base.Explorer, MaterialIconKind.Explore, typeof(ExplorerPage)),
+        new PageRecord(() => LOC.Base.Creator, MaterialIconKind.Create, typeof(CreatorPage)),
+        new PageRecord(() => LOC.Base.Notebook, MaterialIconKind.Book, typeof(NoteBookPage)),
+        new PageRecord(() => LOC.Base.Setting, MaterialIconKind.Settings, typeof(SettingPage)),
 #if DEBUG
         new PageRecord(() => "Dev", MaterialIconKind.DeveloperBoard, typeof(Dev.DevPage)),
 #endif
     ];
 }
 
-internal class PageRecord
+internal class PageRecord(Func<string> PageNameGetter, MaterialIconKind icon, Type pageType)
 {
-    public PageRecord(Func<string> PageNameGetter, MaterialIconKind icon, Type pageType)
-    {
-        Icon = icon;
-        PageType = pageType;
-        _getter = PageNameGetter;
-    }
-
-    private Func<string> _getter;
-    public MaterialIconKind Icon { get; init; }
-    public Type PageType { get; init; }
+    private readonly Func<string> _getter = PageNameGetter;
+    public MaterialIconKind Icon { get; init; } = icon;
+    public Type PageType { get; init; } = pageType;
     public string PageName => _getter();
 
 }
 internal class PageLocator : IDataTemplate
 {
+    private static PageLocator? _instance;
+    public static PageLocator Instance
+    {
+        get
+        {
+            _instance ??= new PageLocator();
+            return _instance;
+        }
+    }
+    private PageLocator() { }
+
     private readonly Dictionary<Type, PZComponentBase> _views = [];
+    public void Reset()
+    {
+        _views.Clear(); 
+    }
 
     public Control Build(object? param)
     {
@@ -64,4 +72,5 @@ internal class PageLocator : IDataTemplate
     }
 
     public bool Match(object? data) => data is PageRecord;
+
 }

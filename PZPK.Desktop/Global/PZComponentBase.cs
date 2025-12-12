@@ -6,14 +6,9 @@ public abstract class PZComponentBase: ComponentBase
     {
         App.Instance.Translate.LanguageChanged += OnLanguageChanged;
     }
-    protected PZComponentBase(ViewInitializationStrategy viewInitializationStrategy) 
-        : base(viewInitializationStrategy)
-    {
-        App.Instance.Translate.LanguageChanged += OnLanguageChanged;
-    }
 
     protected void OnLanguageChanged()
     {
-        StateHasChanged();
+        UpdateState();
     }
 }

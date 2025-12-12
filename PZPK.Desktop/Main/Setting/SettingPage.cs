@@ -14,7 +14,7 @@ public class SettingPage: PZComponentBase
         void setter(string v) => item.Header = v;
         item._set(setter, func, null, null);
     }
-    private RadioButton BuildThemeRadio(IBrush background, IBrush foreground, Func<string> textFunc)
+    private static RadioButton BuildThemeRadio(IBrush background, IBrush foreground, Func<string> textFunc)
     {
         return new RadioButton()
             .Width(120).Height(100)
@@ -42,13 +42,13 @@ public class SettingPage: PZComponentBase
     {
         var item = new SettingsLayoutItem();
 
-        SetHeader(item, () => LOC.Theme);
+        SetHeader(item, () => LOC.Base.Theme);
         item.Content = HStackPanel()
                 .Spacing(20)
                 .Children(
-                    BuildThemeRadio(Brushes.White, Brushes.DarkGray, () => LOC.Light)
+                    BuildThemeRadio(Brushes.White, Brushes.DarkGray, () => LOC.Base.Light)
                         .IsChecked(() => Model.IsLightTheme, v => Model.IsLightTheme = v ?? false),
-                    BuildThemeRadio(Brushes.Black, Brushes.White, () => LOC.Dark)
+                    BuildThemeRadio(Brushes.Black, Brushes.White, () => LOC.Base.Dark)
                         .IsChecked(() => !Model.IsLightTheme)
                 );
 
@@ -88,7 +88,7 @@ public class SettingPage: PZComponentBase
         var item = new SettingsLayoutItem();
         var radios = Model.Theme.ColorThemes.Select(c => BuildColorRadio(c));
 
-        SetHeader(item, () => LOC.Color);
+        SetHeader(item, () => LOC.Base.Color);
         item.Content = HStackPanel()
                 .Spacing(20)
                 .Children(
@@ -102,7 +102,7 @@ public class SettingPage: PZComponentBase
     {
         var item = new SettingsLayoutItem();
 
-        SetHeader(item, () => LOC.Language);
+        SetHeader(item, () => LOC.Base.Language);
         item.Content = VStackPanel(Avalonia.Layout.HorizontalAlignment.Stretch)
             .Children(
                 new GlassCard()
@@ -111,7 +111,7 @@ public class SettingPage: PZComponentBase
                     .Content(
                         Grid("Auto, Auto, *")
                             .Children(
-                                PzText(() => LOC.Language)
+                                PzText(() => LOC.Base.Language)
                                     .Col(0)
                                     .VerticalAlignment(Avalonia.Layout.VerticalAlignment.Center),
                                 new ComboBox()

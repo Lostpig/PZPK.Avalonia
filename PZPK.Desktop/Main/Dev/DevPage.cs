@@ -1,11 +1,9 @@
-﻿using Avalonia.Controls;
-using Avalonia.Markup.Declarative;
-using Avalonia.Platform.Storage;
+﻿using Avalonia.Platform.Storage;
 using PZPK.Core;
 using PZPK.Core.Crypto;
 using PZPK.Desktop.ImagePreview;
-using System;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace PZPK.Desktop.Main.Dev;
 using static PZPK.Desktop.Common.ControlHelpers;
@@ -33,6 +31,10 @@ internal class DevPage : PZComponentBase
                 HStackPanel().Margin(10)
                     .Children(
                         SukiButton("TestCrypto").OnClick(_ => TestCrypto())
+                    ),
+                HStackPanel().Margin(10)
+                    .Children(
+                        SukiButton("Re Render").OnClick(_ => ToReRender())
                     )
             );
     }
@@ -82,5 +84,16 @@ internal class DevPage : PZComponentBase
         DeText = Encoding.UTF8.GetString(dec);
         StateHasChanged();
 
+    }
+
+    private async void ToReRender()
+    {
+        var sure = await App.Instance.MainWindow.Dialog.WarningConfirm("Sure to re render main window?");
+
+        if (sure == true)
+        {
+            await Task.Delay(333);
+            App.Instance.MainWindow.DebugReRender();
+        }
     }
 }

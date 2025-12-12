@@ -108,9 +108,9 @@ public class IndexPanel : PZComponentBase
                 new DockPanel().Row(2)
                     .Classes("buttons")
                     .Children(
-                        SukiButton("Add Files").OnClick(_ => AddFiles()),
-                        SukiButton("Add Folder").OnClick(_ => AddFolder()),
-                        SukiButton("New Folder").OnClick(_ => NewFolder()),
+                        SukiButton(LOC.Base.File).OnClick(_ => AddFiles()),
+                        SukiButton(LOC.Base.Folder).OnClick(_ => AddFolder()),
+                        SukiButton(LOC.Base.Creator).OnClick(_ => NewFolder()),
                         SukiButton("Resort", "Accent").OnClick(_ => Resort()),
                         SukiButton("Clear", "Flat", "Warning").OnClick(_ => Clear()),
                         HStackPanel()

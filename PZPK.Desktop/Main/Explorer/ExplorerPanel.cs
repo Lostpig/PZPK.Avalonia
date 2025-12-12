@@ -5,7 +5,6 @@ using Avalonia.Layout;
 using Avalonia.Platform.Storage;
 using Material.Icons;
 using PZPK.Core;
-using PZPK.Core.Extract;
 using PZPK.Desktop.Common;
 using PZPK.Desktop.ImagePreview;
 using SukiUI.Content;
@@ -30,9 +29,9 @@ public class ExplorerPanel : PZComponentBase
             .Child(
                 VStackPanel()
                     .Children(
-                        PzText(() => $"{LOC.PackageName}: {PackageName}").Margin(0, 0, 0, 8),
-                        PzText(() => $"{LOC.Description}: {Description}").Margin(0, 0, 0, 8),
-                        PzText(() => $"{LOC.Tags}: {Tags}").Margin(0, 0, 0, 8),
+                        PzText(() => $"{LOC.PZPK.PackageName}: {PackageName}").Margin(0, 0, 0, 8),
+                        PzText(() => $"{LOC.PZPK.Description}: {Description}").Margin(0, 0, 0, 8),
+                        PzText(() => $"{LOC.PZPK.Tags}: {Tags}").Margin(0, 0, 0, 8),
                         PzText(() => FormatInfomation())
                     )
             );
@@ -42,8 +41,8 @@ public class ExplorerPanel : PZComponentBase
         return VStackPanel()
             .VerticalAlignment(VerticalAlignment.Center)
             .Children(
-                SukiButton(LOC.ExtractAll).Margin(0, 0, 0, 10).OnClick(_ => OnExtractAll()),
-                SukiButton(LOC.Close, "Outlined", "Accent").OnClick(_ => ClosePackage())
+                SukiButton(LOC.PZPK.ExtractAll).Margin(0, 0, 0, 10).OnClick(_ => OnExtractAll()),
+                SukiButton(LOC.Base.Close, "Outlined", "Accent").OnClick(_ => ClosePackage())
             );
     }
     private List<Control> BuildFolderStack()
@@ -98,8 +97,8 @@ public class ExplorerPanel : PZComponentBase
     {
         return new ContextMenu()
             .Items(
-                new MenuItem().Header(LOC.Extract).OnClick(OnItemExtract),
-                new MenuItem().Header(LOC.Property).OnClick(OnItemProperty)
+                new MenuItem().Header(LOC.PZPK.Extract).OnClick(OnItemExtract),
+                new MenuItem().Header(LOC.PZPK.Property).OnClick(OnItemProperty)
             );
     }
 
@@ -138,7 +137,7 @@ public class ExplorerPanel : PZComponentBase
     private MaterialIconKind TypeIcon = MaterialIconKind.File;
     private PZFolder? Current;
     private List<IPZItem> Items = [];
-    private ListBox ItemContainer;
+    private readonly ListBox ItemContainer;
 
     public ExplorerPanel(ExplorerModel model): base(ViewInitializationStrategy.Lazy)
     {
@@ -163,7 +162,7 @@ public class ExplorerPanel : PZComponentBase
         string blockSize = Utility.ComputeFileSize(header.BlockSize);
         string createTime = header.CreateTime.ToString("yyyy-MM-dd HH:mm:ss");
 
-        return $"{LOC.Version}: {version} | {LOC.Size}: {size} | {LOC.BlockSize}: {blockSize} | {LOC.CreateTime}: {createTime}";
+        return $"{LOC.PZPK.Version}: {version} | {LOC.Base.Size}: {size} | {LOC.PZPK.BlockSize}: {blockSize} | {LOC.PZPK.CreateTime}: {createTime}";
     }
     private void OnPackageOpened()
     {
@@ -266,7 +265,7 @@ public class ExplorerPanel : PZComponentBase
         TopLevel topLevel = TopLevel.GetTopLevel(this)!;
         var dest = await topLevel.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
         {
-            Title = LOC.ExtractFile,
+            Title = LOC.PZPK.ExtractFile,
             SuggestedFileName = file.Name,
             DefaultExtension = file.Extension,
         });
@@ -281,7 +280,7 @@ public class ExplorerPanel : PZComponentBase
         TopLevel topLevel = TopLevel.GetTopLevel(this)!;
         var dest = await topLevel.StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
         {
-            Title = LOC.SelectDirectory,
+            Title = LOC.PZPK.SelectDirectory,
         });
         if (dest is not null && dest.Count > 0)
         {
@@ -293,7 +292,7 @@ public class ExplorerPanel : PZComponentBase
         TopLevel topLevel = TopLevel.GetTopLevel(this)!;
         var dest = await topLevel.StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
         {
-            Title = LOC.SelectDirectory,
+            Title = LOC.PZPK.SelectDirectory,
         });
         if (dest is not null && dest.Count > 0)
         {
@@ -313,7 +312,7 @@ public class ExplorerPanel : PZComponentBase
                 item = new ViewFolder(fo, files.Count, size);
             }
 
-            Model.Dialog.ShowContentDialog(LOC.Property, new ItemDialogContent(item));
+            Model.Dialog.ShowContentDialog(LOC.PZPK.Property, new ItemDialogContent(item));
         }
     }
 

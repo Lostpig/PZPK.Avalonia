@@ -3,8 +3,6 @@ using Avalonia.Media;
 using Avalonia.Styling;
 using SukiUI;
 using SukiUI.Models;
-using System;
-using System.Collections.Generic;
 
 namespace PZPK.Desktop.Common;
 

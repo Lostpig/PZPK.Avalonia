@@ -61,7 +61,7 @@ public class ExplorerModel : PageModelBase
             catch (Exception ex)
             {
                 
-                Toast.Error(string.Format(LOC.Err_message, ex.Message));
+                Toast.Error(string.Format(LOC.Error.Message, ex.Message));
                 Logger.Instance.Error(ex);
             }
         }
@@ -76,13 +76,13 @@ public class ExplorerModel : PageModelBase
     {
         if (Package == null)
         {
-            Toast.Error(LOC.Err_PackageNotOpen);
+            Toast.Error(LOC.Error.PackageNotOpen);
             return;
         }
 
         if (File.Exists(dest))
         {
-            Toast.Error(LOC.Err_FileExistsed);
+            Toast.Error(LOC.Error.FileExistsed);
             return;
         }
 
@@ -106,15 +106,15 @@ public class ExplorerModel : PageModelBase
             }
 
             var count = await Package.Package.ExtractFileAsync(file, fs, progress, ExtractingState.CancelSource.Token);
-            Toast.Success(string.Format(LOC.Msg_ExtractedSuccess, 1));
+            Toast.Success(string.Format(LOC.Message.ExtractedSuccess, 1));
         }
         catch (OperationCanceledException)
         {
-            Toast.Warning(LOC.Warn_ExtractCancel);
+            Toast.Warning(LOC.Message.ExtractCancelWarning);
         }
         catch (Exception ex)
         {
-            Toast.Error(string.Format(LOC.Err_ExtractFailed, ex.Message));
+            Toast.Error(string.Format(LOC.Error.ExtractFailed, ex.Message));
             Logger.Instance.Error(ex);
         }
         finally
@@ -127,7 +127,7 @@ public class ExplorerModel : PageModelBase
     {
         if (Package == null)
         {
-            Toast.Error(LOC.Err_PackageNotOpen);
+            Toast.Error(LOC.Error.PackageNotOpen);
             return;
         }
         DirectoryInfo destDir = new(dest);
@@ -146,15 +146,15 @@ public class ExplorerModel : PageModelBase
         {
             Extracting = true;
             var count = await Package.Package.ExtractFolderAsync(folder, destDir, progress, ExtractingState.CancelSource.Token);
-            Toast.Success(string.Format(LOC.Msg_ExtractedSuccess, count));
+            Toast.Success(string.Format(LOC.Message.ExtractedSuccess, count));
         }
         catch (OperationCanceledException)
         {
-            Toast.Warning(LOC.Warn_ExtractCancel);
+            Toast.Warning(LOC.Message.ExtractCancelWarning);
         }
         catch (Exception ex)
         {
-            Toast.Error(string.Format(LOC.Err_ExtractFailed, ex.Message));
+            Toast.Error(string.Format(LOC.Error.ExtractFailed, ex.Message));
             Logger.Instance.Error(ex);
         }
         finally
@@ -167,7 +167,7 @@ public class ExplorerModel : PageModelBase
     {
         if (Package == null)
         {
-            Toast.Error(LOC.Err_PackageNotOpen);
+            Toast.Error(LOC.Error.PackageNotOpen);
             return;
         }
         DirectoryInfo destDir = new(dest);
@@ -186,15 +186,15 @@ public class ExplorerModel : PageModelBase
         {
             Extracting = true;
             var count = await Package.Package.ExtractBatchAsync(items, destDir, progress, ExtractingState.CancelSource.Token);
-            Toast.Success(string.Format(LOC.Msg_ExtractedSuccess, count));
+            Toast.Success(string.Format(LOC.Message.ExtractedSuccess, count));
         }
         catch (OperationCanceledException)
         {
-            Toast.Warning(LOC.Warn_ExtractCancel);
+            Toast.Warning(LOC.Message.ExtractCancelWarning);
         }
         catch (Exception ex)
         {
-            Toast.Error(string.Format(LOC.Err_ExtractFailed, ex.Message));
+            Toast.Error(string.Format(LOC.Error.ExtractFailed, ex.Message));
             Logger.Instance.Error(ex);
         }
         finally

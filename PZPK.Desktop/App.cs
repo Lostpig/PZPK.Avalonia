@@ -1,6 +1,4 @@
-﻿using System;
-using Avalonia.Markup.Declarative;
-using PZPK.Desktop.Common;
+﻿using PZPK.Desktop.Common;
 using PZPK.Desktop.ImagePreview;
 using PZPK.Desktop.Localization;
 using PZPK.Desktop.Main;

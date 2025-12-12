@@ -1,6 +1,5 @@
 ﻿using PZPK.Core;
 using PZPK.Desktop.Common;
-using PZPK.Desktop.Global;
 using System.Linq;
 
 namespace PZPK.Desktop.ImagePreview;

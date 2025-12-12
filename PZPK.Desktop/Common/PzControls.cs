@@ -1,8 +1,5 @@
 ﻿using Avalonia.Collections;
-using Avalonia.Controls;
-using System;
 using System.Collections;
-using System.Collections.Generic;
 
 namespace PZPK.Desktop.Common;
 

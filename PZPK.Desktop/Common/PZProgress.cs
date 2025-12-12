@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace PZPK.Desktop.Common;
+﻿namespace PZPK.Desktop.Common;
 
 public class PZProgress<T> : IProgress<T>
 {
