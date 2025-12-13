@@ -5,7 +5,6 @@ using Material.Icons;
 using Material.Icons.Avalonia;
 using SukiUI.Controls;
 using System.Collections;
-using System.Reactive.Linq;
 using System.Reactive.Subjects;
 
 namespace PZPK.Desktop.Common;
@@ -53,6 +52,14 @@ internal static class ControlHelpers
     {
         return new TextBox().Text(subject);
     }
+    public static TextBox PzReadOnlyTextBox(Func<string> getter)
+    {
+        return new TextBox().Text(getter).IsReadOnly(true);
+    }
+    public static TextBox PzReadOnlyTextBox(IObservable<string> obs)
+    {
+        return new TextBox().Text(obs).IsReadOnly(true);
+    }
 
     public static Button SukiButton(string text, params string[] classes)
     {
@@ -61,6 +68,13 @@ internal static class ControlHelpers
             Content = text,
         };
 
+        foreach (var c in classes) btn.Classes.Add(c);
+
+        return btn;
+    }
+    public static Button SukiButton(Func<string> textGetter, params string[] classes)
+    {
+        var btn = new Button().Content(textGetter);
         foreach (var c in classes) btn.Classes.Add(c);
 
         return btn;
@@ -143,10 +157,10 @@ internal static class ControlHelpers
         };
     }
 
-    public static Stepper Index(this Stepper control, Func<int> func)
+    public static Stepper Index(this Stepper control, IObservable<int> obs)
     {
         static void setter(Stepper c, int v) => c.Index = v;
-        control._set(setter, func);
+        control._set(setter, obs);
 
         return control;
     }

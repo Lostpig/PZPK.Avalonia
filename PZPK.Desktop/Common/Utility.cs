@@ -20,4 +20,17 @@ internal class Utility
     {
         return ComputeFileSize((double)size);
     }
+
+    static public double ComputePercent(int value, int total)
+    {
+        return ComputePercent((double)value, (double)total);
+    }
+    static public double ComputePercent(long value, long total)
+    {
+        return ComputePercent((double)value, (double)total);
+    }
+    static public double ComputePercent(double value, double total)
+    {
+        return value / total * 100;
+    }
 }

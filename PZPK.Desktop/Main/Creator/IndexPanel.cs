@@ -1,10 +1,12 @@
 ﻿using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Platform.Storage;
 using Avalonia.Styling;
 using Material.Icons;
+using PZ.RxAvalonia;
 using PZPK.Core;
 using PZPK.Core.Packing;
 using PZPK.Desktop.Common;
@@ -13,6 +15,8 @@ using SukiUI.Dialogs;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using System.Threading.Tasks;
 
 namespace PZPK.Desktop.Main.Creator;
@@ -28,12 +32,17 @@ public class IndexPanel : PZComponentBase
                     .Margin(5, 0)
             ];
     }
-    private List<Control> BuildFolderStack()
+    private ContextMenu BuildItemMenu()
     {
-        List<Control> controls = [];
-        var current = Current;
-        var index = Model.Index;
-
+        return new ContextMenu()
+            .Items(
+                new MenuItem().Header("Rename").OnClick(OnItemRename),
+                new MenuItem().Header("Delete").OnClick(OnItemDelete),
+                new MenuItem().Header("Property").OnClick(OnItemProperty)
+            );
+    }
+    private StackPanel DirStackFuncTemplete(PZIndexFolder folder)
+    {
         var normalBg = App.Instance.Suki.GetSukiColor("SukiBackground");
         var highlightBg = App.Instance.Suki.GetSukiColor("SukiStrongBackground");
 
@@ -48,47 +57,31 @@ public class IndexPanel : PZComponentBase
             Classes = { "Flippable" }
         };
 
-        if (index is not null && current is not null)
+        var btn = new Border().Padding(5);
+        if (folder.Id == Index.Root.Id)
         {
-            var dirStack = index.GetFolderResolveStack(current);
-
-            var rootIcon = new Border().Padding(5)
-                .Child(MaterialIcon(MaterialIconKind.Package, 24));
-            rootIcon.PointerReleased += (_, _) => EnterDirectory(index.Root);
-            rootIcon.PointerEntered += (_, _) => rootIcon.Background = highlightBg;
-            rootIcon.PointerExited += (_, _) => rootIcon.Background = normalBg;
-            controls.Add(rootIcon);
-            controls.Add(createArrow());
-
-            while (dirStack.Count > 0)
-            {
-                var f = dirStack.Pop();
-
-                var folderBtn = new Border().Padding(5)
-                    .Child(PzText(f.Name).VerticalAlignment(VerticalAlignment.Center));
-                folderBtn.PointerReleased += (_, _) => EnterDirectory(f);
-                folderBtn.PointerEntered += (_, _) => folderBtn.Background = highlightBg;
-                folderBtn.PointerExited += (_, _) => folderBtn.Background = normalBg;
-                controls.Add(folderBtn);
-                controls.Add(createArrow());
-            }
+            btn.Child(MaterialIcon(MaterialIconKind.Package, 24));
+        } 
+        else
+        {
+            btn.Child(PzText(folder.Name).VerticalAlignment(VerticalAlignment.Center));
         }
 
-        return controls;
-    }
-    private ContextMenu BuildItemMenu()
-    {
-        return new ContextMenu()
-            .Items(
-                new MenuItem().Header("Rename").OnClick(OnItemRename),
-                new MenuItem().Header("Delete").OnClick(OnItemDelete),
-                new MenuItem().Header("Property").OnClick(OnItemProperty)
-            );
+        btn.PointerReleased += (_, _) => Current.OnNext(folder);
+        btn.PointerEntered += (_, _) => btn.Background = highlightBg;
+        btn.PointerExited += (_, _) => btn.Background = normalBg;
+
+        return HStackPanel().Children(btn, createArrow());
     }
 
-    override protected object Build()
+    override protected Control Build()
     {
         var suki = App.Instance.Suki;
+        var items = Observable.When(
+                    Current.And(Changed.Where(x => x)
+                ).Then((fo, _) => fo))
+                .Select(fo => Index.GetItems(fo, false).Sorted(NaturalPZItemComparer.Instance));
+        var dirStack = Current.Select(fo => Index.GetFolderResolveStack(fo).Reverse());
 
         return Grid(null, "50, 1*, 40")
             .Children(
@@ -98,54 +91,42 @@ public class IndexPanel : PZComponentBase
                     .VerticalAlignment(VerticalAlignment.Center)
                     .Background(() => suki.GetSukiColor("SukiGlassCardBackground"))
                     .Child(
-                        HStackPanel().Children(BuildFolderStack)
+                        new ItemsControl()
+                            .ItemsSource(dirStack)
+                            .ItemTemplate<PZIndexFolder, ItemsControl>(DirStackFuncTemplete)
                     ),
                 new ListBox().Row(1)
                     .SelectionMode(SelectionMode.Multiple)
                     .ItemTemplate(new PZItemTemplate(BuildItemMenu()))
-                    .ItemsSource(() => Items)
+                    .ItemsSource(items)
                     .OnDoubleTapped(OnItemDoubleTap),
                 new DockPanel().Row(2)
                     .Classes("buttons")
                     .Children(
-                        SukiButton(LOC.Base.File).OnClick(_ => AddFiles()),
-                        SukiButton(LOC.Base.Folder).OnClick(_ => AddFolder()),
-                        SukiButton(LOC.Base.Creator).OnClick(_ => NewFolder()),
+                        SukiButton("Add File").OnClick(_ => AddFiles()),
+                        SukiButton("Add Folder").OnClick(_ => AddFolder()),
+                        SukiButton("New Folder").OnClick(_ => NewFolder()),
                         SukiButton("Resort", "Accent").OnClick(_ => Resort()),
                         SukiButton("Clear", "Flat", "Warning").OnClick(_ => Clear()),
                         HStackPanel()
                             .HorizontalAlignment(HorizontalAlignment.Right)
                             .Dock(Dock.Right)
                             .Children(
-                                SukiButton("Next", "Flat").Margin(5, 0).OnClick(_ => Next())
+                                SukiButton("Next", "Flat").Margin(5, 0).OnClick(_ => Model.NextStep())
                             )
                     )
             );
     }
-
-    public IndexPanel(CreatorModel model) : base(ViewInitializationStrategy.Lazy)
+    protected override void OnCreated()
     {
-        Model = model;
-        Index = model.Index;
-        Current = Index.Root;
-
-        Model.OnStepChanged += OnStepChanged;
-
-        Initialize();
+        base.OnCreated();
+        Model.Completed.Subscribe(_ => Current.OnNext(Index.Root));
     }
 
-    private readonly CreatorModel Model;
-    private readonly IndexCreator Index;
-    private PZIndexFolder Current;
-    private List<IPZItem> Items = [];
-
-    private void OnStepChanged()
-    {
-        if (Model.Step != 1) return;
-
-        Current = Index.Root;
-        UpdateList();
-    }
+    private static CreatorModel Model => CreatorModel.Instance;
+    private static IndexCreator Index => CreatorModel.Instance.Index;
+    private readonly BehaviorSubject<PZIndexFolder> Current = new(Index.Root);
+    private readonly Subject<bool> Changed = new();
 
     private void OnItemDoubleTap(TappedEventArgs e)
     {
@@ -153,38 +134,18 @@ public class IndexPanel : PZComponentBase
         {
             if (ctrl.DataContext is PZIndexFolder folder)
             {
-                EnterDirectory(folder);
+                Current.OnNext(folder);
             }
         }
     }
-    private void EnterDirectory(PZIndexFolder folder)
-    {
-        if (folder == Current) return;
-
-        Current = folder;
-        UpdateList();
-    }
-    private void UpdateList()
-    {
-        var files = Index.GetFiles(Current, false);
-        var folders = Index.GetFolders(Current, false);
-        files.Sort(NaturalPZItemComparer.Instance);
-        folders.Sort(NaturalPZItemComparer.Instance);
-
-        List<IPZItem> items = [.. folders, .. files];
-        Items = items;
-
-        StateHasChanged();
-    }
-
     private async void NewFolder()
     {
         var name = await ShowNameDialog("Create folder");
 
         if (!string.IsNullOrEmpty(name))
         {
-            Index.AddFolder(name, Current);
-            UpdateList();
+            Index.AddFolder(name, Current.Value);
+            Changed.OnNext(true);
         }
     }
     private async void AddFiles()
@@ -203,7 +164,7 @@ public class IndexPanel : PZComponentBase
             {
                 foreach (var f in files)
                 {
-                    Index.AddFile(f.Path.LocalPath, f.Name, Current);
+                    Index.AddFile(f.Path.LocalPath, f.Name, Current.Value);
                     added = true;
                 }
             }
@@ -214,10 +175,7 @@ public class IndexPanel : PZComponentBase
             }
             finally
             {
-                if (added)
-                {
-                    UpdateList();
-                }
+                Changed.OnNext(added);
             }
         }
     }
@@ -237,7 +195,7 @@ public class IndexPanel : PZComponentBase
             {
                 Debug.WriteLine(folder);
                 var di = new DirectoryInfo(folder);
-                ScanAndAddFolder(di, Current);
+                ScanAndAddFolder(di, Current.Value);
             }
             catch (Exception ex)
             {
@@ -246,11 +204,11 @@ public class IndexPanel : PZComponentBase
             }
             finally
             {
-                UpdateList();
+                Changed.OnNext(true);
             }
         }
     }
-    private void ScanAndAddFolder(DirectoryInfo di, PZIndexFolder parent)
+    private static void ScanAndAddFolder(DirectoryInfo di, PZIndexFolder parent)
     {
         PZIndexFolder current = Index.AddFolder(di.Name, parent);
 
@@ -269,7 +227,7 @@ public class IndexPanel : PZComponentBase
 
     private void Resort()
     {
-        var files = Index.GetFiles(Current, false);
+        var files = Index.GetFiles(Current.Value, false);
         files.Sort(NaturalPZItemComparer.Instance);
 
         int w = 2;
@@ -287,7 +245,7 @@ public class IndexPanel : PZComponentBase
             Index.RenameFile(file, idx + file.Extension);
         }
 
-        UpdateList();
+        Changed.OnNext(true);
     }
     private async void Clear()
     {
@@ -295,9 +253,8 @@ public class IndexPanel : PZComponentBase
 
         if (ok)
         {
-            Current = Index.Root;
             Index.Clear();
-            UpdateList();
+            Current.OnNext(Index.Root);
         }
     }
 
@@ -311,7 +268,7 @@ public class IndexPanel : PZComponentBase
                 if (!string.IsNullOrEmpty(newName) && newName != f.Name)
                 {
                     Index.RenameFile(f, newName);
-                    UpdateList();
+                    Changed.OnNext(true);
                 }
             }
             else if (c.DataContext is PZIndexFolder fo)
@@ -320,7 +277,7 @@ public class IndexPanel : PZComponentBase
                 if (!string.IsNullOrEmpty(newName) && newName != fo.Name)
                 {
                     Index.RenameFolder(fo, newName);
-                    UpdateList();
+                    Changed.OnNext(true);
                 }
             }
         }
@@ -332,12 +289,12 @@ public class IndexPanel : PZComponentBase
             if (c.DataContext is PZIndexFile f)
             {
                 Index.RemoveFile(f);
-                UpdateList();
+                Changed.OnNext(true);
             }
             else if (c.DataContext is PZIndexFolder fo)
             {
                 Index.RemoveFolder(fo);
-                UpdateList();
+                Changed.OnNext(true);
             }
         }
     }
@@ -356,7 +313,7 @@ public class IndexPanel : PZComponentBase
         }
     }
 
-    private async Task<string?> ShowNameDialog(string title, string originName = "")
+    private static async Task<string?> ShowNameDialog(string title, string originName = "")
     {
         var content = new NameDialogContent(originName);
         var builder = Model.Dialog.Manager.CreateDialog()
@@ -381,10 +338,5 @@ public class IndexPanel : PZComponentBase
         builder.TryShow();
 
         return await completion.Task;
-    }
-
-    private void Next()
-    {
-        Model.NextStep();
     }
 }

@@ -1,17 +1,17 @@
-﻿using Avalonia.Controls;
-using Avalonia.Markup.Declarative;
-using Avalonia.Platform.Storage;
-using Avalonia.Threading;
-using System;
+﻿using Avalonia.Platform.Storage;
 using System.IO;
+using System.Reactive.Linq;
 
 namespace PZPK.Desktop.Main.Creator;
 using static Common.ControlHelpers;
 
 internal class PackingPanel : PZComponentBase
 {
-    protected override object Build()
+    protected override Control Build()
     {
+        var packing = Model.PackingInfo;
+        var notRuning = packing.Running.Select(x => !x);
+
         return VStackPanel(Avalonia.Layout.HorizontalAlignment.Center)
             .Children(
                 new DockPanel().Height(40).Width(300)
@@ -25,32 +25,32 @@ internal class PackingPanel : PZComponentBase
                             .Dock(Dock.Right)
                             .Children(
                                 SukiButton("Select")
-                                    .IsEnabled(() => !Model.PackingInfo.Running)
+                                    .IsEnabled(notRuning)
                                     .OnClick(_ => SelectSavePath())
                             )
                     ),
-                PzTextBox(() => Model.PackingInfo.SavePath, v => Model.PackingInfo.SavePath = v)
+                PzTextBox(packing.SavePath)
                     .Margin(0, 10, 0, 0)
                     .Width(300)
                     .IsReadOnly(true),
                 new DockPanel().Height(40).Width(300).Margin(0, 10, 0, 0)
                     .Children(
                         PzText("Files:").Dock(Dock.Left),
-                        PzText(() => Model.PackingInfo.FilesText)
+                        PzText(packing.FilesText)
                             .HorizontalAlignment(Avalonia.Layout.HorizontalAlignment.Right)
                             .Dock(Dock.Right)
                     ),
                 new DockPanel().Height(40).Width(300).Margin(0, 10, 0, 0)
                     .Children(
                         PzText("Bytes:").Dock(Dock.Left),
-                        PzText(() => Model.PackingInfo.BytesText)
+                        PzText(packing.BytesText)
                             .HorizontalAlignment(Avalonia.Layout.HorizontalAlignment.Right)
                             .Dock(Dock.Right)
                     ),
                 new ProgressBar()
                     .Minimum(0)
                     .Maximum(100)
-                    .Value(() => Model.PackingInfo.Percent)
+                    .Value(packing.Percent)
                     .Height(20)
                     .Width(480)
                     .Margin(0, 30, 0, 0),
@@ -59,40 +59,19 @@ internal class PackingPanel : PZComponentBase
                     .Children(
                         SukiButton("Prev", "Accent", "Flat").Width(120)
                             .Margin(0, 0, 20, 0)
-                            .IsEnabled(() => !Model.PackingInfo.Running)
+                            .IsEnabled(notRuning)
                             .OnClick(_ => Model.PreviousStep()),
                         SukiButton("Start").Width(120)
-                            .IsVisible(() => !Model.PackingInfo.Running)
-                            .OnClick(_ => StartPacking()),
+                            .IsVisible(notRuning)
+                            .OnClick(_ => Model.Start()),
                         SukiButton("Cancel", "Danger").Width(120)
-                            .IsVisible(() => Model.PackingInfo.Running)
+                            .IsVisible(packing.Running)
                             .OnClick(_ => CancelPacking())
                     )
             );
     }
-    public PackingPanel(CreatorModel model) : base(ViewInitializationStrategy.Lazy)
-    {
-        Model = model;
-        Model.OnStepChanged += OnStepChanged;
-        Model.OnPackingProgressed += OnPackingProgressed;
 
-        Initialize();
-    }
-
-    private readonly CreatorModel Model;
-
-    private void OnStepChanged()
-    {
-        if (Model.Step != 3) return;
-        StateHasChanged();
-    }
-    private void OnPackingProgressed()
-    {
-        Dispatcher.UIThread.InvokeAsync(() =>
-        {
-            StateHasChanged();
-        });
-    }
+    private static CreatorModel Model => CreatorModel.Instance;
 
     private async void SelectSavePath()
     {
@@ -112,22 +91,9 @@ internal class PackingPanel : PZComponentBase
             }
             else
             {
-                Model.PackingInfo.SavePath = localPath;
+                Model.PackingInfo.SavePath.OnNext(localPath);
             }
-
-            StateHasChanged();
         }
-    }
-
-    private void StartPacking()
-    {
-        if (string.IsNullOrWhiteSpace(Model.PackingInfo.SavePath))
-        {
-            return;
-        }
-
-        Model.Start(Model.PackingInfo.SavePath);
-        StateHasChanged();
     }
     private async void CancelPacking()
     {
@@ -136,7 +102,6 @@ internal class PackingPanel : PZComponentBase
         if (sure)
         {
             Model.Cancel();
-            StateHasChanged();
         }
     }
 }

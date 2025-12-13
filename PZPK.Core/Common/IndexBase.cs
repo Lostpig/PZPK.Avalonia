@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Collections.Generic;
+using System.Text;
 
 namespace PZPK.Core;
 
@@ -82,6 +83,13 @@ public abstract class IndexBase<TFolder, TFile> : IPZIndex<TFolder, TFile> where
     public List<TFolder> GetAllFolders()
     {
         return Folders.Values.ToList();
+    }
+    public List<IPZItem> GetItems(TFolder parent, bool recursive)
+    {
+        var folders = GetFolders(parent, recursive);
+        var files = GetFiles(parent, recursive);
+
+        return [.. folders, ..files];
     }
 
     public Stack<TFolder> GetFolderResolveStack(TFolder folder, TFolder? resolveFolder = default)

@@ -1,13 +1,12 @@
-﻿using Avalonia.Markup.Declarative;
-using PZPK.Desktop.Common;
-using System;
+﻿using PZPK.Desktop.Common;
+using System.Reactive.Linq;
 
 namespace PZPK.Desktop.Main.Creator;
 using static Common.ControlHelpers;
 
 public class CompletePanel : PZComponentBase
 {
-    protected override object Build()
+    protected override Control Build()
     {
         return VStackPanel(Avalonia.Layout.HorizontalAlignment.Center)
             .Width(400)
@@ -19,7 +18,8 @@ public class CompletePanel : PZComponentBase
                     .Margin(0, 0, 0, 10)
                     .HorizontalAlignment(Avalonia.Layout.HorizontalAlignment.Left),
                 Grid("*, Auto").Children(
-                        PzTextBox(() => Model.CompleteInfo.PackagePath)
+                        PzReadOnlyTextBox(Model.Completed.Select(c => c.PackagePath))
+                            .Ref(out pathBox)
                             .Col(0),
                         SukiButton("Open Directory")
                             .Col(1)
@@ -31,18 +31,18 @@ public class CompletePanel : PZComponentBase
                     .HorizontalAlignment(Avalonia.Layout.HorizontalAlignment.Center)
                     .Children(
                         PzText("Packing "),
-                        PzText(() => Model.CompleteInfo.FilesCount.ToString(), "Primary"),
+                        PzText(Model.Completed.Select(c => c.Count.ToString()), "Primary"),
                         PzText(" files in "),
-                        PzText(() => Model.CompleteInfo.UsedTime.ToString(@"hh\:mm\:ss"), "Primary")
+                        PzText(Model.Completed.Select(c => c.UsedTime.ToString(@"hh\:mm\:ss")), "Primary")
                     ),
                 HStackPanel()
                     .Margin(0, 10, 0, 0)
                     .HorizontalAlignment(Avalonia.Layout.HorizontalAlignment.Center)
                     .Children(
                         PzText("Total Size "),
-                        PzText(() => Utility.ComputeFileSize(Model.CompleteInfo.PackageSize), "Primary"),
+                        PzText(Model.Completed.Select(c => c.Size).Select(Utility.ComputeFileSize), "Primary"),
                         PzText(", process speed "),
-                        PzText(() => Utility.ComputeFileSize(Model.CompleteInfo.Speed), "Primary"),
+                        PzText(Model.Completed.Select(c => c.Speed).Select(Utility.ComputeFileSize), "Primary"),
                         PzText("/S")
                     ),
                 SukiButton("Done", "Flat")
@@ -53,15 +53,15 @@ public class CompletePanel : PZComponentBase
             );
     }
 
-    private readonly CreatorModel Model;
-    public CompletePanel(CreatorModel model) : base(ViewInitializationStrategy.Lazy)
-    {
-        Model = model;
-        Initialize();
-    }
+    private TextBox pathBox;
+    private static CreatorModel Model => CreatorModel.Instance;
+
     private void OpenDirectory()
     {
-        var path = System.IO.Path.GetDirectoryName(Model.CompleteInfo.PackagePath);
+        var filePath = pathBox?.Text;
+        if (string.IsNullOrWhiteSpace(filePath)) return;
+
+        var path = System.IO.Path.GetDirectoryName(filePath);
         if (path is not null && System.IO.Directory.Exists(path))
         {
             System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo

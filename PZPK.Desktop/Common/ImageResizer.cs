@@ -15,13 +15,7 @@ public enum ImageResizerFormat
     Png,
     Webp
 }
-public record ImageResizerOptions
-{
-    public int MaxSize { get; set; } = 2160;
-    public int Quality { get; set; } = 75;
-    public bool Lossless { get; set; } = false;
-    public ImageResizerFormat Format { get; set; } = ImageResizerFormat.Jpeg;
-}
+public record ImageResizerOptions(ImageResizerFormat Format, int Quality, int MaxSize, bool Lossless);
 public class ImageResizer : IImageResizer
 {
     public static ImageResizer CreateResizer(ImageResizerOptions options)
@@ -65,7 +59,7 @@ public class ImageResizer : IImageResizer
     private double ComputeResizeScale(int w, int h)
     {
         int large = w > h ? w : h;
-        if (large <= MaxSize) return 1;
+        if (large <= MaxSize || MaxSize <= 0) return 1;
 
         return MaxSize / (double)large;
     }

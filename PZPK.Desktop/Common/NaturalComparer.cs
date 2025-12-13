@@ -1,5 +1,4 @@
 ﻿using PZPK.Core;
-using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
 namespace PZPK.Desktop.Common;
@@ -37,6 +36,9 @@ internal sealed class NaturalPZItemComparer : IComparer<IPZItem>
     public static NaturalPZItemComparer Instance { get { return _instance ??= new NaturalPZItemComparer(); } }
     public int Compare(IPZItem? a, IPZItem? b)
     {
+        if (a is IPZFolder && b is IPZFile) return -1;
+        if (a is IPZFile && b is IPZFolder) return 1;
+
         return NaturalComparer.Instance.Compare(a?.Name ?? "", b?.Name ?? "");
     }
 }
