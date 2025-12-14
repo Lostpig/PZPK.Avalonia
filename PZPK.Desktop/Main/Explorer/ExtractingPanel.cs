@@ -1,15 +1,19 @@
-﻿using Avalonia.Controls;
-using Avalonia.Markup.Declarative;
-using PZPK.Desktop.Common;
-using System.Threading.Tasks;
+﻿namespace PZPK.Desktop.Main.Explorer;
 
-namespace PZPK.Desktop.Main.Explorer;
+using PZPK.Desktop.Common;
+using System.Reactive.Linq;
 using static PZPK.Desktop.Common.ControlHelpers;
 
 public class ExtractingPanel: PZComponentBase
 {
     private StackPanel BuildContent()
     {
+        var filesText = Model.ExtractProgress.Select(p => $"{p.ProcessedFiles}/{p.Files}");
+        var bytesText = Model.ExtractProgress.Select(
+            p => $"{Utility.ComputeFileSize(p.ProcessedBytes)}/{Utility.ComputeFileSize(p.Bytes)}"
+        );
+        var percent = Model.ExtractProgress.Select(p => Utility.ComputePercent(p.ProcessedBytes, p.Bytes);
+
         return VStackPanel(Avalonia.Layout.HorizontalAlignment.Center)
             .Children(
                 PzText("Extracting...", "h3")
@@ -17,21 +21,21 @@ public class ExtractingPanel: PZComponentBase
                 new DockPanel().Height(40).Width(300).Margin(0, 10, 0, 0)
                     .Children(
                         PzText("Files:").Dock(Dock.Left),
-                        PzText(() => Model.ExtractingState.FilesText)
+                        PzText(filesText)
                             .HorizontalAlignment(Avalonia.Layout.HorizontalAlignment.Right)
                             .Dock(Dock.Right)
                     ),
                 new DockPanel().Height(40).Width(300)
                     .Children(
                         PzText("Bytes:").Dock(Dock.Left),
-                        PzText(() => Model.ExtractingState.BytesText)
+                        PzText(bytesText)
                             .HorizontalAlignment(Avalonia.Layout.HorizontalAlignment.Right)
                             .Dock(Dock.Right)
                     ),
                 new ProgressBar()
                     .Minimum(0)
                     .Maximum(100)
-                    .Value(() => Model.ExtractingState.Percent)
+                    .Value(percent)
                     .Height(20)
                     .Width(360)
                     .Margin(0, 10, 0, 0),
@@ -41,7 +45,7 @@ public class ExtractingPanel: PZComponentBase
                     .OnClick(_ => CancelPacking())
             );
     }
-    protected override object Build()
+    protected override Control Build()
     {
         var maskColor = App.Instance.Suki.GetSukiColor("SukiDialogBackground");
         var contentColor = App.Instance.Suki.GetSukiColor("SukiCardBackground");
@@ -59,16 +63,8 @@ public class ExtractingPanel: PZComponentBase
 
         return mask;
     }
-
-    public ExtractingPanel(ExplorerModel model): base(ViewInitializationStrategy.Lazy)
-    {
-        Model = model;
-        Model.OnExtractingProgressed += StateHasChanged;
-
-        Initialize();
-    }
     
-    private readonly ExplorerModel Model;
+    private static ExplorerModel Model => ExplorerModel.Instance;
     private void CancelPacking()
     {
         Model.CancelExtracting();

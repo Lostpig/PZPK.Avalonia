@@ -1,12 +1,10 @@
 ﻿using Avalonia;
-using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Platform.Storage;
 using Avalonia.Styling;
 using Material.Icons;
-using PZ.RxAvalonia;
 using PZPK.Core;
 using PZPK.Core.Packing;
 using PZPK.Desktop.Common;

@@ -5,7 +5,6 @@ using Material.Icons;
 using PZPK.Core;
 using PZPK.Desktop.Common;
 using System.Collections.Concurrent;
-using System.Reactive.Linq;
 using System.Reactive.Subjects;
 
 namespace PZPK.Desktop.Main.Creator;
@@ -15,10 +14,10 @@ public class PropertiesPanel: PZComponentBase
 {
     private class TagItem : ContentControl
     {
-        private static ConcurrentStack<TagItem> Pool = new();
+        private static readonly ConcurrentStack<TagItem> Pool = new();
         public static TagItem GetItem(string tag)
         {
-            var tagItem = Pool.TryPop(out var item) ? item : new TagItem(tag);
+            var tagItem = Pool.TryPop(out var item) ? item : new TagItem();
             tagItem.SetTag(tag);
             return tagItem;
         }

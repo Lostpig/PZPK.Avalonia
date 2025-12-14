@@ -1,25 +1,20 @@
-﻿using PZPK.Desktop.Common;
+﻿using System.Reactive.Linq;
 
 namespace PZPK.Desktop.Main.Explorer;
-using static PZPK.Desktop.Common.ControlHelpers;
 
 public class ExplorerPage : PZComponentBase
 {
-    protected override object Build()
+    protected override Control Build()
     {
-        Model.OnPackageOpened += StateHasChanged;
-        Model.OnPackageClosed += StateHasChanged;
-        Model.OnExtractingChanged += _ => StateHasChanged();
-
         return new Panel()
             .Children(
-                new ExtractingPanel(Model)
+                new ExtractingPanel()
                     .ZIndex(99)
-                    .IsVisible(() => Model.Extracting),
-                new OpenFilePanel(Model)
-                    .IsVisible(() => Model.Package is null),
-                new ExplorerPanel(Model)
-                    .IsVisible(() => Model.Package is not null)
+                    .IsVisible(Model.IsExtracting),
+                new OpenFilePanel()
+                    .IsVisible(Model.Package.Select(p => p is null)),
+                new ExplorerPanel()
+                    .IsVisible(Model.Package.Select(p => p is not null))
             );
     }
 

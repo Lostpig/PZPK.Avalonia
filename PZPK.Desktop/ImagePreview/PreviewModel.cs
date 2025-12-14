@@ -1,4 +1,4 @@
-﻿using PZPK.Core;
+﻿using PZ.RxAvalonia.Reactive;
 using PZPK.Desktop.Common;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
@@ -25,11 +25,11 @@ public class PreviewModel
         }
     }
 
-    public ConditionBehaviorSubject<double> Scale { get; init; }
+    public ConditionSubject<double> Scale { get; init; }
     public IObservable<string> ScalePercent { get; init; }
     public BehaviorSubject<object> Lock { get; init; }
     public BehaviorSubject<string> FileName { get; init; }
-    public ConditionBehaviorSubject<int> Current { get; init; }
+    public ConditionSubject<int> Current { get; init; }
     public BehaviorSubject<int> Total { get; init; }
     public IObservable<string> IndexText { get; init; }
 

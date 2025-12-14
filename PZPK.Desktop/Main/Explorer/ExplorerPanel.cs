@@ -5,13 +5,19 @@ using Avalonia.Layout;
 using Avalonia.Platform.Storage;
 using Material.Icons;
 using PZPK.Core;
+using PZPK.Core.Extract;
 using PZPK.Desktop.Common;
 using PZPK.Desktop.ImagePreview;
 using SukiUI.Content;
 using SukiUI.Controls;
+using System.Collections;
 using System.Linq;
+using System.Reactive.Linq;
+using System.Reactive.Subjects;
 
 namespace PZPK.Desktop.Main.Explorer;
+
+using static AvaloniaEdit.Document.TextDocumentWeakEventManager;
 using static PZPK.Desktop.Common.ControlHelpers;
 
 public class ExplorerPanel : PZComponentBase
@@ -19,6 +25,17 @@ public class ExplorerPanel : PZComponentBase
     private Border BuildPackageDetail()
     {
         var suki = App.Instance.Suki;
+        var pkg = Model.Package;
+        static string infoFormat(Package p)
+        {
+            var header = p.Header;
+            string version = header.Version.ToString();
+            string size = Utility.ComputeFileSize(header.FileSize);
+            string blockSize = Utility.ComputeFileSize(header.BlockSize);
+            string createTime = header.CreateTime.ToString("yyyy-MM-dd HH:mm:ss");
+
+            return $"{LOC.PZPK.Version}: {version} | {LOC.Base.Size}: {size} | {LOC.PZPK.BlockSize}: {blockSize} | {LOC.PZPK.CreateTime}: {createTime}";
+        }
 
         return new Border()
             .Margin(12, 0, 32, 0)
@@ -29,10 +46,19 @@ public class ExplorerPanel : PZComponentBase
             .Child(
                 VStackPanel()
                     .Children(
-                        PzText(() => $"{LOC.PZPK.PackageName}: {PackageName}").Margin(0, 0, 0, 8),
-                        PzText(() => $"{LOC.PZPK.Description}: {Description}").Margin(0, 0, 0, 8),
-                        PzText(() => $"{LOC.PZPK.Tags}: {Tags}").Margin(0, 0, 0, 8),
-                        PzText(() => FormatInfomation())
+                        HStackPanel().Children(
+                            PzText(() => $"{LOC.PZPK.PackageName}:"),
+                            PzText(pkg.Select(p => p?.Detail.Name ?? ""))
+                        ),
+                        HStackPanel().Children(
+                            PzText(() => $"{LOC.PZPK.Description}:"),
+                            PzText(pkg.Select(p => p?.Detail.Description ?? ""))
+                        ),
+                        HStackPanel().Children(
+                            PzText(() => $"{LOC.PZPK.Tags}:"),
+                            PzText(pkg.Select(p => string.Join(',', p?.Detail.Tags ?? [])))
+                        ),
+                        PzText(pkg.Select(p => p is null ? "" : infoFormat(p)))
                     )
             );
     }
@@ -41,15 +67,13 @@ public class ExplorerPanel : PZComponentBase
         return VStackPanel()
             .VerticalAlignment(VerticalAlignment.Center)
             .Children(
-                SukiButton(LOC.PZPK.ExtractAll).Margin(0, 0, 0, 10).OnClick(_ => OnExtractAll()),
-                SukiButton(LOC.Base.Close, "Outlined", "Accent").OnClick(_ => ClosePackage())
+                SukiButton(LOC.PZPK.ExtractAll).Margin(0, 0, 0, 10).OnClick(_ => ExtractAll()),
+                SukiButton(LOC.Base.Close, "Outlined", "Accent").OnClick(_ => Model.ClosePackage())
             );
     }
-    private List<Control> BuildFolderStack()
+    private StackPanel DirStackFuncTemplete(PZFolder folder)
     {
-        List<Control> controls = [];
-        var current = Current;
-        var package = Model.Package;
+        if (Index == null) return new StackPanel();
 
         var normalBg = App.Instance.Suki.GetSukiColor("SukiBackground");
         var highlightBg = App.Instance.Suki.GetSukiColor("SukiStrongBackground");
@@ -65,33 +89,21 @@ public class ExplorerPanel : PZComponentBase
             Classes = { "Flippable" }
         };
 
-        if (package is not null && current is not null)
+        var btn = new Border().Padding(5);
+        if (folder.Id == Index.Root.Id)
         {
-            var dirStack = package.Index.GetFolderResolveStack(current);
-
-            var rootIcon = new Border().Padding(5)
-                .Child(MaterialIcon(MaterialIconKind.Package, 24));
-            rootIcon.PointerReleased += (_, _) => EnterDirectory(package.Root);
-            rootIcon.PointerEntered += (_, _) => rootIcon.Background = highlightBg;
-            rootIcon.PointerExited += (_, _) => rootIcon.Background = normalBg;
-            controls.Add(rootIcon);
-            controls.Add(createArrow());
-
-            while (dirStack.Count > 0)
-            {
-                var f = dirStack.Pop();
-
-                var folderBtn = new Border().Padding(5)
-                    .Child(PzText(f.Name).VerticalAlignment(VerticalAlignment.Center));
-                folderBtn.PointerReleased += (_, _) => EnterDirectory(f);
-                folderBtn.PointerEntered += (_, _) => folderBtn.Background = highlightBg;
-                folderBtn.PointerExited += (_, _) => folderBtn.Background = normalBg;
-                controls.Add(folderBtn);
-                controls.Add(createArrow());
-            }
+            btn.Child(MaterialIcon(MaterialIconKind.Package, 24));
+        }
+        else
+        {
+            btn.Child(PzText(folder.Name).VerticalAlignment(VerticalAlignment.Center));
         }
 
-        return controls;
+        btn.PointerReleased += (_, _) => Current.OnNext(folder);
+        btn.PointerEntered += (_, _) => btn.Background = highlightBg;
+        btn.PointerExited += (_, _) => btn.Background = normalBg;
+
+        return HStackPanel().Children(btn, createArrow());
     }
     private ContextMenu BuildItemMenu()
     {
@@ -102,9 +114,23 @@ public class ExplorerPanel : PZComponentBase
             );
     }
 
-    protected override object Build()
+    protected override Control Build()
     {
         var suki = App.Instance.Suki;
+        var dirStack = Current.Select(fo => {
+                if (fo != null && Index != null) return Index.GetFolderResolveStack(fo).Reverse();
+                else return Enumerable.Empty<PZFolder>();
+            });
+        var items = Current.Select(fo => {
+                if (fo != null && Index != null)
+                {
+                    return Index.GetItems(fo, false).Sorted(NaturalPZItemComparer.Instance);
+                }
+                else
+                {
+                    return [];
+                }
+            });
 
         return Grid(null, "Auto, 50, 1*")
             .Children(
@@ -113,7 +139,7 @@ public class ExplorerPanel : PZComponentBase
                     .Content(
                         Grid("Auto, 1*, Auto", null)
                             .Children(
-                                MaterialIcon(TypeIcon, 48).Col(0),
+                                MaterialIcon(MaterialIconKind.File, 48).Col(0),
                                 BuildPackageDetail().Col(1),
                                 BuildPackageOperators().Col(2)
                             )
@@ -124,96 +150,33 @@ public class ExplorerPanel : PZComponentBase
                     .VerticalAlignment(VerticalAlignment.Center)
                     .Background(() => suki.GetSukiColor("SukiGlassCardBackground"))
                     .Child(
-                        HStackPanel().Children(() => BuildFolderStack())
+                        new ItemsControl()
+                            .ItemsSource(dirStack)
+                            .ItemTemplate<PZFolder, ItemsControl>(DirStackFuncTemplete)
                     ),
-                ItemContainer.Row(2)
-            );
-    }
-
-    private readonly ExplorerModel Model;
-    private string Description = "";
-    private string PackageName = "";
-    private string Tags = "";
-    private MaterialIconKind TypeIcon = MaterialIconKind.File;
-    private PZFolder? Current;
-    private List<IPZItem> Items = [];
-    private readonly ListBox ItemContainer;
-
-    public ExplorerPanel(ExplorerModel model): base(ViewInitializationStrategy.Lazy)
-    {
-        Model = model;
-        Model.OnPackageOpened += OnPackageOpened;
-
-        ItemContainer = new ListBox()
+                new ListBox().Row(2)
                     .SelectionMode(SelectionMode.Multiple)
                     .ItemTemplate(new PZItemTemplate(BuildItemMenu()))
-                    .ItemsSource(() => Items)
-                    .OnDoubleTapped(OnItemDoubleTap);
-
-        Initialize();
+                    .ItemsSource(items)
+                    .SelectedItems(SelectedItems)
+                    .OnDoubleTapped(OnItemDoubleTap)
+            );
     }
-    private string FormatInfomation()
+    protected override void OnCreated()
     {
-        if (Model.Package is null) return "";
-
-        var header = Model.Package.Header;
-        string version = header.Version.ToString();
-        string size = Utility.ComputeFileSize(header.FileSize);
-        string blockSize = Utility.ComputeFileSize(header.BlockSize);
-        string createTime = header.CreateTime.ToString("yyyy-MM-dd HH:mm:ss");
-
-        return $"{LOC.PZPK.Version}: {version} | {LOC.Base.Size}: {size} | {LOC.PZPK.BlockSize}: {blockSize} | {LOC.PZPK.CreateTime}: {createTime}";
-    }
-    private void OnPackageOpened()
-    {
-        var package = Model.Package;
-
-        Description = package?.Detail.Description ?? "";
-        PackageName = package?.Detail.Name ?? "";
-        Tags = string.Join(',', package?.Detail.Tags ?? []);
-        TypeIcon = package?.Header.Type switch
+        base.OnCreated();
+        Model.Package.Subscribe(p =>
         {
-            PZType.Package => MaterialIconKind.Package,
-            PZType.Note => MaterialIconKind.Archive,
-            _ => MaterialIconKind.File
-        };
-
-        if (package is null)
-        {
-            Current = null;
-            Items.Clear();
-        }
-        else
-        {
-            EnterDirectory(package.Root, true);
-        }
-
-        StateHasChanged();
+            if (p != null) Current.OnNext(p.Index.Root);
+            else Current.OnNext(null);
+        });
     }
-    private void ClosePackage()
-    {
-        Model.ClosePackage();
-    }
-    private void EnterDirectory(PZFolder folder, bool forceUpdate = false)
-    {
-        if (folder == Current && !forceUpdate) return;
 
-        if (Model.Package is not null)
-        {
-            var index = Model.Package.Index;
-            var files = index.GetFiles(folder, false);
-            var folders = index.GetFolders(folder, false);
-            files.Sort(NaturalPZItemComparer.Instance);
-            folders.Sort(NaturalPZItemComparer.Instance);
+    private static ExplorerModel Model => ExplorerModel.Instance;
+    private static PackageIndex? Index => Model.Package.Value?.Index;
+    private readonly BehaviorSubject<PZFolder?> Current = new(null);
+    private readonly BehaviorSubject<IList> SelectedItems = new(new ArrayList());
 
-            List<IPZItem> items = [.. folders, .. files];
-
-            Current = folder;
-            Items = items;
-
-            StateHasChanged();
-        }
-    }
     private void OnItemDoubleTap(TappedEventArgs e)
     {
         if (e.Source is Control ctrl)
@@ -224,19 +187,19 @@ public class ExplorerPanel : PZComponentBase
             }
             else if (ctrl.DataContext is PZFolder folder)
             {
-                EnterDirectory(folder);
+                Current.OnNext(folder);
             }
         }
     }
 
     private async void OnItemExtract(RoutedEventArgs e)
     {
-        if (ItemContainer.SelectedItems is null) return;
-        if (ItemContainer.SelectedItems.Count == 0) return;
+        if (SelectedItems.Value is null) return;
+        if (SelectedItems.Value.Count == 0) return;
 
-        if (ItemContainer.SelectedItems.Count == 1)
+        if (SelectedItems.Value.Count == 1)
         {
-            var item = ItemContainer.SelectedItems[0];
+            var item = SelectedItems.Value[0];
             if (item is PZFile file)
             {
                 ExtractFile(file);
@@ -249,7 +212,7 @@ public class ExplorerPanel : PZComponentBase
         else
         {
             List<IPZItem> items = [];
-            foreach (var selected in ItemContainer.SelectedItems)
+            foreach (var selected in SelectedItems.Value)
             {
                 if (selected is IPZItem item)
                 {
@@ -299,15 +262,23 @@ public class ExplorerPanel : PZComponentBase
             Model.ExtractBatch(items, dest[0].Path.LocalPath);
         }
     }
+    private async void ExtractAll()
+    {
+        if (Model.Package.Value != null)
+        {
+            ExtractFolder(Model.Package.Value.Index.Root);
+        }
+    }
+
     private void OnItemProperty(RoutedEventArgs e)
     {
-        if (Model.Package is null) return;
+        if (Model.Package.Value is null) return;
 
         if (e.Source is Control c && c.DataContext is IPZItem item)
         {
             if (item is PZFolder fo)
             {
-                var files = Model.Package.Index.GetFiles(fo, true);
+                var files = Model.Package.Value.Index.GetFiles(fo, true);
                 var size = files.Sum(f => f.Size);
                 item = new ViewFolder(fo, files.Count, size);
             }
@@ -316,9 +287,5 @@ public class ExplorerPanel : PZComponentBase
         }
     }
 
-    private async void OnExtractAll()
-    {
-        if (Model.Package is null) return;
-        ExtractFolder(Model.Package.Root);
-    }
+
 }

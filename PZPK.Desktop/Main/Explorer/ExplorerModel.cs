@@ -1,20 +1,13 @@
 ﻿using PZPK.Core;
+using PZPK.Core.Extract;
 using PZPK.Core.Utility;
 using PZPK.Desktop.Common;
 using System.IO;
+using System.Reactive.Subjects;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace PZPK.Desktop.Main.Explorer;
-
-public record ExtractingInfo : PZProgressState
-{
-    public string FilesText => $"{ProcessedFiles}/{Files}";
-    public string BytesText => $"{Utility.ComputeFileSize(ProcessedBytes)}/{Utility.ComputeFileSize(Bytes)}";
-    public double Percent => Bytes == 0 ? 0 : (double)ProcessedBytes / Bytes * 100;
-
-    public CancellationTokenSource? CancelSource { get; set; }
-}
 
 public class ExplorerModel : PageModelBase
 {
@@ -28,39 +21,27 @@ public class ExplorerModel : PageModelBase
         }
     }
 
-    public PZPKPackage? Package => PZPKPackage.Current;
+    public BehaviorSubject<Package?> Package = new(null);
 
-    public event Action? OnPackageOpened;
-    public event Action? OnPackageClosed;
-    public event Action<bool>? OnExtractingChanged;
-    public event Action? OnExtractingProgressed;
+    public BehaviorSubject<bool> IsExtracting = new(false);
+    public Subject<PZProgressState> ExtractProgress = new();
+    private CancellationTokenSource? ExtractCTS;
 
-    public bool Extracting 
-    { 
-        get; 
-        set
-        {
-            if (field == value) return;
+    public BehaviorSubject<string> FilePath = new("");
+    public BehaviorSubject<string> Password = new("");
 
-            field = value;
-            OnExtractingChanged?.Invoke(field);
-        }
-    } = false;
-    public ExtractingInfo ExtractingState = new();
-
-    private ExplorerModel() { }
-    public void OpenPackage(string path, string password)
+    public void OpenPackage()
     {
+        var path = FilePath.Value;
+        var password = Password.Value;
         if (!string.IsNullOrWhiteSpace(path) && !string.IsNullOrWhiteSpace(password))
         {
             try
             {
-                PZPKPackage.Open(path, password);
-                OnPackageOpened?.Invoke();
+                Package.OnNext(PackageManager.Open(path, password));
             }
             catch (Exception ex)
             {
-                
                 Toast.Error(string.Format(LOC.Error.Message, ex.Message));
                 Logger.Instance.Error(ex);
             }
@@ -68,17 +49,14 @@ public class ExplorerModel : PageModelBase
     }
     public void ClosePackage()
     {
-        Package?.Close();
-        OnPackageClosed?.Invoke();
+        PackageManager.Close();
+        Package.OnNext(null);
     }
 
     public async void ExtractFile(PZFile file, string dest)
     {
-        if (Package == null)
-        {
-            Toast.Error(LOC.Error.PackageNotOpen);
-            return;
-        }
+        PackageManager.Check();
+        var package = PackageManager.Current;
 
         if (File.Exists(dest))
         {
@@ -89,23 +67,21 @@ public class ExplorerModel : PageModelBase
         PZProgress<PZProgressState> progress = new();
         progress.ProgressChanged += (s, e) =>
         {
-            ExtractingState.CopyFrom(e);
-            OnExtractingProgressed?.Invoke();
+            ExtractProgress.OnNext(e);
         };
 
         using FileStream fs = File.Create(dest);
-        ExtractingState.Reset();
-        ExtractingState.CancelSource = new CancellationTokenSource();
+        ExtractCTS = new CancellationTokenSource();
 
         try
         {
             // For large files, show extracting UI directly.
-            if (file.Size > Constants.Sizes.t_256MB)
+            if (file.Size > Constants.Sizes.t_16MB)
             {
-                Extracting = true;
+                IsExtracting.OnNext(true);
             }
 
-            var count = await Package.Package.ExtractFileAsync(file, fs, progress, ExtractingState.CancelSource.Token);
+            var count = await package.ExtractFileAsync(file, fs, progress, ExtractCTS.Token);
             Toast.Success(string.Format(LOC.Message.ExtractedSuccess, 1));
         }
         catch (OperationCanceledException)
@@ -119,33 +95,28 @@ public class ExplorerModel : PageModelBase
         }
         finally
         {
-            Extracting = false;
-            ExtractingState.CancelSource = null;
+            IsExtracting.OnNext(false);
+            ExtractCTS = null;
         }        
     }
     public async void ExtractFolder(PZFolder folder, string dest)
     {
-        if (Package == null)
-        {
-            Toast.Error(LOC.Error.PackageNotOpen);
-            return;
-        }
+        PackageManager.Check();
+
         DirectoryInfo destDir = new(dest);
 
         PZProgress<PZProgressState> progress = new();
         progress.ProgressChanged += (s, e) =>
         {
-            ExtractingState.CopyFrom(e);
-            OnExtractingProgressed?.Invoke();
+            ExtractProgress.OnNext(e);
         };
 
-        ExtractingState.Reset();
-        ExtractingState.CancelSource = new CancellationTokenSource();
+        ExtractCTS = new CancellationTokenSource();
 
         try
         {
-            Extracting = true;
-            var count = await Package.Package.ExtractFolderAsync(folder, destDir, progress, ExtractingState.CancelSource.Token);
+            IsExtracting.OnNext(true);
+            var count = await PackageManager.Current.ExtractFolderAsync(folder, destDir, progress, ExtractCTS.Token);
             Toast.Success(string.Format(LOC.Message.ExtractedSuccess, count));
         }
         catch (OperationCanceledException)
@@ -159,33 +130,28 @@ public class ExplorerModel : PageModelBase
         }
         finally
         {
-            Extracting = false;
-            ExtractingState.CancelSource = null;
+            IsExtracting.OnNext(false);
+            ExtractCTS = null;
         }
     }
     public async void ExtractBatch(List<IPZItem> items, string dest)
     {
-        if (Package == null)
-        {
-            Toast.Error(LOC.Error.PackageNotOpen);
-            return;
-        }
+        PackageManager.Check();
+
         DirectoryInfo destDir = new(dest);
 
         PZProgress<PZProgressState> progress = new();
         progress.ProgressChanged += (s, e) =>
         {
-            ExtractingState.CopyFrom(e);
-            OnExtractingProgressed?.Invoke();
+            ExtractProgress.OnNext(e);
         };
 
-        ExtractingState.Reset();
-        ExtractingState.CancelSource = new CancellationTokenSource();
+        ExtractCTS = new CancellationTokenSource();
 
         try
         {
-            Extracting = true;
-            var count = await Package.Package.ExtractBatchAsync(items, destDir, progress, ExtractingState.CancelSource.Token);
+            IsExtracting.OnNext(true);
+            var count = await PackageManager.Current.ExtractBatchAsync(items, destDir, progress, ExtractCTS.Token);
             Toast.Success(string.Format(LOC.Message.ExtractedSuccess, count));
         }
         catch (OperationCanceledException)
@@ -199,13 +165,13 @@ public class ExplorerModel : PageModelBase
         }
         finally
         {
-            Extracting = false;
-            ExtractingState.CancelSource = null;
+            IsExtracting.OnNext(false);
+            ExtractCTS = null;
         }
     }
     public void CancelExtracting()
     {
-        ExtractingState.CancelSource?.Cancel();
+        ExtractCTS?.Cancel();
     }
 
     public async void DebugExtract()
@@ -213,13 +179,11 @@ public class ExplorerModel : PageModelBase
         PZProgress<PZProgressState> progress = new();
         progress.ProgressChanged += (s, e) =>
         {
-            ExtractingState.CopyFrom(e);
-            OnExtractingProgressed?.Invoke();
+            ExtractProgress.OnNext(e);
         };
 
-        ExtractingState.Reset();
-        ExtractingState.CancelSource = new CancellationTokenSource();
-        Extracting = true;
+        ExtractCTS = new CancellationTokenSource();
+        IsExtracting.OnNext(true);
         await Task.Run(() =>
         {
             var state = new PZProgressState();
@@ -241,16 +205,16 @@ public class ExplorerModel : PageModelBase
                     state.CurrentProcessedBytes = j;
                     progress.Report(state);
 
-                    if (ExtractingState.CancelSource.Token.IsCancellationRequested)
+                    if (ExtractCTS.Token.IsCancellationRequested)
                     {
                         return;
                     }
                 }
             }
 
-        }, ExtractingState.CancelSource.Token);
+        }, ExtractCTS.Token);
 
         Toast.Success("Debug extraction completed.");
-        Extracting = false;
+        IsExtracting.OnNext(false);
     }
 }

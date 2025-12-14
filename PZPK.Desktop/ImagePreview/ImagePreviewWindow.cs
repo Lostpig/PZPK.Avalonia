@@ -77,6 +77,14 @@ public class ImagePreviewWindow : PZWindowBase
             ).Throttle(TimeSpan.FromMilliseconds(250)).Subscribe(UpdateImageScale)
         );
     }
+    protected override void OnClosed(EventArgs e)
+    {
+        base.OnClosed(e);
+        foreach(var subscription in _subscriptions)
+        {
+            subscription.Dispose(); 
+        }
+    }
 
     protected void OnScrollLayoutUpdated(EventArgs e)
     {
@@ -119,13 +127,15 @@ public class ImagePreviewWindow : PZWindowBase
 
     private async void LoadImage(int index)
     {
+        PackageManager.Check();
+
         var newFile = Files[index];
         if (newFile == File) return;
 
         File = newFile;
         try
         {
-            var bytes = PZPKPackage.Current!.Package.ExtractFile(File);
+            var bytes = PackageManager.Current.ExtractFile(File);
             using var bitmapStream = new MemoryStream(bytes);
             bitmapStream.Seek(0, SeekOrigin.Begin);
             Bitmap bitmap = new(bitmapStream);

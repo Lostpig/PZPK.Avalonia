@@ -10,10 +10,4 @@ public static class CommonExtensions
         list.Sort(comparer);
         return list;
     }
-
-    // DEBUG - move to PZ.RxAvalonia
-    public static T ItemsSourceEx<T, TValue>(this T control, ReactiveList<TValue> list) where T : ItemsControl
-    {
-        return control._set(ItemsControl.ItemsSourceProperty!, obs: list.WhenChanged);
-    }
 }

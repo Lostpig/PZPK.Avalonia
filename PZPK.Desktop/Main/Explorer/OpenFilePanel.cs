@@ -1,9 +1,6 @@
-﻿using Avalonia.Controls;
-using Avalonia.Layout;
-using Avalonia.Markup.Declarative;
+﻿using Avalonia.Layout;
 using Avalonia.Platform.Storage;
 using Material.Icons;
-using PZPK.Desktop.Common;
 using SukiUI.Controls;
 
 namespace PZPK.Desktop.Main.Explorer;
@@ -11,7 +8,7 @@ using static PZPK.Desktop.Common.ControlHelpers;
 
 public class OpenFilePanel : PZComponentBase
 {
-    protected override object Build()
+    protected override Control Build()
     {
         var primaryColor = App.Instance.Suki.GetSukiColor("SukiPrimaryColor");
 
@@ -31,7 +28,7 @@ public class OpenFilePanel : PZComponentBase
                         Grid("*, Auto")
                             .Margin(0, 0, 0, 6)
                             .Children(
-                                PzTextBox(() => SelectedPath, v => SelectedPath = v)
+                                PzTextBox(Model.FilePath)
                                     .IsReadOnly(true)
                                     .Col(0),
                                 SukiButton("Select")
@@ -40,27 +37,19 @@ public class OpenFilePanel : PZComponentBase
                                     .Col(1)
                             ),
                         PzText("Password"),
-                        PzTextBox(() => Password, v => Password = v)
+                        PzTextBox(Model.Password)
                             .Margin(0, 0, 0, 6)
                             .PasswordChar('*'),
                         SukiButton("Open", "Flat", "Rounded")
                             .Width(100)
                             .HorizontalAlignment(HorizontalAlignment.Center)
                             .Margin(0, 40, 0, 0)
-                            .OnClick(_ => OpenPackage())
+                            .OnClick(_ => Model.OpenPackage())
                     )
             );
     }
 
-    public OpenFilePanel(ExplorerModel model) : base(ViewInitializationStrategy.Lazy)
-    {
-        Model = model;
-        Initialize();
-    }
-
-    private readonly ExplorerModel Model;
-    private string SelectedPath { get; set; } = "";
-    private string Password { get; set; } = "";
+    private static ExplorerModel Model => ExplorerModel.Instance;
 
     private async void SelectPackageFile()
     {
@@ -79,12 +68,7 @@ public class OpenFilePanel : PZComponentBase
 
         if (files.Count >= 1)
         {
-            SelectedPath = files[0].Path.LocalPath;
-            StateHasChanged();
+            Model.FilePath.OnNext(files[0].Path.LocalPath);
         }
-    }
-    private void OpenPackage()
-    {
-        Model.OpenPackage(SelectedPath, Password);
     }
 }
