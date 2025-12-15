@@ -1,8 +1,5 @@
-﻿using Avalonia.Controls;
-using Avalonia.Markup.Declarative;
-using PZPK.Core;
+﻿using PZPK.Core;
 using PZPK.Desktop.Common;
-using System.Linq;
 
 namespace PZPK.Desktop.Main;
 using static Common.ControlHelpers;
@@ -36,7 +33,7 @@ internal class ItemDialogContent : ContentControl
         Content = content;
     }
 
-    private DockPanel ContentItem(string label, string value)
+    private static DockPanel ContentItem(string label, string value)
     {
         return new DockPanel()
             .Margin(0, 0, 0, 10)
@@ -49,7 +46,7 @@ internal class ItemDialogContent : ContentControl
                     .HorizontalAlignment(Avalonia.Layout.HorizontalAlignment.Right)
             );
     }
-    private void AddBaseContent(StackPanel content, IPZItem item)
+    private static void AddBaseContent(StackPanel content, IPZItem item)
     {
 
 #if DEBUG
@@ -58,7 +55,7 @@ internal class ItemDialogContent : ContentControl
 #endif
         content.Children.Add(ContentItem("Name", item.Name));
     }
-    private void BuildFileContent(StackPanel content, PZFile file)
+    private static void BuildFileContent(StackPanel content, PZFile file)
     {
         content.Children(
                 ContentItem("Extension", file.Extension),
@@ -66,7 +63,7 @@ internal class ItemDialogContent : ContentControl
                 ContentItem("OriginSize", Utility.ComputeFileSize(file.OriginSize))
             );
     }
-    private void BuildIndexFileContent(StackPanel content, PZIndexFile file)
+    private static void BuildIndexFileContent(StackPanel content, PZIndexFile file)
     {
         content.Children(
                 ContentItem("Extension", file.Extension),
@@ -74,7 +71,7 @@ internal class ItemDialogContent : ContentControl
                 ContentItem("Size", Utility.ComputeFileSize(file.Size))
             );
     }
-    private void BuildFolderContent(StackPanel content, ViewFolder folder)
+    private static void BuildFolderContent(StackPanel content, ViewFolder folder)
     {
         content.Children(
             ContentItem("Files", folder.Files.ToString()),

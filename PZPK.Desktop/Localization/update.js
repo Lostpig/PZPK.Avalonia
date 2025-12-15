@@ -27,23 +27,26 @@ const getLanguageItemJsonFileData = (file) => {
 }
 const createLanguageItemJson = (langItem, namespaces) => {
 	const itemFile = path.join(__dirname, langItem.value + ".json")
-	var data = getLanguageItemJsonFileData(itemFile)
 
-	for(let ns of namespaces) {
-		let nsItem = data.namespaces.find((n) => n.namespace == ns.namespace)
-		if (!nsItem) {
-			nsItem = { namespace: ns.namespace, fields: {} }
-			data.namespaces.push(nsItem)
-		}
+	const oldData = getLanguageItemJsonFileData(itemFile)
+	const newData = { namespaces: [] }
+
+	for (let ns of namespaces) {
+		const oldNs = oldData.namespaces.find((n) => n.namespace == ns.namespace)
+		const newNs = { namespace: ns.namespace, fields: {} }
 
 		for(let f of ns.fields) {
-			if (!nsItem.fields[f]) {
-				nsItem.fields[f] = 'MISS_' + f
+			if (oldNs && oldNs.fields[f]) {
+				newNs.fields[f] = oldNs.fields[f]
+			} else {
+				newNs.fields[f] = 'MISS_' + f
 			}
 		}
+
+		newData.namespaces.push(newNs)
 	}
 
-	const dataText = JSON.stringify(data, null, 2)
+	const dataText = JSON.stringify(newData, null, 2)
 	fs.writeFileSync(itemFile, dataText, { encoding: "utf8" })
 
 	console.log(`${langItem.name} json file upadated.`)

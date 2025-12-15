@@ -31,12 +31,16 @@ public class PropertiesPanel: PZComponentBase
         }
         private TagItem()
         {
+            var brColor = App.Instance.Suki.GetSukiColor("SukiPrimaryColor50");
+
             Text = new TextBlock();
             Content = new Border()
                 .Padding(8, 4)
                 .Margin(4)
                 .CornerRadius(4)
-                .Background(Brushes.LightGray)
+                .BorderBrush(brColor)
+                .BorderThickness(1)
+                .Background(Brushes.Transparent)
                 .Child(
                     HStackPanel().Children(
                         Text.VerticalAlignment(Avalonia.Layout.VerticalAlignment.Center),
@@ -138,7 +142,7 @@ public class PropertiesPanel: PZComponentBase
                                         .HorizontalAlignment(Avalonia.Layout.HorizontalAlignment.Left)
                                         .OnClick(_ => AddTag())
                                 ),
-                            new ItemsControl().Margin(225, 0, 0, 0)
+                            new ItemsControl().Margin(225, 10, 0, 0)
                                 .ItemsSourceEx(Props.Tags)
                                 .ItemsPanel(new WrapPanel())
                                 .ItemTemplate<string, ItemsControl>(tag => TagItem.GetItem(tag)),

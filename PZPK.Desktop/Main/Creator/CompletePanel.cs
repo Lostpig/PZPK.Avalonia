@@ -19,7 +19,6 @@ public class CompletePanel : PZComponentBase
                     .HorizontalAlignment(Avalonia.Layout.HorizontalAlignment.Left),
                 Grid("*, Auto").Children(
                         PzReadOnlyTextBox(Model.Completed.Select(c => c.PackagePath))
-                            .Ref(out pathBox)
                             .Col(0),
                         SukiButton("Open Directory")
                             .Col(1)
@@ -52,13 +51,19 @@ public class CompletePanel : PZComponentBase
                     .OnClick(_ => Model.Reset())
             );
     }
+    protected override void OnCreated()
+    {
+        base.OnCreated();
+        Model.Completed.Subscribe(c => _savePath = c.PackagePath);
+    }
 
-    private TextBox pathBox;
+    private string? _savePath;
     private static CreatorModel Model => CreatorModel.Instance;
+
 
     private void OpenDirectory()
     {
-        var filePath = pathBox?.Text;
+        var filePath = _savePath;
         if (string.IsNullOrWhiteSpace(filePath)) return;
 
         var path = System.IO.Path.GetDirectoryName(filePath);

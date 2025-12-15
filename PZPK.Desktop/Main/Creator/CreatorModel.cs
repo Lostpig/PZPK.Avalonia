@@ -61,6 +61,10 @@ public class ResizerProperties
         Quality.OnNext(75); 
         Lossless.OnNext(false);
     }
+    public ImageResizerOptions GetOptions()
+    {
+        return new ImageResizerOptions(Format.Value, Quality.Value, MaxSize.Value, Lossless.Value);
+    }
 }
 
 public class PackingInfomation
@@ -165,9 +169,9 @@ public class CreatorModel : PageModelBase
 
     private ImageResizer? GetImageResizer()
     {
-        if (Properties.EnableImageResizing.Value)
+        if (Resizer.Enabled.Value)
         {
-            return ImageResizer.CreateResizer(Properties.ResizeOptions.Value);
+            return ImageResizer.CreateResizer(Resizer.GetOptions());
         }
         else return null;
     }
@@ -178,6 +182,7 @@ public class CreatorModel : PageModelBase
             return;
         }
 
+        var savePath = PackingInfo.SavePath.Value;
         if (!Index.IsEmpty && Properties.Check())
         {
             PackingOptions options = new(

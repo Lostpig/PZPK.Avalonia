@@ -21,13 +21,14 @@ public class ImagePreviewManager
 
     static public void OpenImage(PZFile file)
     {
-        if (PZPKPackage.Current == null) return;
+        if (PackageManager.Current == null) return;
         if (!FileTypeHelper.IsPicture(file)) return;
 
-        var idx = PZPKPackage.Current.Package.Index;
+        var idx = PackageManager.Current.Index;
         var folder = idx.GetFolder(file.Pid);
         var files = idx.GetFiles(folder, false);
-        var pictures = files.Where(f => FileTypeHelper.IsPicture(f)).ToList();
+        var pictures = files.Where(f => FileTypeHelper.IsPicture(f))
+                        .ToList().Sorted(NaturalPZItemComparer.Instance);
 
         var win = GetActiveWindow();
         win.OpenImage(file, pictures);

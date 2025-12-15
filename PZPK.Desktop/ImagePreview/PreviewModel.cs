@@ -51,7 +51,7 @@ public class PreviewModel
 
         Total = new(1);
         Current = new(0, i => i >= 0 && i < Total.Value);
-        IndexText = Observable.When(Current.And(Total).Then((c, t) => $"{c}/{t}"));
+        IndexText = Current.CombineLatest(Total).Select(t => $"{t.First + 1}/{t.Second}");
 
         ContainerSize = new(new Avalonia.Size(1,1));
         Size = new(Avalonia.PixelSize.Empty);

@@ -1,4 +1,5 @@
 ﻿using Avalonia.Media;
+using Avalonia.Styling;
 using PZPK.Desktop.Common;
 using PZPK.Desktop.Localization;
 using SukiUI.Controls;
@@ -9,13 +10,17 @@ namespace PZPK.Desktop.Main.Setting;
 
 public class SettingPage: PZComponentBase
 {
-    private void SetHeader(SettingsLayoutItem item, Func<string> func)
+    private static void SetHeader(SettingsLayoutItem item, Func<string> func)
     {
-        void setter(string v) => item.Header = v;
-        item._set(setter, func, null, null);
+        static void setter(SettingsLayoutItem c, string v) => c.Header = v;
+        item._set(setter, func);
     }
-    private static RadioButton BuildThemeRadio(IBrush background, IBrush foreground, Func<string> textFunc)
+    private static RadioButton BuildThemeRadio(ThemeVariant theme)
     {
+        var fore = theme.Key.ToString() == "Light" ? Brushes.Black : Brushes.White;
+        var back = theme.Key.ToString() == "Light" ? Brushes.White : Brushes.DarkGray;
+        Func<string> text = theme.Key.ToString() == "Light" ? () => LOC.Base.Light : () => LOC.Base.Dark;
+
         return new RadioButton()
             .Width(120).Height(100)
             .Padding(0)
@@ -23,16 +28,16 @@ public class SettingPage: PZComponentBase
             .GroupName("BaseTheme")
             .Content(
                 new Border().Margin(-50)
-                    .Background(background)
+                    .Background(back)
                     .CornerRadius(16)
                     .Child(
                         new Grid().Children(
-                                PzText(textFunc)
+                                PzText(text)
                                     .Margin(58, 42, 42, 42)
                                     .HorizontalAlignment(Avalonia.Layout.HorizontalAlignment.Center)
                                     .VerticalAlignment(Avalonia.Layout.VerticalAlignment.Bottom)
                                     .FontWeight(FontWeight.DemiBold)
-                                    .Foreground(foreground)
+                                    .Foreground(fore)
 
                             )
                     )
@@ -43,45 +48,27 @@ public class SettingPage: PZComponentBase
         var item = new SettingsLayoutItem();
 
         SetHeader(item, () => LOC.Base.Theme);
-        item.Content = HStackPanel()
-                .Spacing(20)
-                .Children(
-                    BuildThemeRadio(Brushes.White, Brushes.DarkGray, () => LOC.Base.Light)
-                        .IsChecked(() => Model.IsLightTheme, v => Model.IsLightTheme = v ?? false),
-                    BuildThemeRadio(Brushes.Black, Brushes.White, () => LOC.Base.Dark)
-                        .IsChecked(() => !Model.IsLightTheme)
-                );
-
+        item.Content = new PZRadioGroup<ThemeVariant>("BaseThemeGroup")
+                            .SetItemsPanel(HStackPanel().Spacing(20))
+                            .SetItemsSource(Model.BaseThemes)
+                            .SetItemTemplete(t => BuildThemeRadio(t))
+                            .CheckedItem(Model.BaseTheme);
         return item;
     }
 
-    private StackPanel BuildColorRadio(SukiColorTheme colorTheme)
+    private static RadioButton BuildColorRadio(SukiColorTheme colorTheme)
     {
-        return HStackPanel()
-            .Children(
-                new RadioButton()
+        return new RadioButton()
                     .Width(50).Height(50)
                     .Classes("GigaChips")
                     .CornerRadius(50)
                     .GroupName("ColorTheme")
-                    .OnIsCheckedChanged(e =>
-                    {
-                        if (e.Source is RadioButton r)
-                        {
-                            if (r.IsChecked == true)
-                            {
-                                Model.ChangeColorTheme(colorTheme);
-                            }
-                        }
-                    })
-                    .IsChecked(() => Model.ColorTheme == colorTheme)
                     .Content(
                         new Border()
                             .Margin(-30)
                             .CornerRadius(50)
                             .Background(colorTheme.PrimaryBrush)
-                    )
-            );
+                    );
     }
     private SettingsLayoutItem BuildColorItem()
     {
@@ -89,11 +76,11 @@ public class SettingPage: PZComponentBase
         var radios = Model.Theme.ColorThemes.Select(c => BuildColorRadio(c));
 
         SetHeader(item, () => LOC.Base.Color);
-        item.Content = HStackPanel()
-                .Spacing(20)
-                .Children(
-                    children: [.. radios]
-                );
+        item.Content = new PZRadioGroup<SukiColorTheme>("ColorThemeGroup")
+                            .SetItemsPanel(HStackPanel().Spacing(20))
+                            .SetItemsSource(Model.ColorThemes)
+                            .SetItemTemplete(t => BuildColorRadio(t))
+                            .CheckedItem(Model.ColorTheme);
 
         return item;
     }
@@ -120,7 +107,7 @@ public class SettingPage: PZComponentBase
                                     .MinWidth(150)
                                     .ItemsSource(Model.Languages)
                                     .ItemTemplate<LanguageItem>(i => PzText(i.Name))
-                                    .SelectedItem(() => Model.ActiveLanguage!, v => Model.ActiveLanguage = (LanguageItem)v)
+                                    .SelectedItemEx(Model.ActiveLanguage)
                             )
                     )
             );
@@ -128,7 +115,7 @@ public class SettingPage: PZComponentBase
         return item;
     }
 
-    protected override object Build()
+    protected override Control Build()
     {
         var layout = new SettingsLayout();
         List<SettingsLayoutItem> items = [

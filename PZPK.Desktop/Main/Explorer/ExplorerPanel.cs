@@ -17,7 +17,6 @@ using System.Reactive.Subjects;
 
 namespace PZPK.Desktop.Main.Explorer;
 
-using static AvaloniaEdit.Document.TextDocumentWeakEventManager;
 using static PZPK.Desktop.Common.ControlHelpers;
 
 public class ExplorerPanel : PZComponentBase
@@ -46,17 +45,17 @@ public class ExplorerPanel : PZComponentBase
             .Child(
                 VStackPanel()
                     .Children(
-                        HStackPanel().Children(
+                        HStackPanel().Spacing(10).Children(
                             PzText(() => $"{LOC.PZPK.PackageName}:"),
                             PzText(pkg.Select(p => p?.Detail.Name ?? ""))
                         ),
-                        HStackPanel().Children(
+                        HStackPanel().Spacing(10).Children(
                             PzText(() => $"{LOC.PZPK.Description}:"),
                             PzText(pkg.Select(p => p?.Detail.Description ?? ""))
                         ),
-                        HStackPanel().Children(
+                        HStackPanel().Spacing(10).Children(
                             PzText(() => $"{LOC.PZPK.Tags}:"),
-                            PzText(pkg.Select(p => string.Join(',', p?.Detail.Tags ?? [])))
+                            PzText(pkg.Select(p => string.Join(", ", p?.Detail.Tags ?? [])))
                         ),
                         PzText(pkg.Select(p => p is null ? "" : infoFormat(p)))
                     )
@@ -67,8 +66,8 @@ public class ExplorerPanel : PZComponentBase
         return VStackPanel()
             .VerticalAlignment(VerticalAlignment.Center)
             .Children(
-                SukiButton(LOC.PZPK.ExtractAll).Margin(0, 0, 0, 10).OnClick(_ => ExtractAll()),
-                SukiButton(LOC.Base.Close, "Outlined", "Accent").OnClick(_ => Model.ClosePackage())
+                SukiButton(() => LOC.PZPK.ExtractAll).Margin(0, 0, 0, 10).OnClick(_ => ExtractAll()),
+                SukiButton(() => LOC.Base.Close, "Outlined", "Accent").OnClick(_ => Model.ClosePackage())
             );
     }
     private StackPanel DirStackFuncTemplete(PZFolder folder)
@@ -118,8 +117,8 @@ public class ExplorerPanel : PZComponentBase
     {
         var suki = App.Instance.Suki;
         var dirStack = Current.Select(fo => {
-                if (fo != null && Index != null) return Index.GetFolderResolveStack(fo).Reverse();
-                else return Enumerable.Empty<PZFolder>();
+                if (fo != null && Index != null) return Index.GetFolderResolveStack(fo);
+                else return [];
             });
         var items = Current.Select(fo => {
                 if (fo != null && Index != null)
@@ -152,6 +151,7 @@ public class ExplorerPanel : PZComponentBase
                     .Child(
                         new ItemsControl()
                             .ItemsSource(dirStack)
+                            .ItemsPanel(HStackPanel())
                             .ItemTemplate<PZFolder, ItemsControl>(DirStackFuncTemplete)
                     ),
                 new ListBox().Row(2)

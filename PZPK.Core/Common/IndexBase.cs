@@ -96,8 +96,9 @@ public abstract class IndexBase<TFolder, TFile> : IPZIndex<TFolder, TFile> where
     {
         Stack<TFolder> stack = new();
         TFolder current = folder;
+        resolveFolder = resolveFolder ?? Root;
 
-        while (current.Id != Constants.IndexRootId)
+        for (; ; )
         {
             stack.Push(current);
             if (resolveFolder?.Id == current.Id)

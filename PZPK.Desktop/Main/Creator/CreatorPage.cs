@@ -29,8 +29,8 @@ public class CreatorPage : PZComponentBase
                     .Content(
                         Grid().Children(
                             new IndexPanel().IsVisible(Model.Step.Select(s => s == 1)),
-                            new PropertiesPanel(Model).IsVisible(Model.Step.Select(s => s == 2)),
-                            new PackingPanel(Model).IsVisible(Model.Step.Select(s => s == 3)),
+                            new PropertiesPanel().IsVisible(Model.Step.Select(s => s == 2)),
+                            new PackingPanel().IsVisible(Model.Step.Select(s => s == 3)),
                             new CompletePanel().IsVisible(Model.Step.Select(s => s == 4))
                         )
                     )

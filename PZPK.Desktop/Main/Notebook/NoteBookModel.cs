@@ -71,7 +71,7 @@ public class NoteBookModel : PageModelBase
 
         Notes.WhenAdd.Subscribe(ns =>
         {
-            Note.OnNext(ns.Length > 0 ? ns[0] : null);
+            Note.OnNext(ns.FirstOrDefault());
         });
         Notes.WhenRemove.Subscribe(removed =>
         {

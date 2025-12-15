@@ -75,11 +75,9 @@ public class IndexPanel : PZComponentBase
     override protected Control Build()
     {
         var suki = App.Instance.Suki;
-        var items = Observable.When(
-                    Current.And(Changed.Where(x => x)
-                ).Then((fo, _) => fo))
-                .Select(fo => Index.GetItems(fo, false).Sorted(NaturalPZItemComparer.Instance));
-        var dirStack = Current.Select(fo => Index.GetFolderResolveStack(fo).Reverse());
+        var items = Current.CombineLatest(Changed)
+                .Select(t => Index.GetItems(t.First, false).Sorted(NaturalPZItemComparer.Instance));
+        var dirStack = Current.Select(fo => Index.GetFolderResolveStack(fo));
 
         return Grid(null, "50, 1*, 40")
             .Children(
@@ -90,6 +88,7 @@ public class IndexPanel : PZComponentBase
                     .Background(() => suki.GetSukiColor("SukiGlassCardBackground"))
                     .Child(
                         new ItemsControl()
+                            .ItemsPanel(HStackPanel())
                             .ItemsSource(dirStack)
                             .ItemTemplate<PZIndexFolder, ItemsControl>(DirStackFuncTemplete)
                     ),

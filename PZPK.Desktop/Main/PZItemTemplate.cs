@@ -1,21 +1,15 @@
-﻿using Avalonia.Controls;
-using Avalonia.Controls.Templates;
+﻿using Avalonia.Controls.Templates;
+using Avalonia.Media;
 using Material.Icons;
 using PZPK.Core;
 using PZPK.Desktop.Common;
-using Avalonia.Markup.Declarative;
-using Avalonia.Media;
 
 namespace PZPK.Desktop.Main;
 using static PZPK.Desktop.Common.ControlHelpers;
 
-public class PZItemTemplate : IDataTemplate
+public class PZItemTemplate(ContextMenu? menu = null) : IDataTemplate
 {
-    public ContextMenu? Menu { get; set; }
-    public PZItemTemplate (ContextMenu? menu = null)
-    {
-        Menu = menu;
-    }
+    public ContextMenu? Menu { get; set; } = menu;
 
     public bool Match(object? data)
     {

@@ -37,6 +37,7 @@ public class ImagePreviewWindow : PZWindowBase
             .ZIndex(0);
 
         RenderOptions.SetBitmapInterpolationMode(ImageRef, BitmapInterpolationMode.HighQuality);
+        // RoutingStrategies routes = RoutingStrategies.Direct | RoutingStrategies.Bubble;
 
         OperateBarRef = new OperateBar().ZIndex(1).Row(0);
         InfoBarRef = new InfoBar().ZIndex(1).Row(2);
@@ -68,13 +69,11 @@ public class ImagePreviewWindow : PZWindowBase
     {
         _subscriptions.AddRange(
             Observable.FromEventPattern<SizeChangedEventArgs>(
-                h => ScrollRef.SizeChanged += h,
-                h => ScrollRef.SizeChanged -= h
-            ).Select(e => e.EventArgs.NewSize).Subscribe(Model.ContainerSize.OnNext),
+                    h => ScrollRef.SizeChanged += h,
+                    h => ScrollRef.SizeChanged -= h
+                ).Select(e => e.EventArgs.NewSize).Subscribe(Model.ContainerSize.OnNext),
             Model.Current.Subscribe(LoadImage),
-            Observable.When(
-                Model.Size.And(Model.Scale).Then((size, scale) => (size, scale))
-            ).Throttle(TimeSpan.FromMilliseconds(250)).Subscribe(UpdateImageScale)
+            Model.Size.CombineLatest(Model.Scale).Subscribe(t => UpdateImageScale(t.First, t.Second))
         );
     }
     protected override void OnClosed(EventArgs e)
@@ -102,9 +101,9 @@ public class ImagePreviewWindow : PZWindowBase
         var index = files.IndexOf(file);
         index = index < 0 ? 0 : index;
 
+        Model.Total.OnNext(Files.Count);
         Model.Current.OnNext(index);
         Model.FileName.OnNext(File?.Name ?? "");
-        Model.Total.OnNext(Files.Count);
     }
     public void DevOpenImage(string imgFile)
     {
@@ -127,14 +126,14 @@ public class ImagePreviewWindow : PZWindowBase
 
     private async void LoadImage(int index)
     {
-        PackageManager.Check();
-
-        var newFile = Files[index];
-        if (newFile == File) return;
-
-        File = newFile;
         try
         {
+            PackageManager.Check();
+            var newFile = Files.Count > index ? Files[index] : null;
+            if (newFile == File) return;
+            File = newFile;
+            if (File == null) return;
+
             var bytes = PackageManager.Current.ExtractFile(File);
             using var bitmapStream = new MemoryStream(bytes);
             bitmapStream.Seek(0, SeekOrigin.Begin);
@@ -142,6 +141,8 @@ public class ImagePreviewWindow : PZWindowBase
 
             ImageRef.Source = bitmap;
             Model.Size.OnNext(bitmap.PixelSize);
+            Model.FileSize.OnNext(File.Size);
+            Model.FileName.OnNext(File.Name);
 
             switch (Model.Lock.Value)
             {
@@ -167,9 +168,8 @@ public class ImagePreviewWindow : PZWindowBase
             ImageRef.Source = null;
         }
     }
-    private void UpdateImageScale((PixelSize, double) sns)
+    private void UpdateImageScale(PixelSize size, double scale)
     {
-        var (size, scale) = sns;
         double renderWidth = size.Width * scale;
         double renderHeight = size.Height * scale;
 
@@ -180,6 +180,7 @@ public class ImagePreviewWindow : PZWindowBase
     private MouseState MState = new();
     private void OnMouseDown(PointerPressedEventArgs e)
     {
+        e.Handled = true;
         var p = e.GetCurrentPoint(ScrollRef);
         if (p.Properties.IsLeftButtonPressed)
         {
@@ -202,6 +203,7 @@ public class ImagePreviewWindow : PZWindowBase
     }
     private void OnMouseUp(PointerReleasedEventArgs e)
     {
+        e.Handled = true;
         if (e.InitialPressMouseButton == MouseButton.Right)
         {
             MState.Active = false;
@@ -209,6 +211,7 @@ public class ImagePreviewWindow : PZWindowBase
     }
     private void OnMouseMove(PointerEventArgs e)
     {
+        e.Handled = true;
         if (!MState.Active) return;
 
         var p = e.GetCurrentPoint(ScrollRef);

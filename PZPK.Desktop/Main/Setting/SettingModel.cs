@@ -3,6 +3,7 @@ using PZPK.Desktop.Localization;
 using SukiUI;
 using SukiUI.Models;
 using System.Linq;
+using System.Reactive.Subjects;
 
 namespace PZPK.Desktop.Main.Setting;
 
@@ -19,35 +20,28 @@ public class SettingModel : PageModelBase
     }
 
     public SukiTheme Theme { get; init; }
-    public bool IsLightTheme
-    {
-        get => Theme.ActiveBaseTheme == ThemeVariant.Light;
-        set 
-        {
-            var bt = value == true ? ThemeVariant.Light : ThemeVariant.Dark;
-            Theme.ChangeBaseTheme(bt);
-            Settings.Set(bt);
-        }
-    }
-    public SukiColorTheme? ColorTheme => Theme.ActiveColorTheme;
     public IList<LanguageItem> Languages { get; init; }
-    public LanguageItem? ActiveLanguage 
-    { 
-        get; 
-        set
-        {
-            field = value;
-            ChangeLanguge(value);
-        }
-    }
+    public IList<ThemeVariant> BaseThemes { get; init; }
+    public IList<SukiColorTheme> ColorThemes { get; init; }
 
-    public SettingModel()
+    public BehaviorSubject<SukiColorTheme> ColorTheme { get; init; }
+    public BehaviorSubject<ThemeVariant> BaseTheme { get; init; }
+    public BehaviorSubject<LanguageItem> ActiveLanguage { get; init; }
+
+    private SettingModel()
     {
         Theme = SukiTheme.GetInstance();
+        BaseThemes = [ThemeVariant.Light, ThemeVariant.Dark];
+        ColorThemes = [.. Theme.ColorThemes];
         Languages = App.Instance.Translate.Languages;
 
-        var current = Languages.FirstOrDefault(l => l.Value == App.Instance.Translate.Current);
-        ActiveLanguage = current;
+        ColorTheme = new(Theme.ActiveColorTheme!);
+        BaseTheme = new(Theme.ActiveBaseTheme);
+        ActiveLanguage = new(Languages[0]);
+
+        ColorTheme.Subscribe(ChangeColorTheme);
+        BaseTheme.Subscribe(ChangeBaseTheme);
+        ActiveLanguage.Subscribe(ChangeLanguge);
     }
 
     public void ChangeColorTheme(SukiColorTheme theme)
@@ -55,7 +49,12 @@ public class SettingModel : PageModelBase
         Theme.ChangeColorTheme(theme);
         Settings.Set(theme);
     }
-    public async void ChangeLanguge(LanguageItem? language)
+    public void ChangeBaseTheme(ThemeVariant theme)
+    {
+        Theme.ChangeBaseTheme(theme);
+        Settings.Set(theme);
+    }
+    public static async void ChangeLanguge(LanguageItem? language)
     {
         if (language is null) return;
 
