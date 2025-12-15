@@ -1,8 +1,46 @@
-﻿using PZPK.Core.Note;
-using System;
+﻿using PZ.RxAvalonia.Reactive;
+using PZPK.Core.Note;
+using System.Linq;
+using System.Reactive.Linq;
+using System.Reactive.Subjects;
 
 namespace PZPK.Desktop.Main.Notebook;
 using PZNotebook = PZPK.Core.Note.NoteBook;
+
+public sealed class RxNote : IDisposable
+{
+    public Note Note { get; init; }
+    public NoteBook Book { get; init; }
+    private readonly IDisposable _subscription;
+    public BehaviorSubject<string> Title { get; init; }
+    public BehaviorSubject<string> Content { get; init; }
+    public RxNote(Note note, PZNotebook book)
+    {
+        Note = note;
+        Book = book;
+        Title = new(note.Title);
+        Content = new(note.Content);
+
+        _subscription = Title.CombineLatest(Content)
+            .Throttle(TimeSpan.FromSeconds(1))
+            .Subscribe(t => Save(t.First, t.Second));
+        Book = book;
+    }
+
+    public void Save()
+    {
+        Save(Title.Value, Content.Value);
+    }
+    private void Save(string title, string content)
+    {
+        Note.Save(title, content);
+    }
+
+    public void Dispose()
+    {
+        _subscription.Dispose();
+    }
+}
 
 public class NoteBookModel : PageModelBase
 {
@@ -16,35 +54,47 @@ public class NoteBookModel : PageModelBase
         }
     }
 
+    public BehaviorSubject<PZNotebook?> Notebook { get; init; } = new(null);
+    public BehaviorSubject<RxNote?> Note { get; init; } = new(null);
+    public ReactiveList<RxNote> Notes { get; init; } = [];
 
-    public PZNotebook? Notebook { get; private set; }
-    public Note? Note { get; private set; }
-
-    public Action? NoteChanged;
-    public Action? NoteBookChanged;
-    public Action<int>? NoteDeleted;
-    public Action<Note>? NoteModified;
-
-    private NoteBookModel() { }
-
-    public void SelectNote(Note? note)
+    private NoteBookModel() 
     {
-        Note = note;
-        NoteChanged?.Invoke();
+        Notebook.Subscribe(book =>
+        {
+            Notes.Clear();
+            if (book != null)
+            {
+                Notes.AddRange(book.Notes.Select(n => new RxNote(n, book)));
+            }
+        });
+
+        Notes.WhenAdd.Subscribe(ns =>
+        {
+            Note.OnNext(ns.Length > 0 ? ns[0] : null);
+        });
+        Notes.WhenRemove.Subscribe(removed =>
+        {
+            foreach (var n in removed)
+            {
+                n.Book.DeleteNote(n.Note);
+                n.Dispose();
+            }
+
+            Note.OnNext(Notes.Count > 0 ? Notes[0] : null);
+        });
     }
-    public void DeleteNote()
-    {
-        if(Note is null) return;
 
-        Notebook?.DeleteNote(Note);
-        NoteDeleted?.Invoke(Note.Id);
-    }
-    public void ModifyNote(string title, string content)
+    public void NewNote()
     {
-        if (Note is null) return;
+        if (Notebook.Value == null)
+        {
+            Toast.Error("Notebook not opened!"); 
+            return;
+        }
 
-        Note.Save(title, content);
-        NoteModified?.Invoke(Note);
+        var newNote = Notebook.Value.AddNote();
+        Notes.Add(new RxNote(newNote, Notebook.Value));
     }
     public void Open(string path, string password)
     {
@@ -55,13 +105,12 @@ public class NoteBookModel : PageModelBase
 
         try
         {
-            Notebook = PZNotebook.Open(path, password);
-            NoteBookChanged?.Invoke();
+            Notebook.OnNext(PZNotebook.Open(path, password));
         }
         catch (Exception ex)
         {
             Toast.Error(ex.Message);
-            Global.Logger.Instance.Log(ex.Message);
+            Logger.Instance.Log(ex.Message);
         }
     }
     public void Create(string path, string password, string repeatPassword)
@@ -78,27 +127,21 @@ public class NoteBookModel : PageModelBase
 
         try
         {
-            Notebook = PZNotebook.Create(path, password);
-            NoteBookChanged?.Invoke();
+            Notebook.OnNext(PZNotebook.Create(path, password));
         }
         catch (Exception ex)
         {
             Toast.Error(ex.Message);
-            Global.Logger.Instance.Log(ex.Message);
+            Logger.Instance.Log(ex.Message);
         }
     }
-
     public void Save()
     {
-        Notebook?.Save();
+        Notebook.Value?.Save();
     }
     public void Close()
     {
-        Notebook?.Dispose();
-        Notebook = null;
-        Note = null;
-
-        NoteBookChanged?.Invoke();
-        NoteChanged?.Invoke();
+        Notebook.Value?.Dispose();
+        Notebook.OnNext(null);
     }
 }

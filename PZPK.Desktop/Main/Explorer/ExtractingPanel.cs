@@ -6,13 +6,13 @@ using static PZPK.Desktop.Common.ControlHelpers;
 
 public class ExtractingPanel: PZComponentBase
 {
-    private StackPanel BuildContent()
+    private static StackPanel BuildContent()
     {
         var filesText = Model.ExtractProgress.Select(p => $"{p.ProcessedFiles}/{p.Files}");
         var bytesText = Model.ExtractProgress.Select(
             p => $"{Utility.ComputeFileSize(p.ProcessedBytes)}/{Utility.ComputeFileSize(p.Bytes)}"
         );
-        var percent = Model.ExtractProgress.Select(p => Utility.ComputePercent(p.ProcessedBytes, p.Bytes);
+        var percent = Model.ExtractProgress.Select(p => Utility.ComputePercent(p.ProcessedBytes, p.Bytes));
 
         return VStackPanel(Avalonia.Layout.HorizontalAlignment.Center)
             .Children(
@@ -65,7 +65,7 @@ public class ExtractingPanel: PZComponentBase
     }
     
     private static ExplorerModel Model => ExplorerModel.Instance;
-    private void CancelPacking()
+    private static void CancelPacking()
     {
         Model.CancelExtracting();
     }

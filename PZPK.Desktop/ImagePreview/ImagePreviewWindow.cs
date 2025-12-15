@@ -63,7 +63,7 @@ public class ImagePreviewWindow : PZWindowBase
         InitializeOperators();
     }
 
-    private List<IDisposable> _subscriptions = [];
+    private readonly List<IDisposable> _subscriptions = [];
     private void InitializeOperators()
     {
         _subscriptions.AddRange(

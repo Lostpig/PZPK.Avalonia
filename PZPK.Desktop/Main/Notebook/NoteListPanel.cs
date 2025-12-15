@@ -1,12 +1,10 @@
-﻿using Avalonia.Controls;
+﻿using Avalonia;
 using Avalonia.Input;
 using Avalonia.Layout;
-using Avalonia.Markup.Declarative;
 using Avalonia.Media;
 using Avalonia.Styling;
 using Material.Icons;
-using PZPK.Core.Note;
-using PZPK.Desktop.Common;
+using System.Collections.Concurrent;
 
 namespace PZPK.Desktop.Main.Notebook;
 
@@ -16,11 +14,19 @@ public class NoteListPanel : Border
 {
     private class NoteListItem : ContentControl, ISelectable
     {
-        private NoteListPanel _parent;
-        private TextBlock _text;
-        private bool _isOver = false;
+        private static readonly ConcurrentStack<NoteListItem> Pool = new();
+        public static NoteListItem GetItem(RxNote note)
+        {
+            var noteItem = Pool.TryPop(out var item) ? item : new NoteListItem();
+            noteItem.BindingData(note);
+            return noteItem;
+        }
 
-        public Note Data { get; init; }
+        private readonly TextBlock _text;
+        private bool _isOver = false;
+        private IDisposable? _subscription;
+
+        public RxNote? Data { get; private set; }
         public bool IsSelected
         {
             get;
@@ -30,27 +36,28 @@ public class NoteListPanel : Border
 
                 field = value;
                 UpdateBg();
-                if (field == true) _parent.UpdateSelected(this);
             }
         } = false;
         public IBrush hoverBg = App.Instance.Suki.GetSukiColor("SukiPrimaryColor25");
         public IBrush selectedBg = App.Instance.Suki.GetSukiColor("SukiPrimaryColor50");
 
-        public NoteListItem(NoteListPanel parent, Note data)
+        private NoteListItem()
         {
-            _parent = parent;
-            Data = data;
+            _text = PzText("").VerticalAlignment(VerticalAlignment.Center);
 
-            _text = PzText(Data.Title).VerticalAlignment(VerticalAlignment.Center);
             Content = new Border()
                 .Background(Brushes.Transparent)
                 .Padding(10, 8)
                 .Child(_text);
+
+            Model.Note.Subscribe(n => this.IsSelected = n == this.Data);
         }
-        public void UpdateTitle()
+        public void BindingData(RxNote data)
         {
-            _text.Text = Data.Title;
+            Data = data;
+            _subscription = data.Title.Subscribe(t => _text.Text = t);
         }
+
         private void UpdateBg()
         {
             if (IsSelected)
@@ -66,7 +73,6 @@ public class NoteListPanel : Border
                 Background = null;
             }
         }
-
         protected override void OnPointerEntered(PointerEventArgs e)
         {
             base.OnPointerEntered(e);
@@ -82,134 +88,46 @@ public class NoteListPanel : Border
         protected override void OnPointerPressed(PointerPressedEventArgs e)
         {
             base.OnPointerPressed(e);
-            IsSelected = true;
+            Model.Note.OnNext(Data);
+        }
+
+        protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+        {
+            base.OnDetachedFromVisualTree(e);
+            _subscription?.Dispose();
+
+            _subscription = null;
+            Data = null;
+
+            Pool.Push(this);
         }
     }
 
-    public NoteListPanel(NoteBookModel vm)
+    public NoteListPanel()
     {
-        ViewModel = vm;
-
         var borderColor = App.Instance.Suki.GetSukiColor("SukiBorderBrush");
         BorderThickness = new Avalonia.Thickness(0, 0, 1, 0);
         BorderBrush = borderColor;
 
-        ListContainer = VStackPanel(HorizontalAlignment.Stretch);
         Child = Grid(null, "60, 1*").Children(
                     HStackPanel(VerticalAlignment.Center)
                         .HorizontalAlignment(HorizontalAlignment.Center)
                         .Row(0)
                         .Children(
-                            IconButton(MaterialIconKind.Add).Margin(10, 0).ToolTip("Add").OnClick(_ => AddNote()),
-                            IconButton(MaterialIconKind.ContentSave).Margin(10, 0).ToolTip("Save").OnClick(_ => SaveNoteBook()),
-                            IconButton(MaterialIconKind.Close).Margin(10, 0).ToolTip("Close").OnClick(_ => CloseNoteBook())
+                            IconButton(MaterialIconKind.Add).Margin(10, 0).ToolTip("Add").OnClick(_ => Model.NewNote()),
+                            IconButton(MaterialIconKind.ContentSave).Margin(10, 0).ToolTip("Save").OnClick(_ => Model.Save()),
+                            IconButton(MaterialIconKind.Close).Margin(10, 0).ToolTip("Close").OnClick(_ => Model.Close())
                         ),
                     new ScrollViewer()
                         .Row(1)
                         .Content(
-                            ListContainer
+                            new ItemsControl()
+                                .ItemsPanel(VStackPanel(HorizontalAlignment.Stretch))
+                                .ItemsSourceEx(Model.Notes)
+                                .ItemTemplate<RxNote, ItemsControl>(n => NoteListItem.GetItem(n))
                         )
                 );
-
-        InitializeModel();
     }
 
-    private NoteBookModel ViewModel { get; init; }
-    private StackPanel ListContainer { get; init; }
-    private PzControls<NoteListItem> Items => new(ListContainer.Children);
-
-    private void InitializeModel()
-    {
-        ViewModel.NoteBookChanged += NoteBookChanged;
-        ViewModel.NoteModified += UpdateItem;
-        ViewModel.NoteDeleted += DeleteItem;
-    }
-
-    private void NoteBookChanged()
-    {
-        var notebook = ViewModel.Notebook;
-
-        if (notebook != null)
-        {
-            Items.Clear();
-
-            foreach (Note note in notebook.Notes)
-            {
-                var item = new NoteListItem(this, note);
-                Items.Add(item);
-            }
-            if (ListContainer.Children.Count > 0)
-            {
-                Items[0].IsSelected = true;
-            }
-            else
-            {
-                ViewModel?.SelectNote(null);
-            }
-        }
-    }
-    private void AddNote()
-    {
-        var notebook = ViewModel.Notebook;
-        if (notebook is null) return;
-
-        var newNote = notebook.AddNote();
-
-        var item = new NoteListItem(this, newNote);
-        Items.Add(item);
-
-        item.IsSelected = true;
-    }
-    private void UpdateItem(Note note)
-    {
-        foreach (var item in Items)
-        {
-            if (item.Data == note)
-            {
-                item.UpdateTitle();
-            }
-        }
-    }
-    private void UpdateSelected(NoteListItem item)
-    {
-        foreach (var n in Items)
-        {
-            if (n.IsSelected && n != item) n.IsSelected = false;
-        }
-
-        ViewModel.SelectNote(item.Data);
-    }
-    private void DeleteItem(int id)
-    {
-        NoteListItem? item = null;
-        foreach (var i in Items)
-        {
-            if (i.Data.Id == id)
-            {
-                item = i; break;
-            }
-        }
-
-        if (item != null) {
-            Items.Remove(item);
-
-            if (Items.Count > 0) 
-            {
-                Items[0].IsSelected = true;
-            }
-            else
-            {
-                ViewModel.SelectNote(null);
-            }
-        }
-    }
-
-    private void SaveNoteBook()
-    {
-        ViewModel.Save();
-    }
-    private void CloseNoteBook()
-    {
-        ViewModel.Close();
-    }
+    private static NoteBookModel Model => NoteBookModel.Instance;
 }

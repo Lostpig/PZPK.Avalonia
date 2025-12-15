@@ -1,32 +1,24 @@
-﻿using Avalonia.Controls;
-using Avalonia.Markup.Declarative;
+﻿namespace PZPK.Desktop.Main.Notebook;
 
-namespace PZPK.Desktop.Main.Notebook;
+using System.Reactive.Linq;
 using static PZPK.Desktop.Common.ControlHelpers;
 
 public class NoteBookPage : PZComponentBase
 {
-    protected override object Build()
+    protected override Control Build()
     {
-        InitializeModel();
-
         return new Panel()
             .Children(
-                new OpenFilePanel(Model)
-                    .IsVisible(() => Model.Notebook is null),
+                new OpenFilePanel()
+                    .IsVisible(Model.Notebook.Select(n => n is null)),
                 Grid("200,*")
-                    .IsVisible(() => Model.Notebook is not null)
+                    .IsVisible(Model.Notebook.Select(n => n is not null))
                     .Children(
-                        new NoteListPanel(Model).Col(0),
-                        new EditorPanel(Model).Col(1)
+                        new NoteListPanel().Col(0),
+                        new EditorPanel().Col(1)
                     )
             );
     }
 
     private NoteBookModel Model { get; init; } = NoteBookModel.Instance;
-    private void InitializeModel()
-    {
-        // Model.NoteChanged += StateHasChanged;
-        Model.NoteBookChanged += StateHasChanged;
-    }
 }

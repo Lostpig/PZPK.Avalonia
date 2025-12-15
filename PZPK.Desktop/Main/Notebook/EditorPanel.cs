@@ -1,15 +1,10 @@
-﻿using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Layout;
-using Avalonia.Markup.Declarative;
+﻿using Avalonia.Layout;
 using Avalonia.Media;
-using Avalonia.Platform;
 using AvaloniaEdit;
 using AvaloniaEdit.TextMate;
-using PZPK.Desktop.Main;
-using System;
-using System.Collections.Generic;
 using System.Linq;
+using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using TextMateSharp.Grammars;
 
 namespace PZPK.Desktop.Main.Notebook;
@@ -17,64 +12,70 @@ using static PZPK.Desktop.Common.ControlHelpers;
 
 public class EditorPanel: PZComponentBase
 {
-    private readonly NoteBookModel Model;
-    private TextEditor Editor { get; set; }
-    private RegistryOptions RegOptions { get; set; }
-    private TextMate.Installation TextMateInstallation { get; set; }
-    private readonly List<FontFamily> Fonts = [.. FontManager.Current.SystemFonts.OrderBy(f => f.Name)];
+    private static NoteBookModel Model => NoteBookModel.Instance;
 
-    private Language SelectedLanguage { get; set; }
-    private FontFamily Font { get; set; } = FontFamily.Parse("Consolas");
-    private string ThemeText { get; set; } = Enum.GetName<ThemeName>(ThemeName.DarkPlus) ?? "DarkPlus";
-    private readonly Dictionary<string, ThemeName> Themes = [];
-    private int EditFontSize = 14;
-
-    private string Title { get; set; } = "";
-    private string Content { get; set; } = "";
-
-    private static readonly int[] FontSizes = [12, 14, 16, 18, 20, 24, 28, 32, 40, 48, 56, 64, 72];
-
-    public EditorPanel(NoteBookModel model) : base(ViewInitializationStrategy.Lazy)
+    private static TextEditor BuildEditor()
     {
-        Model = model;
-        RegOptions = new RegistryOptions(ThemeName.DarkPlus);
-        SelectedLanguage = RegOptions.GetLanguageByExtension(".md");
-
-        Editor = new()
+        var editor = new TextEditor()
         {
-            FontFamily = Font,
-            FontSize = EditFontSize,
             Background = Brushes.Transparent,
             ShowLineNumbers = true
         };
-        Editor.Options.ShowSpaces = true;
-        Editor.FlowDirection = FlowDirection.LeftToRight;
-        Editor.Resources.Add("TextAreaSelectionBrush", Brushes.DarkBlue);
+        editor.Options.ShowSpaces = true;
+        editor.FlowDirection = FlowDirection.LeftToRight;
+        editor.Resources.Add("TextAreaSelectionBrush", Brushes.DarkBlue);
 
-        TextMateInstallation = Editor.InstallTextMate(RegOptions);
-        var scopeName = RegOptions.GetScopeByLanguageId(SelectedLanguage.Id);
-        TextMateInstallation.SetGrammar(scopeName);
-
-        Initialize();
-
-        Model.NoteChanged += OnNoteChanged;
+        return editor;
     }
-
-    protected override object Build()
+    private void InitializeEditor(TextEditor editor, RegistryOptions regOptions)
     {
-        foreach (var theme in Enum.GetValues<ThemeName>())
-        {
-            var name = Enum.GetName<ThemeName>(theme)!;
-            Themes.Add(name, theme);
-        }
+        var textMateInstallation = editor.InstallTextMate(regOptions);
 
-        return Grid(null, "80, 45, 1*").
+        Language.Subscribe(l =>
+        {
+            var sn = regOptions.GetScopeByLanguageId(l.Id);
+            textMateInstallation.SetGrammar(sn);
+        });
+        EditorTheme.Subscribe(t =>
+        {
+            var rt = regOptions.LoadTheme(t);
+            textMateInstallation.SetTheme(rt);
+        });
+        Font.Subscribe(f => editor.FontFamily = f);
+        FontSize.Subscribe(s => editor.FontSize = s);
+
+        var defaultLang = regOptions.GetLanguageByExtension(".md");
+        Language.OnNext(defaultLang);
+        EditorTheme.OnNext(ThemeName.DarkPlus);
+        Font.OnNext(FontFamily.Parse("Consolas"));
+        FontSize.OnNext(14);
+
+        Observable.FromEvent<EventHandler, EventArgs>(
+            h => (s,e) => h(e),
+            h => editor.TextChanged += h,
+            h => editor.TextChanged -= h
+        ).Subscribe(_ => Content.OnNext(editor.Text));
+
+        Content.Subscribe(t =>
+        {
+            if (t != editor.Text) editor.Text = t;
+        });
+    }
+    protected override Control Build()
+    {
+        var regOptions = new RegistryOptions(ThemeName.DarkPlus);
+        var editor =  BuildEditor();
+
+        int[] fontSizes = [12, 14, 16, 18, 20, 24, 28, 32, 40, 48, 56, 64, 72];
+        var fonts = FontManager.Current.SystemFonts.OrderBy(f => f.Name);
+
+        var content = Grid(null, "80, 45, 1*").
             Children(
                 Grid("*, 200")
                     .Row(0)
                     .Margin(30, 20)
                     .Children(
-                        PzTextBox(() => Title, v => Title = v).Col(0),
+                        PzTextBox(Title).Col(0),
                         HStackPanel()
                             .Col(1)
                             .HorizontalAlignment(HorizontalAlignment.Center)
@@ -88,72 +89,80 @@ public class EditorPanel: PZComponentBase
                     .Margin(30, 0, 30, 5)
                     .Children(
                         new ComboBox()
-                            .ItemsSource(RegOptions.GetAvailableLanguages())
-                            .SelectedItem(() => SelectedLanguage, v => SelectedLanguage = (Language)v)
-                            .OnSelectionChanged(_ => UpdateLanguage()),
+                            .ItemsSource(regOptions.GetAvailableLanguages())
+                            .ItemTemplate<Language>(l => PzText(l.Id))
+                            .SelectedItem(Language),
                         new ComboBox()
-                            .ItemsSource(Themes.Keys)
-                            .SelectedItem(() => ThemeText, v => ThemeText = (string)v)
-                            .OnSelectionChanged(_ => UpdateTheme()),
+                            .ItemsSource(Enum.GetValues<ThemeName>())
+                            .ItemTemplate<ThemeName>(t => PzText(t.ToString()))
+                            .SelectedItem(EditorTheme),
                         new ComboBox()
-                            .ItemsSource(Fonts)
-                            .SelectedItem(() => Font, v => Font = (FontFamily)v)
-                            .OnSelectionChanged(_ => UpdateFont()),
+                            .ItemsSource(fonts)
+                            .ItemTemplate<FontFamily>(f => PzText(f.Name))
+                            .SelectedItem(Font),
                         new ComboBox()
-                            .ItemsSource(FontSizes)
-                            .SelectedItem(() => EditFontSize, v => EditFontSize = (int)v)
-                            .OnSelectionChanged(_ => Editor.FontSize = EditFontSize)
+                            .ItemsSource(fontSizes)
+                            .SelectedItem(FontSize)
                     ),
                 new SukiUI.Controls.GlassCard()
                     .Row(2)
                     .Margin(30, 0, 30, 20)
                     .Content(
-                        Editor
+                        editor
                     )
             );
+
+        InitializeEditor(editor, regOptions);
+
+        return content;
     }
 
-    private void OnNoteChanged()
-    {
-        var note = Model.Note;
+    private Subject<string> Title { get; init; } = new();
+    private Subject<string> Content { get; init; } = new();
+    private Subject<Language> Language { get; init; } = new();
+    private Subject<FontFamily> Font { get; set; } = new();
+    private Subject<int> FontSize { get; set; } = new();
+    private Subject<ThemeName> EditorTheme { get; set; } = new();
 
-        Title = note?.Title ?? "";
-        Content = note?.Content ?? "";
-        Editor.Text = Content;
+    private readonly List<IDisposable> _subscriptions = [];
+    protected override void OnCreated()
+    {
+        base.OnCreated();
+        Model.Note.Subscribe(n =>
+        {
+            ClearSubscriptions();
+            if (n != null)
+            {
+                Title.OnNext(n.Note.Title);
+                Content.OnNext(n.Note.Content);
 
-        IsVisible = note != null;
+                _subscriptions.AddRange(
+                    Title.Subscribe(n.Title),
+                    Content.Subscribe(n.Content)
+                );
+            }
+        });
+    }
+    private void ClearSubscriptions()
+    {
+        foreach(var s in _subscriptions)
+        {
+            s.Dispose();
+        }
+        _subscriptions.Clear();
+    }
+    private static void SaveNote()
+    {
+        Model.Note.Value?.Save();
+    }
+    private static async void OnDelete()
+    {
+        if (Model.Note.Value == null) return;
 
-        StateHasChanged();
-    }
-    private void SaveNote()
-    {
-        Content = Editor.Text;
-        Model.ModifyNote(Title, Content);
-    }
-    private void UpdateLanguage()
-    {
-        var scopeName = RegOptions.GetScopeByLanguageId(SelectedLanguage.Id);
-        TextMateInstallation.SetGrammar(scopeName);
-    }
-    private void UpdateTheme()
-    {
-        var theme = Themes[ThemeText];
-
-        RegOptions = new RegistryOptions(theme);
-        TextMateInstallation = Editor.InstallTextMate(RegOptions);
-        var scopeName = RegOptions.GetScopeByLanguageId(SelectedLanguage.Id);
-        TextMateInstallation.SetGrammar(scopeName);
-    }
-    private void UpdateFont()
-    {
-        Editor.FontFamily = Font;
-    }
-    private async void OnDelete()
-    {
         var ok = await Model.Dialog.DeleteConfirm("Sure to delete?");
         if (ok)
         {
-            Model.DeleteNote();
+            Model.Notes.Remove(Model.Note.Value);
         }
     }
 }

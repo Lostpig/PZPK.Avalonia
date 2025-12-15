@@ -1,14 +1,9 @@
-﻿using Avalonia.Controls;
-using Avalonia.Layout;
-using Avalonia.Markup.Declarative;
-using Avalonia.Media;
+﻿using Avalonia.Layout;
 using Avalonia.Platform.Storage;
 using Material.Icons;
-using PZPK.Desktop.Common;
-using PZPK.Desktop.Main;
 using SukiUI.Controls;
-using System;
 using System.IO;
+using System.Reactive.Subjects;
 
 
 namespace PZPK.Desktop.Main.Notebook;
@@ -31,7 +26,7 @@ public class OpenFilePanel : PZComponentBase
                     Grid("*, Auto")
                         .Margin(0, 0, 0, 6)
                         .Children(
-                            PzTextBox(() => SelectedPath, v => SelectedPath = v)
+                            PzTextBox(SelectedPath)
                                 .IsReadOnly(true)
                                 .Col(0),
                             SukiButton("Select")
@@ -40,7 +35,7 @@ public class OpenFilePanel : PZComponentBase
                                 .Col(1)
                         ),
                     PzText("Password"),
-                    PzTextBox(() => Password, v => Password = v)
+                    PzTextBox(Password)
                         .Margin(0, 0, 0, 6)
                         .PasswordChar('*'),
                     SukiButton("Open", "Flat", "Rounded")
@@ -65,7 +60,7 @@ public class OpenFilePanel : PZComponentBase
                     Grid("*, Auto")
                         .Margin(0, 0, 0, 6)
                         .Children(
-                            PzTextBox(() => CreatePath, v => CreatePath = v)
+                            PzTextBox(CreatePath)
                                 .IsReadOnly(true)
                                 .Col(0),
                             SukiButton("Select")
@@ -74,11 +69,11 @@ public class OpenFilePanel : PZComponentBase
                                 .Col(1)
                         ),
                     PzText("Password"),
-                    PzTextBox(() => CreatePw, v => CreatePw = v)
+                    PzTextBox(CreatePw)
                         .Margin(0, 0, 0, 6)
                         .PasswordChar('*'),
                     PzText("Repeat password"),
-                    PzTextBox(() => CreateRepeatPw, v => CreateRepeatPw = v)
+                    PzTextBox(CreateRepeatPw)
                         .Margin(0, 0, 0, 6)
                         .PasswordChar('*'),
                     SukiButton("Create", "Flat", "Rounded")
@@ -88,7 +83,7 @@ public class OpenFilePanel : PZComponentBase
                         .OnClick(_ => CreateNotebook())
                 );
     }
-    protected override object Build()
+    protected override Control Build()
     {
         return new GlassCard()
             .Width(380)
@@ -101,18 +96,12 @@ public class OpenFilePanel : PZComponentBase
             );
     }
 
-    public OpenFilePanel(NoteBookModel model): base(ViewInitializationStrategy.Lazy)
-    {
-        Model = model;
-        Initialize();
-    }
-    private NoteBookModel Model;
-    private string SelectedPath = "";
-    private string Password = "";
-
-    private string CreatePath = "";
-    private string CreatePw = "";
-    private string CreateRepeatPw = "";
+    private static NoteBookModel Model => NoteBookModel.Instance;
+    private readonly BehaviorSubject<string> SelectedPath = new("");
+    private readonly BehaviorSubject<string> Password = new("");
+    private readonly BehaviorSubject<string> CreatePath = new("");
+    private readonly BehaviorSubject<string> CreatePw = new("");
+    private readonly BehaviorSubject<string> CreateRepeatPw = new("");
 
     private async void SelectNotebookFile()
     {
@@ -131,8 +120,7 @@ public class OpenFilePanel : PZComponentBase
 
         if (files.Count >= 1)
         {
-            SelectedPath = files[0].Path.LocalPath;
-            StateHasChanged();
+            SelectedPath.OnNext(files[0].Path.LocalPath);
         }
     }
     private async void SelectCreatePath()
@@ -153,20 +141,18 @@ public class OpenFilePanel : PZComponentBase
             }
             else
             {
-                CreatePath = localPath;
+                CreatePath.OnNext(localPath);
             }
-
-            StateHasChanged();
         }
     }
 
     private void OpenNotebook()
     {
-        Model.Open(SelectedPath, Password);
+        Model.Open(SelectedPath.Value, Password.Value);
     }
     private void CreateNotebook()
     {
-        Model.Create(CreatePath, CreatePw, CreateRepeatPw);
+        Model.Create(CreatePath.Value, CreatePw.Value, CreateRepeatPw.Value);
     }
 }
 
