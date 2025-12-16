@@ -37,7 +37,6 @@ public class ImagePreviewWindow : PZWindowBase
             .ZIndex(0);
 
         RenderOptions.SetBitmapInterpolationMode(ImageRef, BitmapInterpolationMode.HighQuality);
-        // RoutingStrategies routes = RoutingStrategies.Direct | RoutingStrategies.Bubble;
 
         OperateBarRef = new OperateBar().ZIndex(1).Row(0);
         InfoBarRef = new InfoBar().ZIndex(1).Row(2);
@@ -73,16 +72,17 @@ public class ImagePreviewWindow : PZWindowBase
                     h => ScrollRef.SizeChanged -= h
                 ).Select(e => e.EventArgs.NewSize).Subscribe(Model.ContainerSize.OnNext),
             Model.Current.Subscribe(LoadImage),
-            Model.Size.CombineLatest(Model.Scale).Subscribe(t => UpdateImageScale(t.First, t.Second))
+            Model.Size.CombineLatest(Model.Scale)
+                .Subscribe(t => UpdateImageScale(t.First, t.Second))
         );
     }
     protected override void OnClosed(EventArgs e)
     {
-        base.OnClosed(e);
         foreach(var subscription in _subscriptions)
         {
             subscription.Dispose(); 
         }
+        base.OnClosed(e);
     }
 
     protected void OnScrollLayoutUpdated(EventArgs e)

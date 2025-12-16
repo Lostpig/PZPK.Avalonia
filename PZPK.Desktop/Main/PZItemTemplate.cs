@@ -1,4 +1,5 @@
 ﻿using Avalonia.Controls.Templates;
+using Avalonia.Layout;
 using Avalonia.Media;
 using Material.Icons;
 using PZPK.Core;
@@ -38,12 +39,11 @@ public class PZItemTemplate(ContextMenu? menu = null) : IDataTemplate
         }
 
         var content = Grid("40, 1*, 120")
-            .Classes("explorer-item")
             .Background(Brushes.Transparent)
             .Children(
-                MaterialIcon(icon).Col(0),
-                PzText(name).Col(1),
-                PzText(size).Col(2)
+                MaterialIcon(icon).Col(0).VerticalAlignment(VerticalAlignment.Center),
+                PzText(name).Col(1).VerticalAlignment(VerticalAlignment.Center),
+                PzText(size).Col(2).VerticalAlignment(VerticalAlignment.Center)
             );
         if (Menu != null)
         {

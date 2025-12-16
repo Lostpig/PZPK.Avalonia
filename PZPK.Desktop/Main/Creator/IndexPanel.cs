@@ -13,6 +13,7 @@ using SukiUI.Dialogs;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Threading.Tasks;
@@ -71,7 +72,6 @@ public class IndexPanel : PZComponentBase
 
         return HStackPanel().Children(btn, createArrow());
     }
-
     override protected Control Build()
     {
         var suki = App.Instance.Suki;
@@ -114,16 +114,17 @@ public class IndexPanel : PZComponentBase
                     )
             );
     }
-    protected override void OnCreated()
+    protected override IEnumerable<IDisposable> WhenActivate()
     {
-        base.OnCreated();
-        Model.Completed.Subscribe(_ => Current.OnNext(Index.Root));
+        return [
+            Model.Completed.Subscribe(_ => Changed.OnNext(Unit.Default))
+        ];
     }
 
     private static CreatorModel Model => CreatorModel.Instance;
     private static IndexCreator Index => CreatorModel.Instance.Index;
     private readonly BehaviorSubject<PZIndexFolder> Current = new(Index.Root);
-    private readonly Subject<bool> Changed = new();
+    private readonly Subject<Unit> Changed = new();
 
     private void OnItemDoubleTap(TappedEventArgs e)
     {
@@ -142,7 +143,7 @@ public class IndexPanel : PZComponentBase
         if (!string.IsNullOrEmpty(name))
         {
             Index.AddFolder(name, Current.Value);
-            Changed.OnNext(true);
+            Changed.OnNext(Unit.Default);
         }
     }
     private async void AddFiles()
@@ -172,7 +173,7 @@ public class IndexPanel : PZComponentBase
             }
             finally
             {
-                Changed.OnNext(added);
+                if (added) Changed.OnNext(Unit.Default);
             }
         }
     }
@@ -201,7 +202,7 @@ public class IndexPanel : PZComponentBase
             }
             finally
             {
-                Changed.OnNext(true);
+                Changed.OnNext(Unit.Default);
             }
         }
     }
@@ -242,7 +243,7 @@ public class IndexPanel : PZComponentBase
             Index.RenameFile(file, idx + file.Extension);
         }
 
-        Changed.OnNext(true);
+        Changed.OnNext(Unit.Default);
     }
     private async void Clear()
     {
@@ -265,7 +266,7 @@ public class IndexPanel : PZComponentBase
                 if (!string.IsNullOrEmpty(newName) && newName != f.Name)
                 {
                     Index.RenameFile(f, newName);
-                    Changed.OnNext(true);
+                    Changed.OnNext(Unit.Default);
                 }
             }
             else if (c.DataContext is PZIndexFolder fo)
@@ -274,7 +275,7 @@ public class IndexPanel : PZComponentBase
                 if (!string.IsNullOrEmpty(newName) && newName != fo.Name)
                 {
                     Index.RenameFolder(fo, newName);
-                    Changed.OnNext(true);
+                    Changed.OnNext(Unit.Default);
                 }
             }
         }
@@ -286,12 +287,12 @@ public class IndexPanel : PZComponentBase
             if (c.DataContext is PZIndexFile f)
             {
                 Index.RemoveFile(f);
-                Changed.OnNext(true);
+                Changed.OnNext(Unit.Default);
             }
             else if (c.DataContext is PZIndexFolder fo)
             {
                 Index.RemoveFolder(fo);
-                Changed.OnNext(true);
+                Changed.OnNext(Unit.Default);
             }
         }
     }

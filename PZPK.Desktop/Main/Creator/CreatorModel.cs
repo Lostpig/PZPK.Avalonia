@@ -6,6 +6,7 @@ using PZPK.Desktop.Common;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace PZPK.Desktop.Main.Creator;
 
@@ -181,20 +182,64 @@ public class CreatorModel : PageModelBase
         {
             return;
         }
+        if (Index.IsEmpty || !Properties.Check())
+        {
+            return; 
+        }
 
         var savePath = PackingInfo.SavePath.Value;
+        PZProgress<PZProgressState> progress = new();
+        using var progressSubscription = Observable.FromEventPattern<PZProgressState>(
+                h => progress.ProgressChanged += h,
+                h => progress.ProgressChanged -= h
+            ).Select(p => p.EventArgs).Subscribe(PackingInfo.Progress.OnNext);
+        PackingOptions options = new(
+            Properties.Password.Value,
+            Properties.BlockSize.Value,
+            PZType.Package,
+            Properties.Name.Value,
+            Properties.Description.Value,
+            [.. Properties.Tags]);
+
+        try
+        {
+            IImageResizer? imageResizer = GetImageResizer();
+            DateTime startTime = DateTime.Now;
+            CancelSource = new CancellationTokenSource();
+            PackingInfo.Running.OnNext(true);
+            long total = await Packer.PackAsync(savePath, Index, options, progress, imageResizer, CancelSource.Token);
+            PackingInfo.Running.OnNext(false);
+
+            Toast.Success("Success", "Packing complete!");
+            NextStep();
+            Completed.OnNext(new(savePath, total, Index.FilesCount, DateTime.Now - startTime));
+        }
+        catch (OperationCanceledException)
+        {
+            PackingInfo.Progress.OnNext(new(Index.FilesCount, Index.SumFilesSize()));
+            Toast.Warning("Info", "Packing canceled!");
+        }
+        catch (Exception ex)
+        {
+            PackingInfo.Progress.OnNext(new(Index.FilesCount, Index.SumFilesSize()));
+            Toast.Error(string.Format(LOC.Error.Message, ex.Message));
+        }
+        finally
+        {
+            CancelSource = null;
+        }
+    }
+
+    public async void DebugStart()
+    {
+        int filesCount = 200;
+        long bytes = 200 * 1024;
+
         if (!Index.IsEmpty && Properties.Check())
         {
-            PackingOptions options = new(
-                Properties.Password.Value,
-                Properties.BlockSize.Value,
-                PZType.Package,
-                Properties.Name.Value,
-                Properties.Description.Value,
-                [.. Properties.Tags]);
-            IImageResizer? imageResizer = GetImageResizer();
+            var progressState = new PZProgressState(filesCount, bytes);
             PZProgress<PZProgressState> progress = new();
-            var progressSubscription = Observable.FromEventPattern<PZProgressState>(
+            using var progressSubscription = Observable.FromEventPattern<PZProgressState>(
                     h => progress.ProgressChanged += h,
                     h => progress.ProgressChanged -= h
                 ).Select(p => p.EventArgs).Subscribe(PackingInfo.Progress.OnNext);
@@ -202,7 +247,21 @@ public class CreatorModel : PageModelBase
             DateTime startTime = DateTime.Now;
             CancelSource = new CancellationTokenSource();
             PackingInfo.Running.OnNext(true);
-            long total = await Packer.PackAsync(savePath, Index, options, progress, imageResizer, CancelSource.Token);
+            await Task.Run(() =>
+            {
+                long processedBytes = 0;
+                for (int i = 0; i < filesCount; i++)
+                {
+                    progress.Report(progressState with { ProcessedBytes = 0, ProcessedFiles = i });
+                    for (int j = 0; j < 1024; j += 16)
+                    {
+                        processedBytes = i * 1024 + j;
+                        progress.Report(progressState with { ProcessedBytes = processedBytes });
+                        Thread.Sleep(500);
+                        if (CancelSource.Token.IsCancellationRequested) return;
+                    }
+                }
+            });
             PackingInfo.Running.OnNext(false);
 
             if (CancelSource.IsCancellationRequested)
@@ -214,12 +273,13 @@ public class CreatorModel : PageModelBase
             {
                 Toast.Success("Success", "Packing complete!");
                 NextStep();
-                Completed.OnNext(new(savePath, total, Index.FilesCount, DateTime.Now - startTime));
+                Completed.OnNext(new("Test://path", bytes, filesCount, DateTime.Now - startTime));
             }
 
             CancelSource = null;
         }
     }
+
     public void Cancel()
     {
         if (CancelSource != null && !CancelSource.IsCancellationRequested)

@@ -51,15 +51,15 @@ public class CompletePanel : PZComponentBase
                     .OnClick(_ => Model.Reset())
             );
     }
-    protected override void OnCreated()
+    protected override IEnumerable<IDisposable> WhenActivate()
     {
-        base.OnCreated();
-        Model.Completed.Subscribe(c => _savePath = c.PackagePath);
+        return [
+            Model.Completed.Subscribe(c => _savePath = c.PackagePath)
+        ];
     }
 
     private string? _savePath;
     private static CreatorModel Model => CreatorModel.Instance;
-
 
     private void OpenDirectory()
     {

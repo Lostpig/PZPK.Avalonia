@@ -48,12 +48,11 @@ internal class PackingPanel : PZComponentBase
                             .Dock(Dock.Right)
                     ),
                 new ProgressBar()
-                    .Minimum(0)
-                    .Maximum(100)
-                    .Value(packing.Percent)
-                    .Height(20)
-                    .Width(480)
-                    .Margin(0, 30, 0, 0),
+                    .Margin(0, 30, 0, 0)
+                    .Height(20).Width(480)
+                    .Minimum(0).Maximum(100)
+                    .IsIndeterminate(true)
+                    .Value(packing.Percent),
                 HStackPanel().HorizontalAlignment(Avalonia.Layout.HorizontalAlignment.Center)
                     .Margin(0, 30, 0, 0)
                     .Children(
@@ -64,6 +63,11 @@ internal class PackingPanel : PZComponentBase
                         SukiButton("Start").Width(120)
                             .IsVisible(notRuning)
                             .OnClick(_ => Model.Start()),
+#if DEBUG
+                        SukiButton("Dev Start").Width(120)
+                            .IsVisible(notRuning)
+                            .OnClick(_ => Model.DebugStart()),
+#endif
                         SukiButton("Cancel", "Danger").Width(120)
                             .IsVisible(packing.Running)
                             .OnClick(_ => CancelPacking())
@@ -95,7 +99,7 @@ internal class PackingPanel : PZComponentBase
             }
         }
     }
-    private async void CancelPacking()
+    private static async void CancelPacking()
     {
         var sure = await Model.Dialog.WarningConfirm("Are you sure you want to cancel packing?");
 

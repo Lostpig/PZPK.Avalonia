@@ -69,13 +69,13 @@ public class NoteBookModel : PageModelBase
             }
         });
 
-        Notes.WhenAdd.Subscribe(ns =>
+        Notes.Where(e => e.Type == ChangedType.Add).Subscribe(ns =>
         {
-            Note.OnNext(ns.FirstOrDefault());
+            Note.OnNext(ns.Item.First());
         });
-        Notes.WhenRemove.Subscribe(removed =>
+        Notes.Where(e => e.Type == ChangedType.Remove).Subscribe(removed =>
         {
-            foreach (var n in removed)
+            foreach (var n in removed.Item)
             {
                 n.Book.DeleteNote(n.Note);
                 n.Dispose();

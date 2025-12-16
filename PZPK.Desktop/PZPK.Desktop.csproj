@@ -28,7 +28,6 @@
     </PackageReference>
     <PackageReference Include="AvaloniaEdit.TextMate" Version="11.3.0" />
     <PackageReference Include="Material.Icons.Avalonia" Version="2.4.1" />
-    <PackageReference Include="PZ.RxAvalonia" Version="1.0.0-beta5" />
     <PackageReference Include="SixLabors.ImageSharp" Version="3.1.12" />
     <PackageReference Include="SukiUI" Version="6.0.3" />
   </ItemGroup>
@@ -40,6 +39,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\PZ.RxAvalonia\PZ.RxAvalonia\PZ.RxAvalonia.csproj" />
     <ProjectReference Include="..\PZPK.Core\PZPK.Core.csproj" />
   </ItemGroup>
 
