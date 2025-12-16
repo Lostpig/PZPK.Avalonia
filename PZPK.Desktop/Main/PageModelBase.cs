@@ -6,4 +6,10 @@ public abstract class PageModelBase
 {
     public PZToast Toast { get; } = App.Instance.MainWindow.Toast;
     public PZDialog Dialog { get; } = App.Instance.MainWindow.Dialog;
+
+    public void CatchException(Exception ex)
+    {
+        var msg = ErrorProxy.CatchException(ex);
+        Toast.Error(msg);
+    }
 }

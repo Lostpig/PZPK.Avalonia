@@ -42,12 +42,12 @@ public class OperateBar: PZComponentBase
                                     SukiButton("-").OnClick(_ => Model.Scale.Reducer(s => s - 0.1)),
                                     PzText(Model.ScalePercent),
                                     SukiButton("+").OnClick(_ => Model.Scale.Reducer(s => s + 0.1)),
-                                    SukiButton("OriginalSize").OnClick(_ => Model.Scale.OnNext(1)),
-                                    SukiButton("FitToWidth").OnClick(_ => Model.FitToWidth()),
-                                    SukiButton("FitToHeight").OnClick(_ => Model.FitToHeight()),
+                                    SukiButton(() => LOC.Preview.OriginalSize).OnClick(_ => Model.Scale.OnNext(1)),
+                                    SukiButton(() => LOC.Preview.FitToWidth).OnClick(_ => Model.FitToWidth()),
+                                    SukiButton(() => LOC.Preview.FitToHeight).OnClick(_ => Model.FitToHeight()),
                                     PzSeparatorH(),
-                                    SukiButton("Prev").OnClick(_ => Model.Current.Reducer(i => i - 1)),
-                                    SukiButton("Next").OnClick(_ => Model.Current.Reducer(i => i + 1)),
+                                    SukiButton(() => LOC.Base.Prev).OnClick(_ => Model.Current.Reducer(i => i - 1)),
+                                    SukiButton(() => LOC.Base.Next).OnClick(_ => Model.Current.Reducer(i => i + 1)),
                                     PzSeparatorH(),
                                     new ComboBox()
                                         .Width(120)
@@ -55,7 +55,7 @@ public class OperateBar: PZComponentBase
                                         .SelectedItem(subject: Model.Lock)
                                         .ItemTemplate<LockMode>(l => PzText(PreviewModel.LockModeName(l))),
                                     PzSeparatorH(),
-                                    SukiButton("FullScreen").OnClick(_ => Model.FullScreen.Reducer(f => !f))
+                                    SukiButton(() => LOC.Base.FullScreen).OnClick(_ => Model.FullScreen.Reducer(f => !f))
                                 )
                         )
                 );

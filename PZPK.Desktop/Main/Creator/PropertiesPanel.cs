@@ -111,15 +111,15 @@ public class PropertiesPanel: PZComponentBase
                 new ScrollViewer().Row(0).Content(
                     VStackPanel(Avalonia.Layout.HorizontalAlignment.Stretch)
                         .Children(
-                            BuildRow(() => "Name:", PzTextBox(Props.Name)),
-                            BuildRow(() => "Password:", PzTextBox(Props.Password)),
-                            BuildRow(() => "BlockSize:",
+                            BuildRow(() => LOC.Base.Name, PzTextBox(Props.Name)),
+                            BuildRow(() => LOC.Base.Password, PzTextBox(Props.Password)),
+                            BuildRow(() => LOC.PZPK.BlockSize,
                                 new ComboBox()
                                     .SelectedItemEx(Props.BlockSize)
                                     .ItemsSource(BlockSizes)
                                     .ItemTemplate<int>(i => PzText(Utility.ComputeFileSize(i)))
                                 ),
-                            BuildRow(() => "Description:", 
+                            BuildRow(() => LOC.PZPK.Description, 
                                     PzTextBox(Props.Description)
                                         .VerticalContentAlignment(Avalonia.Layout.VerticalAlignment.Top)
                                         .Height(120)
@@ -127,7 +127,7 @@ public class PropertiesPanel: PZComponentBase
                             Grid("200, 15, 150, *")
                                 .Classes("Row")
                                 .Children(
-                                    PzText(() => "Tags")
+                                    PzText(() => LOC.PZPK.Tags)
                                         .Col(0)
                                         .HorizontalAlignment(Avalonia.Layout.HorizontalAlignment.Left)
                                         .VerticalAlignment(Avalonia.Layout.VerticalAlignment.Center)
@@ -136,7 +136,7 @@ public class PropertiesPanel: PZComponentBase
                                         .Col(2)
                                         .HorizontalAlignment(Avalonia.Layout.HorizontalAlignment.Stretch)
                                         .VerticalAlignment(Avalonia.Layout.VerticalAlignment.Center),
-                                    SukiButton(() => "Add")
+                                    SukiButton(() => LOC.Base.Add)
                                         .Col(3)
                                         .Margin(10, 0)
                                         .HorizontalAlignment(Avalonia.Layout.HorizontalAlignment.Left)
@@ -146,28 +146,28 @@ public class PropertiesPanel: PZComponentBase
                                 .ItemsSourceEx(Props.Tags)
                                 .ItemsPanel(new WrapPanel())
                                 .ItemTemplate<string, ItemsControl>(tag => TagItem.GetItem(tag)),
-                            BuildRow(() => "Resize Image:",
+                            BuildRow(() => LOC.PZPK.ResizeImage,
                                 new ToggleSwitch()
                                     .IsCheckedEx(Resizer.Enabled)
                             ),
-                            BuildRow(() => "Image Format:",
+                            BuildRow(() => LOC.PZPK.ImageFormat,
                                 new ComboBox()
                                     .IsEnabled(Resizer.Enabled)
                                     .ItemsSource(ImageFormats)
                                     .ItemTemplate<ImageResizerFormat>(f => PzText(f.ToString()))
                                     .SelectedItemEx(Resizer.Format)
                             ),
-                            BuildRow(() => " - Max size:",
+                            BuildRow(() => LOC.PZPK.MaxSize,
                                 new NumericUpDown()
                                     .IsEnabled(Resizer.Enabled)
                                     .ValueEx(Resizer.MaxSize)
                             ),
-                            BuildRow(() => " - Quility:",
+                            BuildRow(() => LOC.PZPK.Quility,
                                 new NumericUpDown()
                                     .IsEnabled(Resizer.Enabled)
                                     .ValueEx(Resizer.Quality)
                             ),
-                            BuildRow(() => " - LossLess:",
+                            BuildRow(() => LOC.PZPK.LossLess,
                                 new ToggleSwitch()
                                     .IsEnabled(Resizer.Enabled)
                                     .IsCheckedEx(Resizer.Lossless)
@@ -177,8 +177,8 @@ public class PropertiesPanel: PZComponentBase
                 new Canvas()
                     .Row(1)
                     .Children(
-                        SukiButton("Prev", "Accent", "Flat").Canvas_Left(0).OnClick(_ => Model.PreviousStep()),
-                        SukiButton("Next", "Flat").Canvas_Right(0).OnClick(_ => Model.NextStep())
+                        SukiButton(() => LOC.Base.Prev, "Accent", "Flat").Canvas_Left(0).OnClick(_ => Model.PreviousStep()),
+                        SukiButton(() => LOC.Base.Next, "Flat").Canvas_Right(0).OnClick(_ => Model.NextStep())
                     )
             );
     }

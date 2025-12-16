@@ -37,7 +37,14 @@
           "Delete",
           "Next",
           "Prev",
-          "Name"
+          "Name",
+          "FullScreen",
+          "Info",
+          "Success",
+          "Warning",
+          "Error",
+          "Add",
+          "Done"
       ]
     },
     {
@@ -62,8 +69,39 @@
         "AddDirectory",
         "CreateFolder",
         "ResortFiles",
-        "Rename"
+        "Rename",
+        "CreateIndex",
+        "SetProperties",
+        "Packing",
+        "Completed",
+        "Clear",
+        "SelectFiles",
+        "ResizeImage",
+        "ImageFormat",
+        "MaxSize",
+        "Quility",
+        "LossLess",
+        "SaveTo",
+        "Files",
+        "Bytes",
+        "SavePZPKFile",
+        "PackingCompleted",
+        "OpenDirectory",
+        "Time",
+        "Speed"
       ]
+    },
+    {
+        "namespace": "Preview",
+        "fields": [
+          "OriginalSize",
+          "FitToWidth",
+          "FitToHeight",
+          "None",
+          "LockScale",
+          "LockFitHeight",
+          "LockFitWdith"
+        ]
     },
     {
       "namespace": "Error",
@@ -79,7 +117,11 @@
       "fields": [
         "OpenPZPKFile",
         "ExtractedSuccess",
-        "ExtractCancelWarning"
+        "ExtractCancelWarning",
+        "PackingComplete",
+        "PackingCanceled",
+        "SureToClear",
+        "SureToCancelPacking"
       ]
     }
   ]

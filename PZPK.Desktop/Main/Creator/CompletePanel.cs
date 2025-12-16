@@ -11,10 +11,10 @@ public class CompletePanel : PZComponentBase
         return VStackPanel(Avalonia.Layout.HorizontalAlignment.Center)
             .Width(400)
             .Children(
-                PzText("Packing Complete!", "h2")
+                PzText(() => LOC.PZPK.PackingCompleted, "h2")
                     .Margin(0, 0, 0, 30)
                     .HorizontalAlignment(Avalonia.Layout.HorizontalAlignment.Center),
-                PzText("File saved to: ")
+                PzText(() => LOC.Base.File)
                     .Margin(0, 0, 0, 10)
                     .HorizontalAlignment(Avalonia.Layout.HorizontalAlignment.Left),
                 Grid("*, Auto").Children(
@@ -25,26 +25,19 @@ public class CompletePanel : PZComponentBase
                             .Margin(10, 0, 0, 0)
                             .OnClick(_ => OpenDirectory())
                     ),
-                HStackPanel()
+                Grid("Auto, *, Auto")
                     .Margin(0, 30, 0, 0)
-                    .HorizontalAlignment(Avalonia.Layout.HorizontalAlignment.Center)
                     .Children(
-                        PzText("Packing "),
-                        PzText(Model.Completed.Select(c => c.Count.ToString()), "Primary"),
-                        PzText(" files in "),
-                        PzText(Model.Completed.Select(c => c.UsedTime.ToString(@"hh\:mm\:ss")), "Primary")
+                        PzText(() => LOC.PZPK.Files).Cell(0, 0),
+                        PzText(Model.Completed.Select(c => c.Count.ToString())).Cell(1,0),
+                        PzText(() => LOC.PZPK.Bytes).Cell(0, 1),
+                        PzText(Model.Completed.Select(c => Utility.ComputeFileSize(c.Size))).Cell(1, 1),
+                        PzText(() => LOC.PZPK.Time).Cell(0, 2),
+                        PzText(Model.Completed.Select(c => c.UsedTime.ToString(@"hh\:mm\:ss"))).Cell(1, 2),
+                        PzText(() => LOC.PZPK.Speed).Cell(0, 3),
+                        PzText(Model.Completed.Select(c => Utility.ComputeFileSize(c.Speed) + "/s")).Cell(1, 3)
                     ),
-                HStackPanel()
-                    .Margin(0, 10, 0, 0)
-                    .HorizontalAlignment(Avalonia.Layout.HorizontalAlignment.Center)
-                    .Children(
-                        PzText("Total Size "),
-                        PzText(Model.Completed.Select(c => c.Size).Select(Utility.ComputeFileSize), "Primary"),
-                        PzText(", process speed "),
-                        PzText(Model.Completed.Select(c => c.Speed).Select(Utility.ComputeFileSize), "Primary"),
-                        PzText("/S")
-                    ),
-                SukiButton("Done", "Flat")
+                SukiButton(LOC.Base.Done, "Flat")
                     .Width(100)
                     .Margin(0, 30, 0, 0)
                     .HorizontalAlignment(Avalonia.Layout.HorizontalAlignment.Center)

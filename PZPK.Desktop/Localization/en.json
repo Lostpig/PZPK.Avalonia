@@ -26,7 +26,14 @@
         "Delete": "Delete",
         "Next": "Next",
         "Prev": "Prev",
-        "Name": "Name"
+        "Name": "Name",
+        "FullScreen": "MISS_FullScreen",
+        "Info": "MISS_Info",
+        "Success": "MISS_Success",
+        "Warning": "MISS_Warning",
+        "Error": "MISS_Error",
+        "Add": "MISS_Add",
+        "Done": "MISS_Done"
       }
     },
     {
@@ -51,7 +58,38 @@
         "AddDirectory": "Add Directory",
         "CreateFolder": "Create Folder",
         "ResortFiles": "Resort Files",
-        "Rename": " Rename"
+        "Rename": " Rename",
+        "CreateIndex": "MISS_CreateIndex",
+        "SetProperties": "MISS_SetProperties",
+        "Packing": "MISS_Packing",
+        "Completed": "MISS_Completed",
+        "Clear": "MISS_Clear",
+        "SelectFiles": "MISS_SelectFiles",
+        "ResizeImage": "MISS_ResizeImage",
+        "ImageFormat": "MISS_ImageFormat",
+        "MaxSize": "MISS_MaxSize",
+        "Quility": "MISS_Quility",
+        "LossLess": "MISS_LossLess",
+        "SaveTo": "MISS_SaveTo",
+        "Files": "MISS_Files",
+        "Bytes": "MISS_Bytes",
+        "SavePZPKFile": "MISS_SavePZPKFile",
+        "PackingCompleted": "MISS_PackingCompleted",
+        "OpenDirectory": "MISS_OpenDirectory",
+        "Time": "MISS_Time",
+        "Speed": "MISS_Speed"
+      }
+    },
+    {
+      "namespace": "Preview",
+      "fields": {
+        "OriginalSize": "MISS_OriginalSize",
+        "FitToWidth": "MISS_FitToWidth",
+        "FitToHeight": "MISS_FitToHeight",
+        "None": "MISS_None",
+        "LockScale": "MISS_LockScale",
+        "LockFitHeight": "MISS_LockFitHeight",
+        "LockFitWdith": "MISS_LockFitWdith"
       }
     },
     {
@@ -68,7 +106,11 @@
       "fields": {
         "OpenPZPKFile": "Please open a PZPKFile",
         "ExtractedSuccess": "Extracted success!",
-        "ExtractCancelWarning": "Extract canceled!"
+        "ExtractCancelWarning": "Extract canceled!",
+        "PackingComplete": "MISS_PackingComplete",
+        "PackingCanceled": "MISS_PackingCanceled",
+        "SureToClear": "MISS_SureToClear",
+        "SureToCancelPacking": "MISS_SureToCancelPacking"
       }
     }
   ]

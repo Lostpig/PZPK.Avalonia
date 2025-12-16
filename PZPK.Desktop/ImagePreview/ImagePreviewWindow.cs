@@ -97,6 +97,11 @@ public class ImagePreviewWindow : PZWindowBase
 
     public void OpenImage(PZFile file, List<PZFile> files)
     {
+        if (files.Count == 0)
+        {
+            return;
+        }
+
         Files = files;
         var index = files.IndexOf(file);
         index = index < 0 ? 0 : index;
@@ -163,8 +168,7 @@ public class ImagePreviewWindow : PZWindowBase
         }
         catch (Exception ex)
         {
-            Debug.WriteLine(ex.Message);
-            Toast.Error(ex.Message);
+            Toast.Error(ErrorProxy.CatchException(ex));
             ImageRef.Source = null;
         }
     }

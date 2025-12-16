@@ -35,9 +35,9 @@ public class IndexPanel : PZComponentBase
     {
         return new ContextMenu()
             .Items(
-                new MenuItem().Header("Rename").OnClick(OnItemRename),
-                new MenuItem().Header("Delete").OnClick(OnItemDelete),
-                new MenuItem().Header("Property").OnClick(OnItemProperty)
+                new MenuItem().Header(() => LOC.PZPK.Rename).OnClick(OnItemRename),
+                new MenuItem().Header(() => LOC.Base.Delete).OnClick(OnItemDelete),
+                new MenuItem().Header(() => LOC.PZPK.Property).OnClick(OnItemProperty)
             );
     }
     private StackPanel DirStackFuncTemplete(PZIndexFolder folder)
@@ -100,16 +100,16 @@ public class IndexPanel : PZComponentBase
                 new DockPanel().Row(2)
                     .Classes("buttons")
                     .Children(
-                        SukiButton("Add File").OnClick(_ => AddFiles()),
-                        SukiButton("Add Folder").OnClick(_ => AddFolder()),
-                        SukiButton("New Folder").OnClick(_ => NewFolder()),
-                        SukiButton("Resort", "Accent").OnClick(_ => Resort()),
-                        SukiButton("Clear", "Flat", "Warning").OnClick(_ => Clear()),
+                        SukiButton(() => LOC.PZPK.AddFile).OnClick(_ => AddFiles()),
+                        SukiButton(() => LOC.PZPK.AddDirectory).OnClick(_ => AddFolder()),
+                        SukiButton(() => LOC.PZPK.CreateFolder).OnClick(_ => NewFolder()),
+                        SukiButton(() => LOC.PZPK.ResortFiles, "Accent").OnClick(_ => Resort()),
+                        SukiButton(() => LOC.PZPK.Clear, "Flat", "Warning").OnClick(_ => Clear()),
                         HStackPanel()
                             .HorizontalAlignment(HorizontalAlignment.Right)
                             .Dock(Dock.Right)
                             .Children(
-                                SukiButton("Next", "Flat").Margin(5, 0).OnClick(_ => Model.NextStep())
+                                SukiButton(() => LOC.Base.Next, "Flat").Margin(5, 0).OnClick(_ => Model.NextStep())
                             )
                     )
             );
@@ -138,12 +138,19 @@ public class IndexPanel : PZComponentBase
     }
     private async void NewFolder()
     {
-        var name = await ShowNameDialog("Create folder");
+        var name = await ShowNameDialog(LOC.PZPK.CreateFolder);
 
         if (!string.IsNullOrEmpty(name))
         {
-            Index.AddFolder(name, Current.Value);
-            Changed.OnNext(Unit.Default);
+            try
+            {
+                Index.AddFolder(name, Current.Value);
+                Changed.OnNext(Unit.Default);
+            }
+            catch (Exception ex)
+            {
+                Model.CatchException(ex);
+            }
         }
     }
     private async void AddFiles()
@@ -151,7 +158,7 @@ public class IndexPanel : PZComponentBase
         TopLevel topLevel = TopLevel.GetTopLevel(this)!;
         var files = await topLevel.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
-            Title = "Select Files",
+            Title = LOC.PZPK.SelectFiles,
             AllowMultiple = true
         });
 
@@ -168,8 +175,7 @@ public class IndexPanel : PZComponentBase
             }
             catch (Exception ex)
             {
-                Model.Toast.Error(ex.Message);
-                Logger.Instance.Log(ex.Message);
+                Model.CatchException(ex);
             }
             finally
             {
@@ -182,7 +188,7 @@ public class IndexPanel : PZComponentBase
         TopLevel topLevel = TopLevel.GetTopLevel(this)!;
         var folders = await topLevel.StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
         {
-            Title = "Select Folder",
+            Title = LOC.PZPK.SelectDirectory,
             AllowMultiple = false
         });
 
@@ -197,8 +203,7 @@ public class IndexPanel : PZComponentBase
             }
             catch (Exception ex)
             {
-                Model.Toast.Error(ex.Message);
-                Logger.Instance.Log(ex.Message);
+                Model.CatchException(ex);
             }
             finally
             {
@@ -247,7 +252,7 @@ public class IndexPanel : PZComponentBase
     }
     private async void Clear()
     {
-        var ok = await Model.Dialog.DeleteConfirm("Sure to clear all files?");
+        var ok = await Model.Dialog.DeleteConfirm(LOC.Message.SureToClear);
 
         if (ok)
         {
@@ -258,24 +263,20 @@ public class IndexPanel : PZComponentBase
 
     private async void OnItemRename(RoutedEventArgs e)
     {
-        if (e.Source is Control c)
+        if (e.Source is Control c && c.DataContext is IPZItem item)
         {
-            if (c.DataContext is PZIndexFile f)
+            var newName = await ShowNameDialog(LOC.PZPK.Rename, item.Name);
+            if (!string.IsNullOrEmpty(newName) && newName != item.Name)
             {
-                var newName = await ShowNameDialog("Rename file", f.Name);
-                if (!string.IsNullOrEmpty(newName) && newName != f.Name)
+                try
                 {
-                    Index.RenameFile(f, newName);
+                    if (item is PZIndexFile file) Index.RenameFile(file, newName);
+                    else if (item is PZIndexFolder folder) Index.RenameFolder(folder, newName);
                     Changed.OnNext(Unit.Default);
                 }
-            }
-            else if (c.DataContext is PZIndexFolder fo)
-            {
-                var newName = await ShowNameDialog("Rename folder", fo.Name);
-                if (!string.IsNullOrEmpty(newName) && newName != fo.Name)
+                catch (Exception ex)
                 {
-                    Index.RenameFolder(fo, newName);
-                    Changed.OnNext(Unit.Default);
+                    Model.CatchException(ex);
                 }
             }
         }
@@ -307,7 +308,7 @@ public class IndexPanel : PZComponentBase
                 item = new ViewFolder(fo, files.Count, size);
             }
 
-            Model.Dialog.ShowContentDialog("Property", new ItemDialogContent(item));
+            Model.Dialog.ShowContentDialog(LOC.PZPK.Property, new ItemDialogContent(item));
         }
     }
 
@@ -319,7 +320,7 @@ public class IndexPanel : PZComponentBase
             .WithContent(content);
 
         var completion = new TaskCompletionSource<string?>();
-        builder.WithActionButton("OK", (d) =>
+        builder.WithActionButton(LOC.Base.OK, (d) =>
         {
             var text = content.GetResult();
             if (!string.IsNullOrEmpty(text))
@@ -328,7 +329,7 @@ public class IndexPanel : PZComponentBase
                 d.Dismiss();
             }
         });
-        builder.WithActionButton("Cancel", (d) =>
+        builder.WithActionButton(LOC.Base.Cancel, (d) =>
         {
             completion.SetResult(null);
             d.Dismiss();

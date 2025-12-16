@@ -16,13 +16,7 @@ public class CreatorPage : PZComponentBase
                     .HorizontalAlignment(HorizontalAlignment.Center)
                     .Margin(50, 10, 50, 0)
                     .Index(Model.Step.Select(s => s - 1))
-                    .Steps(() => new List<string>()
-                    {
-                        "Index",
-                        "Properties",
-                        "Packing",
-                        "Complete"
-                    }),
+                    .Steps(GetSteps),
                 new GlassCard()
                     .Row(1)
                     .Margin(20, 5, 20, 20)
@@ -38,4 +32,13 @@ public class CreatorPage : PZComponentBase
     }
 
     private readonly CreatorModel Model = CreatorModel.Instance;
+    private string[] GetSteps()
+    {
+        return [
+            LOC.PZPK.CreateIndex,
+            LOC.PZPK.SetProperties,
+            LOC.PZPK.Packing,
+            LOC.PZPK.Completed
+        ];
+    }
 }

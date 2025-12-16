@@ -16,7 +16,7 @@ internal class PackingPanel : PZComponentBase
             .Children(
                 new DockPanel().Height(40).Width(300)
                     .Children(
-                        PzText("SaveTo:")
+                        PzText(() => LOC.PZPK.SaveTo)
                             .VerticalAlignment(Avalonia.Layout.VerticalAlignment.Center)
                             .Dock(Dock.Left),
                         HStackPanel()
@@ -24,7 +24,7 @@ internal class PackingPanel : PZComponentBase
                             .VerticalAlignment(Avalonia.Layout.VerticalAlignment.Center)
                             .Dock(Dock.Right)
                             .Children(
-                                SukiButton("Select")
+                                SukiButton(() => LOC.Base.Select)
                                     .IsEnabled(notRuning)
                                     .OnClick(_ => SelectSavePath())
                             )
@@ -35,14 +35,14 @@ internal class PackingPanel : PZComponentBase
                     .IsReadOnly(true),
                 new DockPanel().Height(40).Width(300).Margin(0, 10, 0, 0)
                     .Children(
-                        PzText("Files:").Dock(Dock.Left),
+                        PzText(() => LOC.PZPK.Files).Dock(Dock.Left),
                         PzText(packing.FilesText)
                             .HorizontalAlignment(Avalonia.Layout.HorizontalAlignment.Right)
                             .Dock(Dock.Right)
                     ),
                 new DockPanel().Height(40).Width(300).Margin(0, 10, 0, 0)
                     .Children(
-                        PzText("Bytes:").Dock(Dock.Left),
+                        PzText(() => LOC.PZPK.Bytes).Dock(Dock.Left),
                         PzText(packing.BytesText)
                             .HorizontalAlignment(Avalonia.Layout.HorizontalAlignment.Right)
                             .Dock(Dock.Right)
@@ -55,12 +55,12 @@ internal class PackingPanel : PZComponentBase
                     .Value(packing.Percent),
                 HStackPanel().HorizontalAlignment(Avalonia.Layout.HorizontalAlignment.Center)
                     .Margin(0, 30, 0, 0)
+                    .Spacing(30)
                     .Children(
-                        SukiButton("Prev", "Accent", "Flat").Width(120)
-                            .Margin(0, 0, 20, 0)
+                        SukiButton(() => LOC.Base.Prev, "Accent", "Flat").Width(120)
                             .IsEnabled(notRuning)
                             .OnClick(_ => Model.PreviousStep()),
-                        SukiButton("Start").Width(120)
+                        SukiButton(() => LOC.PZPK.Packing).Width(120)
                             .IsVisible(notRuning)
                             .OnClick(_ => Model.Start()),
 #if DEBUG
@@ -68,7 +68,7 @@ internal class PackingPanel : PZComponentBase
                             .IsVisible(notRuning)
                             .OnClick(_ => Model.DebugStart()),
 #endif
-                        SukiButton("Cancel", "Danger").Width(120)
+                        SukiButton(() => LOC.Base.Cancel, "Danger").Width(120)
                             .IsVisible(packing.Running)
                             .OnClick(_ => CancelPacking())
                     )
@@ -82,7 +82,7 @@ internal class PackingPanel : PZComponentBase
         TopLevel topLevel = TopLevel.GetTopLevel(this)!;
         var file = await topLevel.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
         {
-            Title = "Save PZPK Package",
+            Title = LOC.PZPK.SavePZPKFile,
             DefaultExtension = "pzpk",
         });
 
@@ -91,7 +91,7 @@ internal class PackingPanel : PZComponentBase
             var localPath = file.Path.LocalPath;
             if (File.Exists(localPath))
             {
-                Model.Toast.Error("File already exists.");
+                Model.Toast.Error(LOC.Error.FileExistsed);
             }
             else
             {
@@ -101,7 +101,7 @@ internal class PackingPanel : PZComponentBase
     }
     private static async void CancelPacking()
     {
-        var sure = await Model.Dialog.WarningConfirm("Are you sure you want to cancel packing?");
+        var sure = await Model.Dialog.WarningConfirm(LOC.Message.SureToCancelPacking);
 
         if (sure)
         {

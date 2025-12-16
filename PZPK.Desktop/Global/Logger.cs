@@ -50,7 +50,7 @@ internal class Logger
 
     public void Error(Exception ex)
     {
-        Log(ex.Message);
-        Log(ex.StackTrace ?? "");
+        string exceptionLog = $"\r\n[{DateTime.Now:yyyy-MM-dd HH:mm:ss.ff}] {ex.ToString()}\r\n";
+        Log(exceptionLog);
     }
 }

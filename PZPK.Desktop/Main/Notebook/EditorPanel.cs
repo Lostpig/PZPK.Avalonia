@@ -27,10 +27,8 @@ public class EditorPanel: PZComponentBase
 
         return editor;
     }
-    private void InitializeEditor(TextEditor editor, RegistryOptions regOptions)
+    private void InitializeEditor(TextEditor editor, RegistryOptions regOptions, TextMate.Installation textMateInstallation)
     {
-        var textMateInstallation = editor.InstallTextMate(regOptions);
-
         Language.Subscribe(l =>
         {
             var sn = regOptions.GetScopeByLanguageId(l.Id);
@@ -63,8 +61,10 @@ public class EditorPanel: PZComponentBase
     }
     protected override Control Build()
     {
+        var editor = BuildEditor();
         var regOptions = new RegistryOptions(ThemeName.DarkPlus);
-        var editor =  BuildEditor();
+        var textMateInstallation = editor.InstallTextMate(regOptions);
+        var langs = regOptions.GetAvailableLanguages();
 
         int[] fontSizes = [12, 14, 16, 18, 20, 24, 28, 32, 40, 48, 56, 64, 72];
         var fonts = FontManager.Current.SystemFonts.OrderBy(f => f.Name);
@@ -89,20 +89,17 @@ public class EditorPanel: PZComponentBase
                     .Margin(30, 0, 30, 5)
                     .Children(
                         new ComboBox()
-                            .ItemsSource(regOptions.GetAvailableLanguages())
-                            .ItemTemplate<Language>(l => PzText(l.Id))
-                            .SelectedItem(Language),
+                            .ItemsSource(langs)
+                            .SelectedItemEx(Language),
                         new ComboBox()
                             .ItemsSource(Enum.GetValues<ThemeName>())
-                            .ItemTemplate<ThemeName>(t => PzText(t.ToString()))
-                            .SelectedItem(EditorTheme),
+                            .SelectedItemEx(EditorTheme),
                         new ComboBox()
                             .ItemsSource(fonts)
-                            .ItemTemplate<FontFamily>(f => PzText(f.Name))
-                            .SelectedItem(Font),
+                            .SelectedItemEx(Font),
                         new ComboBox()
                             .ItemsSource(fontSizes)
-                            .SelectedItem(FontSize)
+                            .SelectedItemEx(FontSize)
                     ),
                 new SukiUI.Controls.GlassCard()
                     .Row(2)
@@ -112,7 +109,7 @@ public class EditorPanel: PZComponentBase
                     )
             );
 
-        InitializeEditor(editor, regOptions);
+        InitializeEditor(editor, regOptions, textMateInstallation);
 
         return content;
     }

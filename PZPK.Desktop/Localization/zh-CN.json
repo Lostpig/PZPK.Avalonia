@@ -26,7 +26,14 @@
         "Delete": "删除",
         "Next": "下一步",
         "Prev": "上一步",
-        "Name": "名称"
+        "Name": "名称",
+        "FullScreen": "全屏",
+        "Info": "信息",
+        "Success": "成功",
+        "Warning": "警告",
+        "Error": "错误",
+        "Add": "添加",
+        "Done": "完成"
       }
     },
     {
@@ -51,7 +58,38 @@
         "AddDirectory": "添加目录",
         "CreateFolder": "新文件夹",
         "ResortFiles": "排序命名",
-        "Rename": "重命名"
+        "Rename": "重命名",
+        "CreateIndex": "创建",
+        "SetProperties": "属性",
+        "Packing": "打包",
+        "Completed": "完成",
+        "Clear": "全部清除",
+        "SelectFiles": "选择文件",
+        "ResizeImage": "调整图像文件",
+        "ImageFormat": "图像格式",
+        "MaxSize": "最大尺寸",
+        "Quility": "质量",
+        "LossLess": "无损",
+        "SaveTo": "保存到",
+        "Files": "文件",
+        "Bytes": "大小",
+        "SavePZPKFile": "保存PZPK文件",
+        "PackingCompleted": "打包完成",
+        "OpenDirectory": "打开目录",
+        "Time": "时间",
+        "Speed": "速度"
+      }
+    },
+    {
+      "namespace": "Preview",
+      "fields": {
+        "OriginalSize": "原始尺寸",
+        "FitToWidth": "适配宽度",
+        "FitToHeight": "适配高度",
+        "None": "无",
+        "LockScale": "锁定缩放",
+        "LockFitHeight": "锁定适配高度",
+        "LockFitWdith": "锁定适配宽度"
       }
     },
     {
@@ -67,8 +105,12 @@
       "namespace": "Message",
       "fields": {
         "OpenPZPKFile": "打开PZPK文件",
-        "ExtractedSuccess": "提取成功!",
-        "ExtractCancelWarning": "已取消提取"
+        "ExtractedSuccess": "提取成功！",
+        "ExtractCancelWarning": "已取消提取！",
+        "PackingComplete": "打包已完成！",
+        "PackingCanceled": "打包已取消！",
+        "SureToClear": "确定要清除全部文件吗？",
+        "SureToCancelPacking": "确定要取消打包吗？"
       }
     }
   ]

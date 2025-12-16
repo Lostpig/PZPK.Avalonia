@@ -210,19 +210,19 @@ public class CreatorModel : PageModelBase
             long total = await Packer.PackAsync(savePath, Index, options, progress, imageResizer, CancelSource.Token);
             PackingInfo.Running.OnNext(false);
 
-            Toast.Success("Success", "Packing complete!");
+            Toast.Success(LOC.Message.PackingComplete);
             NextStep();
             Completed.OnNext(new(savePath, total, Index.FilesCount, DateTime.Now - startTime));
         }
         catch (OperationCanceledException)
         {
             PackingInfo.Progress.OnNext(new(Index.FilesCount, Index.SumFilesSize()));
-            Toast.Warning("Info", "Packing canceled!");
+            Toast.Warning(LOC.Message.PackingCanceled);
         }
         catch (Exception ex)
         {
             PackingInfo.Progress.OnNext(new(Index.FilesCount, Index.SumFilesSize()));
-            Toast.Error(string.Format(LOC.Error.Message, ex.Message));
+            Toast.Error(ErrorProxy.CatchException(ex));
         }
         finally
         {
