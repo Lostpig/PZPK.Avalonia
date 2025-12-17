@@ -1,7 +1,4 @@
-﻿using PZ.RxAvalonia;
-using PZ.RxAvalonia.Reactive;
-
-namespace PZPK.Desktop.Common;
+﻿namespace PZPK.Desktop.Common;
 
 public static class CommonExtensions
 {

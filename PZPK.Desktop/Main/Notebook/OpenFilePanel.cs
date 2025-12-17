@@ -18,27 +18,27 @@ public class OpenFilePanel : PZComponentBase
                 .Children(
                     MaterialIcon(MaterialIconKind.BookAdd, 32)
                         .Foreground(primaryColor),
-                    PzText("Open PZPK Notebook")
+                    PzText(() => LOC.Message.OpenPZPKNotebook)
                         .FontSize(20)
                         .Margin(0, 5, 0, 27)
                         .HorizontalAlignment(HorizontalAlignment.Center),
-                    PzText("File"),
+                    PzText(() => LOC.Base.File),
                     Grid("*, Auto")
                         .Margin(0, 0, 0, 6)
                         .Children(
                             PzTextBox(SelectedPath)
                                 .IsReadOnly(true)
                                 .Col(0),
-                            SukiButton("Select")
+                            SukiButton(() => LOC.Base.Select)
                                 .Margin(20, 0, 0, 0)
                                 .OnClick(_ => SelectNotebookFile())
                                 .Col(1)
                         ),
-                    PzText("Password"),
+                    PzText(() => LOC.Base.Password),
                     PzTextBox(Password)
                         .Margin(0, 0, 0, 6)
                         .PasswordChar('*'),
-                    SukiButton("Open", "Flat", "Rounded")
+                    SukiButton(() => LOC.Base.Open, "Flat", "Rounded")
                         .Width(100)
                         .HorizontalAlignment(HorizontalAlignment.Center)
                         .Margin(0, 40, 0, 0)
@@ -52,31 +52,31 @@ public class OpenFilePanel : PZComponentBase
                 .Children(
                     MaterialIcon(MaterialIconKind.BookEdit, 32)
                         .Foreground(primaryColor),
-                    PzText("Create New Notebook")
+                    PzText(() => LOC.Message.CreatePZPKNotebook)
                         .FontSize(20)
                         .Margin(0, 5, 0, 27)
                         .HorizontalAlignment(HorizontalAlignment.Center),
-                    PzText("Path"),
+                    PzText(() => LOC.PZPK.SaveTo),
                     Grid("*, Auto")
                         .Margin(0, 0, 0, 6)
                         .Children(
                             PzTextBox(CreatePath)
                                 .IsReadOnly(true)
                                 .Col(0),
-                            SukiButton("Select")
+                            SukiButton(() => LOC.Base.Select)
                                 .Margin(20, 0, 0, 0)
                                 .OnClick(_ => SelectCreatePath())
                                 .Col(1)
                         ),
-                    PzText("Password"),
+                    PzText(() => LOC.Base.Password),
                     PzTextBox(CreatePw)
                         .Margin(0, 0, 0, 6)
                         .PasswordChar('*'),
-                    PzText("Repeat password"),
+                    PzText(() => LOC.Base.RepeatPassword),
                     PzTextBox(CreateRepeatPw)
                         .Margin(0, 0, 0, 6)
                         .PasswordChar('*'),
-                    SukiButton("Create", "Flat", "Rounded")
+                    SukiButton(() => LOC.Base.Create, "Flat", "Rounded")
                         .Width(100)
                         .HorizontalAlignment(HorizontalAlignment.Center)
                         .Margin(0, 40, 0, 0)
@@ -90,8 +90,8 @@ public class OpenFilePanel : PZComponentBase
             .Height(450)
             .Content(
                 new TabControl().Items(
-                    new TabItem().Header("Open").Content(BuildOpenTab()),
-                    new TabItem().Header("Create").Content(BuildCreateTab())
+                    new TabItem().Header(() => LOC.Base.Open).Content(BuildOpenTab()),
+                    new TabItem().Header(() => LOC.Base.Create).Content(BuildCreateTab())
                 )
             );
     }
@@ -108,9 +108,9 @@ public class OpenFilePanel : PZComponentBase
         TopLevel topLevel = TopLevel.GetTopLevel(this)!;
         var files = await topLevel.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
-            Title = "Open PZPK Notebook",
+            Title = LOC.Message.OpenPZPKNotebook,
             FileTypeFilter = [
-                new("PZNT Files")
+                new(LOC.PZPK.PZPKNotebook)
                 {
                     Patterns = ["*.pznt"]
                 }
@@ -128,7 +128,7 @@ public class OpenFilePanel : PZComponentBase
         TopLevel topLevel = TopLevel.GetTopLevel(this)!;
         var file = await topLevel.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
         {
-            Title = "Create PZPK Notebook",
+            Title = LOC.Message.CreatePZPKNotebook,
             DefaultExtension = "pznt",
         });
 
@@ -137,7 +137,7 @@ public class OpenFilePanel : PZComponentBase
             var localPath = file.Path.LocalPath;
             if (File.Exists(localPath))
             {
-                Model.Toast.Error("File already exists.");
+                Model.Toast.Error(LOC.Error.FileExistsed);
             }
             else
             {

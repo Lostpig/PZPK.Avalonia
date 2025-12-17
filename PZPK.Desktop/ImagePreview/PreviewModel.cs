@@ -79,11 +79,10 @@ public class PreviewModel
     {
         return lockMode switch
         {
-            LockMode.None => "None",
-            LockMode.Scale => "Lock Scale",
-            LockMode.FitHeight => "LockFitToHeight",
-            LockMode.FitWidth => "LockFitToWidth",
-            _ => "None"
+            LockMode.Scale => LOC.Preview.LockScale,
+            LockMode.FitHeight => LOC.Preview.LockFitHeight,
+            LockMode.FitWidth => LOC.Preview.LockFitWdith,
+            LockMode.None or _ => LOC.Preview.None,
         };
     }
 }

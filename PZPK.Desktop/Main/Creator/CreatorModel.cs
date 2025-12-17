@@ -150,6 +150,9 @@ public class CreatorModel : PageModelBase
         }
         else if (_step.Value == 3)
         {
+            Index.Reset();
+            Properties.Reset();
+            PackingInfo.Reset();
             _step.OnNext(4);
         }
     }
@@ -160,11 +163,8 @@ public class CreatorModel : PageModelBase
             _step.Reducer(s => s - 1);
         }
     }
-    public void Reset()
+    public void Done()
     {
-        Index.Reset();
-        Properties.Reset();
-        PackingInfo.Reset();
         _step.OnNext(1);
     }
 
@@ -232,13 +232,14 @@ public class CreatorModel : PageModelBase
 
     public async void DebugStart()
     {
-        int filesCount = 200;
-        long bytes = 200 * 1024;
+        int filesCount = 20;
+        long bytes = 20 * 65536;
 
         if (!Index.IsEmpty && Properties.Check())
         {
             var progressState = new PZProgressState(filesCount, bytes);
             PZProgress<PZProgressState> progress = new();
+            progress.ThrottleElapsed = 0.1;
             using var progressSubscription = Observable.FromEventPattern<PZProgressState>(
                     h => progress.ProgressChanged += h,
                     h => progress.ProgressChanged -= h
@@ -252,12 +253,16 @@ public class CreatorModel : PageModelBase
                 long processedBytes = 0;
                 for (int i = 0; i < filesCount; i++)
                 {
-                    progress.Report(progressState with { ProcessedBytes = 0, ProcessedFiles = i });
-                    for (int j = 0; j < 1024; j += 16)
+                    progressState = progressState with { 
+                        CurrentProcessedBytes = 0,
+                        CurrentBytes = 1024,
+                        ProcessedFiles = i 
+                    };
+                    for (int j = 0; j < 65536; j += 256)
                     {
-                        processedBytes = i * 1024 + j;
-                        progress.Report(progressState with { ProcessedBytes = processedBytes });
-                        Thread.Sleep(500);
+                        processedBytes = i * 65536 + j;
+                        progress.Report(progressState with { CurrentProcessedBytes = j, ProcessedBytes = processedBytes });
+                        Thread.Sleep(10);
                         if (CancelSource.Token.IsCancellationRequested) return;
                     }
                 }

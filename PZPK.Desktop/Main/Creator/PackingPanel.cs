@@ -51,7 +51,6 @@ internal class PackingPanel : PZComponentBase
                     .Margin(0, 30, 0, 0)
                     .Height(20).Width(480)
                     .Minimum(0).Maximum(100)
-                    .IsIndeterminate(true)
                     .Value(packing.Percent),
                 HStackPanel().HorizontalAlignment(Avalonia.Layout.HorizontalAlignment.Center)
                     .Margin(0, 30, 0, 0)

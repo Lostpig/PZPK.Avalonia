@@ -117,7 +117,10 @@ public class IndexPanel : PZComponentBase
     protected override IEnumerable<IDisposable> WhenActivate()
     {
         return [
-            Model.Completed.Subscribe(_ => Changed.OnNext(Unit.Default))
+            Model.Completed.Subscribe(_ => {
+                Changed.OnNext(Unit.Default);
+                // Debug.WriteLine("Complete fired");
+            })
         ];
     }
 

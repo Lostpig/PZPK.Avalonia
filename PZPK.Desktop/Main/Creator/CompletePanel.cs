@@ -20,12 +20,12 @@ public class CompletePanel : PZComponentBase
                 Grid("*, Auto").Children(
                         PzReadOnlyTextBox(Model.Completed.Select(c => c.PackagePath))
                             .Col(0),
-                        SukiButton("Open Directory")
+                        SukiButton(() => LOC.PZPK.OpenDirectory)
                             .Col(1)
                             .Margin(10, 0, 0, 0)
                             .OnClick(_ => OpenDirectory())
                     ),
-                Grid("Auto, *, Auto")
+                Grid("*, Auto", "Auto, Auto, Auto, Auto")
                     .Margin(0, 30, 0, 0)
                     .Children(
                         PzText(() => LOC.PZPK.Files).Cell(0, 0),
@@ -41,7 +41,7 @@ public class CompletePanel : PZComponentBase
                     .Width(100)
                     .Margin(0, 30, 0, 0)
                     .HorizontalAlignment(Avalonia.Layout.HorizontalAlignment.Center)
-                    .OnClick(_ => Model.Reset())
+                    .OnClick(_ => Model.Done())
             );
     }
     protected override IEnumerable<IDisposable> WhenActivate()

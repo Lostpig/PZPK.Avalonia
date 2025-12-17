@@ -20,27 +20,27 @@ public class OpenFilePanel : PZComponentBase
                     .Children(
                         MaterialIcon(MaterialIconKind.FolderOpen, 48)
                             .Foreground(primaryColor),
-                        PzText("Open PZPK file")
+                        PzText(() => LOC.Message.OpenPZPKFile)
                             .FontSize(20)
                             .Margin(0, 5, 0, 27)
                             .HorizontalAlignment(HorizontalAlignment.Center),
-                        PzText("File"),
+                        PzText(() => LOC.Base.File),
                         Grid("*, Auto")
                             .Margin(0, 0, 0, 6)
                             .Children(
                                 PzTextBox(Model.FilePath)
                                     .IsReadOnly(true)
                                     .Col(0),
-                                SukiButton("Select")
+                                SukiButton(() => LOC.Base.Select)
                                     .Margin(20, 0, 0, 0)
                                     .OnClick(_ => SelectPackageFile())
                                     .Col(1)
                             ),
-                        PzText("Password"),
+                        PzText(() => LOC.Base.Password),
                         PzTextBox(Model.Password)
                             .Margin(0, 0, 0, 6)
                             .PasswordChar('*'),
-                        SukiButton("Open", "Flat", "Rounded")
+                        SukiButton(() => LOC.Base.Open, "Flat", "Rounded")
                             .Width(100)
                             .HorizontalAlignment(HorizontalAlignment.Center)
                             .Margin(0, 40, 0, 0)
@@ -56,9 +56,9 @@ public class OpenFilePanel : PZComponentBase
         TopLevel topLevel = TopLevel.GetTopLevel(this)!;
         var files = await topLevel.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
-            Title = "Open PZPK File",
+            Title = LOC.Message.OpenPZPKFile,
             FileTypeFilter = [
-                new("PZPK Files")
+                new(LOC.PZPK.PZPKFile)
                 {
                     Patterns = ["*.pzpk"]
                 }

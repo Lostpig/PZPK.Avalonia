@@ -4,7 +4,6 @@ using Avalonia.Styling;
 using Material.Icons;
 using PZPK.Core;
 using PZPK.Desktop.Common;
-using System.Collections.Concurrent;
 using System.Reactive.Subjects;
 
 namespace PZPK.Desktop.Main.Creator;
@@ -14,26 +13,11 @@ public class PropertiesPanel: PZComponentBase
 {
     private class TagItem : ContentControl
     {
-        private static readonly ConcurrentStack<TagItem> Pool = new();
-        public static TagItem GetItem(string tag)
-        {
-            var tagItem = Pool.TryPop(out var item) ? item : new TagItem();
-            tagItem.SetTag(tag);
-            return tagItem;
-        }
-
         public string Data { get; private set; } = string.Empty;
-        private TextBlock Text {  get; init; }
-        private void SetTag(string tag)
+        public TagItem(string tag)
         {
             Data = tag;
-            Text.Text = Data;
-        }
-        private TagItem()
-        {
             var brColor = App.Instance.Suki.GetSukiColor("SukiPrimaryColor50");
-
-            Text = new TextBlock();
             Content = new Border()
                 .Padding(8, 4)
                 .Margin(4)
@@ -43,7 +27,7 @@ public class PropertiesPanel: PZComponentBase
                 .Background(Brushes.Transparent)
                 .Child(
                     HStackPanel().Children(
-                        Text.VerticalAlignment(Avalonia.Layout.VerticalAlignment.Center),
+                        PzText(Data).VerticalAlignment(Avalonia.Layout.VerticalAlignment.Center),
                         IconButton(MaterialIconKind.Close)
                             .Width(24)
                             .Height(24)
@@ -55,12 +39,6 @@ public class PropertiesPanel: PZComponentBase
                             })
                     )
                 );
-        }
-
-        protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
-        {
-            base.OnDetachedFromVisualTree(e);
-            Pool.Push(this);
         }
     }
 
@@ -145,7 +123,7 @@ public class PropertiesPanel: PZComponentBase
                             new ItemsControl().Margin(225, 10, 0, 0)
                                 .ItemsSourceEx(Props.Tags)
                                 .ItemsPanel(new WrapPanel())
-                                .ItemTemplate<string, ItemsControl>(tag => TagItem.GetItem(tag)),
+                                .ItemTemplate<string, ItemsControl>(tag => new TagItem(tag)),
                             BuildRow(() => LOC.PZPK.ResizeImage,
                                 new ToggleSwitch()
                                     .IsCheckedEx(Resizer.Enabled)

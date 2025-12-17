@@ -45,12 +45,6 @@ public class PZFileNotFoundException(string name, int id, string? message = defa
     public string Name { get; init; } = name;
 }
 
-public class FileInIndexNotEncodeException(string name, int id, string? message = default) : Exception(message)
-{
-    public int Id { get; init; } = id;
-    public string Name { get; init; } = name;
-}
-
 public class DuplicateNameException(string name, string? message = default) : Exception(message)
 {
     public string Name { get; init; } = name;

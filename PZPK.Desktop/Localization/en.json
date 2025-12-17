@@ -18,6 +18,8 @@
         "Cancel": "Cancel",
         "Select": "Select",
         "Password": "Password",
+        "RepeatPassword": "MISS_RepeatPassword",
+        "Create": "MISS_Create",
         "File": "File",
         "Folder": "Folder",
         "Count": "Count",
@@ -33,7 +35,8 @@
         "Warning": "MISS_Warning",
         "Error": "MISS_Error",
         "Add": "MISS_Add",
-        "Done": "MISS_Done"
+        "Done": "MISS_Done",
+        "Save": "MISS_Save"
       }
     },
     {
@@ -53,6 +56,7 @@
         "BlockSize": "BlockSize",
         "SelectDirectory": "Select Directory",
         "PZPKFile": "PZPKFile",
+        "PZPKNotebook": "MISS_PZPKNotebook",
         "CreateTime": "Create Time",
         "AddFile": "Add File",
         "AddDirectory": "Add Directory",
@@ -89,7 +93,8 @@
         "None": "MISS_None",
         "LockScale": "MISS_LockScale",
         "LockFitHeight": "MISS_LockFitHeight",
-        "LockFitWdith": "MISS_LockFitWdith"
+        "LockFitWdith": "MISS_LockFitWdith",
+        "ImagePreview": "MISS_ImagePreview"
       }
     },
     {
@@ -98,17 +103,36 @@
         "Message": "Error: {0}",
         "ExtractFailed": "Error: Extract failed! {0}",
         "PackageNotOpen": "Error: Package not opened!",
-        "FileExistsed": "Error: File already existsed!"
+        "FileExistsed": "Error: File already existsed!",
+        "PasswordNotMatch": "MISS_PasswordNotMatch",
+        "PZCreatorInvaild": "MISS_PZCreatorInvaild",
+        "PZDuplicateName": "MISS_PZDuplicateName",
+        "PZEmptyString": "MISS_PZEmptyString",
+        "PZFileTypeMismatch": "MISS_PZFileTypeMismatch",
+        "PZFileVersionNotCompatiblity": "MISS_PZFileVersionNotCompatiblity",
+        "PZOldVersionEncrypt": "MISS_PZOldVersionEncrypt",
+        "PZOutputDirectoryIsNotEmpty": "MISS_PZOutputDirectoryIsNotEmpty",
+        "PZOutputFileAlreadyExists": "MISS_PZOutputFileAlreadyExists",
+        "PZPathIsNotDirectory": "MISS_PZPathIsNotDirectory",
+        "PZFileNotFound": "MISS_PZFileNotFound",
+        "PZFolderNotFound": "MISS_PZFolderNotFound",
+        "PZNoteSizeExceeded": "MISS_PZNoteSizeExceeded",
+        "PZPasswordIncorrect": "MISS_PZPasswordIncorrect",
+        "PZSignChecked": "MISS_PZSignChecked",
+        "PZSourceDirectoryIsEmpty": "MISS_PZSourceDirectoryIsEmpty"
       }
     },
     {
       "namespace": "Message",
       "fields": {
         "OpenPZPKFile": "Please open a PZPKFile",
+        "OpenPZPKNotebook": "MISS_OpenPZPKNotebook",
+        "CreatePZPKNotebook": "MISS_CreatePZPKNotebook",
         "ExtractedSuccess": "Extracted success!",
         "ExtractCancelWarning": "Extract canceled!",
         "PackingComplete": "MISS_PackingComplete",
         "PackingCanceled": "MISS_PackingCanceled",
+        "SureToDelete": "MISS_SureToDelete",
         "SureToClear": "MISS_SureToClear",
         "SureToCancelPacking": "MISS_SureToCancelPacking"
       }

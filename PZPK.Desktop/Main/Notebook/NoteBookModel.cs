@@ -38,7 +38,13 @@ public sealed class RxNote : IDisposable
 
     public void Dispose()
     {
+        Title.Dispose();
+        Content.Dispose();
         _subscription.Dispose();
+    }
+    public override string ToString()
+    {
+        return Title.Value;
     }
 }
 
@@ -69,19 +75,12 @@ public class NoteBookModel : PageModelBase
             }
         });
 
-        Notes.Where(e => e.Type == ChangedType.Add).Subscribe(ns =>
-        {
-            Note.OnNext(ns.Item.First());
-        });
         Notes.Where(e => e.Type == ChangedType.Remove).Subscribe(removed =>
         {
             foreach (var n in removed.Item)
             {
-                n.Book.DeleteNote(n.Note);
                 n.Dispose();
             }
-
-            Note.OnNext(Notes.Count > 0 ? Notes[0] : null);
         });
     }
 
@@ -94,8 +93,21 @@ public class NoteBookModel : PageModelBase
         }
 
         var newNote = Notebook.Value.AddNote();
-        Notes.Add(new RxNote(newNote, Notebook.Value));
+
+        var rxnote = new RxNote(newNote, Notebook.Value);
+        Notes.Add(rxnote);
+        Note.OnNext(rxnote);
     }
+    public void DeleteNote()
+    {
+        var note = Note.Value;
+        if (note != null)
+        {
+            Notebook.Value?.DeleteNote(note.Note);
+            Notes.Remove(note);
+        }
+    }
+
     public void Open(string path, string password)
     {
         if (string.IsNullOrWhiteSpace(path) || string.IsNullOrWhiteSpace(password))
@@ -106,11 +118,14 @@ public class NoteBookModel : PageModelBase
         try
         {
             Notebook.OnNext(PZNotebook.Open(path, password));
+            if (Notes.Count > 0)
+            {
+                Note.OnNext(Notes[0]);
+            }
         }
         catch (Exception ex)
         {
-            Toast.Error(ex.Message);
-            Logger.Instance.Log(ex.Message);
+            CatchException(ex);
         }
     }
     public void Create(string path, string password, string repeatPassword)
@@ -121,18 +136,18 @@ public class NoteBookModel : PageModelBase
         }
         if (password != repeatPassword)
         {
-            Toast.Error("Password not match");
+            Toast.Error(LOC.Error.PasswordNotMatch);
             return;
         }
 
         try
         {
             Notebook.OnNext(PZNotebook.Create(path, password));
+            Note.OnNext(null);
         }
         catch (Exception ex)
         {
-            Toast.Error(ex.Message);
-            Logger.Instance.Log(ex.Message);
+            CatchException(ex);
         }
     }
     public void Save()

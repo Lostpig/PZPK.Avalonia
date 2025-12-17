@@ -12,6 +12,7 @@ public class ImagePreviewManager
         if (ActiveWindow == null)
         {
             ActiveWindow = new ImagePreviewWindow();
+            ActiveWindow.Name = LOC.Preview.ImagePreview;
             ActiveWindow.Closed += (_, _) => ActiveWindow = null;
             ActiveWindow.Show();
         }

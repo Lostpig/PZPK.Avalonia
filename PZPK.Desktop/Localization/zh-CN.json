@@ -18,6 +18,8 @@
         "Cancel": "取消",
         "Select": "选择",
         "Password": "密码",
+        "RepeatPassword": "重复密码",
+        "Create": "创建",
         "File": "文件",
         "Folder": "文件夹",
         "Count": "数量",
@@ -33,7 +35,8 @@
         "Warning": "警告",
         "Error": "错误",
         "Add": "添加",
-        "Done": "完成"
+        "Done": "完成",
+        "Save": "保存"
       }
     },
     {
@@ -53,6 +56,7 @@
         "BlockSize": "块大小",
         "SelectDirectory": "选择目录",
         "PZPKFile": "PZPK文件",
+        "PZPKNotebook": "PZPK笔记本",
         "CreateTime": "创建时间",
         "AddFile": "添加文件",
         "AddDirectory": "添加目录",
@@ -89,7 +93,8 @@
         "None": "无",
         "LockScale": "锁定缩放",
         "LockFitHeight": "锁定适配高度",
-        "LockFitWdith": "锁定适配宽度"
+        "LockFitWdith": "锁定适配宽度",
+        "ImagePreview": "图像预览"
       }
     },
     {
@@ -98,17 +103,36 @@
         "Message": "错误: {0}",
         "ExtractFailed": "错误: 提取失败! {0}",
         "PackageNotOpen": "错误: 未打开PZPK文件!",
-        "FileExistsed": "错误: 文件已存在!"
+        "FileExistsed": "错误: 文件已存在!",
+        "PasswordNotMatch": "错误: 两次密码不匹配！",
+        "PZCreatorInvaild": "错误: 创建打包任务出错: {0}",
+        "PZDuplicateName": "错误: 名称已存在: {0}",
+        "PZEmptyString": "错误: 参数不能为空字符串: {0}",
+        "PZFileTypeMismatch": "错误: 不支持的文件类型: {0}",
+        "PZFileVersionNotCompatiblity": "错误: 不兼容的文件版本: {0}",
+        "PZOldVersionEncrypt": "错误: 不支持使用旧版本进行加密操作",
+        "PZOutputDirectoryIsNotEmpty": "错误: 输出目录不是空目录: {0}",
+        "PZOutputFileAlreadyExists": "错误: 输出文件已存在: {0}",
+        "PZPathIsNotDirectory": "错误: 该路径不是目录: {0}",
+        "PZFileNotFound": "错误: PZ文件不存在: ID-{0};Name-{1}",
+        "PZFolderNotFound": "错误: PZ文件夹不存在: ID-{0};Name-{1}",
+        "PZNoteSizeExceeded": "错误: 笔记大小超标: {0} / {1}",
+        "PZPasswordIncorrect": "错误: 密码错误！",
+        "PZSignChecked": "错误: 文件签名校验失败！",
+        "PZSourceDirectoryIsEmpty": "错误: 源文件夹为空: {0}"
       }
     },
     {
       "namespace": "Message",
       "fields": {
         "OpenPZPKFile": "打开PZPK文件",
+        "OpenPZPKNotebook": "打开PZPK笔记本",
+        "CreatePZPKNotebook": "创建PZPK笔记本",
         "ExtractedSuccess": "提取成功！",
         "ExtractCancelWarning": "已取消提取！",
         "PackingComplete": "打包已完成！",
         "PackingCanceled": "打包已取消！",
+        "SureToDelete": "确定要删除吗？",
         "SureToClear": "确定要清除全部文件吗？",
         "SureToCancelPacking": "确定要取消打包吗？"
       }

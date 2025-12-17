@@ -29,6 +29,8 @@
           "Cancel",
           "Select",
           "Password",
+          "RepeatPassword",
+          "Create",
           "File",
           "Folder",
           "Count",
@@ -44,7 +46,8 @@
           "Warning",
           "Error",
           "Add",
-          "Done"
+          "Done",
+          "Save"
       ]
     },
     {
@@ -64,6 +67,7 @@
         "BlockSize",
         "SelectDirectory",
         "PZPKFile",
+        "PZPKNotebook",
         "CreateTime",
         "AddFile",
         "AddDirectory",
@@ -100,7 +104,8 @@
           "None",
           "LockScale",
           "LockFitHeight",
-          "LockFitWdith"
+          "LockFitWdith",
+          "ImagePreview"
         ]
     },
     {
@@ -109,17 +114,36 @@
         "Message",
         "ExtractFailed",
         "PackageNotOpen",
-        "FileExistsed"
+        "FileExistsed",
+        "PasswordNotMatch",
+        "PZCreatorInvaild",
+        "PZDuplicateName",
+        "PZEmptyString",
+        "PZFileTypeMismatch",
+        "PZFileVersionNotCompatiblity",
+        "PZOldVersionEncrypt",
+        "PZOutputDirectoryIsNotEmpty",
+        "PZOutputFileAlreadyExists",
+        "PZPathIsNotDirectory",
+        "PZFileNotFound",
+        "PZFolderNotFound",
+        "PZNoteSizeExceeded",
+        "PZPasswordIncorrect",
+        "PZSignChecked",
+        "PZSourceDirectoryIsEmpty"
       ]
     },
     {
       "namespace": "Message",
       "fields": [
         "OpenPZPKFile",
+        "OpenPZPKNotebook",
+        "CreatePZPKNotebook",
         "ExtractedSuccess",
         "ExtractCancelWarning",
         "PackingComplete",
         "PackingCanceled",
+        "SureToDelete",
         "SureToClear",
         "SureToCancelPacking"
       ]

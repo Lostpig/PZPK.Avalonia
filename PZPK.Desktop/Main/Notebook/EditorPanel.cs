@@ -71,7 +71,7 @@ public class EditorPanel: PZComponentBase
 
         var content = Grid(null, "80, 45, 1*").
             Children(
-                Grid("*, 200")
+                Grid("*, Auto")
                     .Row(0)
                     .Margin(30, 20)
                     .Children(
@@ -79,9 +79,10 @@ public class EditorPanel: PZComponentBase
                         HStackPanel()
                             .Col(1)
                             .HorizontalAlignment(HorizontalAlignment.Center)
+                            .Spacing(10)
                             .Children(
-                                SukiButton("Save").Margin(10, 0).OnClick(_ => SaveNote()),
-                                SukiButton("Delete", "Accent").Margin(10, 0).OnClick(_ => OnDelete())
+                                SukiButton(() => LOC.Base.Save).OnClick(_ => SaveNote()),
+                                SukiButton(() => LOC.Base.Delete, "Accent").OnClick(_ => OnDelete())
                             )
                     ),
                 HStackPanel()
@@ -122,24 +123,27 @@ public class EditorPanel: PZComponentBase
     private Subject<ThemeName> EditorTheme { get; set; } = new();
 
     private readonly List<IDisposable> _subscriptions = [];
-    protected override void OnCreated()
-    {
-        base.OnCreated();
-        Model.Note.Subscribe(n =>
-        {
-            ClearSubscriptions();
-            if (n != null)
-            {
-                Title.OnNext(n.Note.Title);
-                Content.OnNext(n.Note.Content);
 
-                _subscriptions.AddRange(
-                    Title.Subscribe(n.Title),
-                    Content.Subscribe(n.Content)
-                );
-            }
-        });
+    protected override IEnumerable<IDisposable> WhenActivate()
+    {
+        return [
+            Model.Note.Subscribe(n =>
+            {
+                ClearSubscriptions();
+                if (n != null)
+                {
+                    Title.OnNext(n.Note.Title);
+                    Content.OnNext(n.Note.Content);
+
+                    _subscriptions.AddRange(
+                        Title.Subscribe(n.Title),
+                        Content.Subscribe(n.Content)
+                    );
+                }
+            })
+        ];
     }
+
     private void ClearSubscriptions()
     {
         foreach(var s in _subscriptions)
@@ -156,10 +160,10 @@ public class EditorPanel: PZComponentBase
     {
         if (Model.Note.Value == null) return;
 
-        var ok = await Model.Dialog.DeleteConfirm("Sure to delete?");
+        var ok = await Model.Dialog.DeleteConfirm(LOC.Message.SureToDelete);
         if (ok)
         {
-            Model.Notes.Remove(Model.Note.Value);
+            Model.DeleteNote();
         }
     }
 }
