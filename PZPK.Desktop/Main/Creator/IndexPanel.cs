@@ -152,7 +152,7 @@ public class IndexPanel : PZComponentBase
             }
             catch (Exception ex)
             {
-                Model.CatchException(ex);
+                Model.OnErrorCatch(ex);
             }
         }
     }
@@ -178,7 +178,7 @@ public class IndexPanel : PZComponentBase
             }
             catch (Exception ex)
             {
-                Model.CatchException(ex);
+                Model.OnErrorCatch(ex);
             }
             finally
             {
@@ -206,7 +206,7 @@ public class IndexPanel : PZComponentBase
             }
             catch (Exception ex)
             {
-                Model.CatchException(ex);
+                Model.OnErrorCatch(ex);
             }
             finally
             {
@@ -279,7 +279,7 @@ public class IndexPanel : PZComponentBase
                 }
                 catch (Exception ex)
                 {
-                    Model.CatchException(ex);
+                    Model.OnErrorCatch(ex);
                 }
             }
         }

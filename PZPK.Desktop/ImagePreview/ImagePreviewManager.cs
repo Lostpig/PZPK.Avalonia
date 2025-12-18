@@ -6,18 +6,18 @@ namespace PZPK.Desktop.ImagePreview;
 
 public class ImagePreviewManager
 {
-    static private ImagePreviewWindow? ActiveWindow;
-    static private ImagePreviewWindow GetActiveWindow()
+    static private ImagePreviewWindow? PreviewWindow;
+    static private ImagePreviewWindow GetWindow()
     {
-        if (ActiveWindow == null)
+        if (PreviewWindow == null)
         {
-            ActiveWindow = new ImagePreviewWindow();
-            ActiveWindow.Name = LOC.Preview.ImagePreview;
-            ActiveWindow.Closed += (_, _) => ActiveWindow = null;
-            ActiveWindow.Show();
+            PreviewWindow = new()
+            {
+                Name = LOC.Preview.ImagePreview
+            };
         }
 
-        return ActiveWindow;
+        return PreviewWindow;
     }
 
     static public void OpenImage(PZFile file)
@@ -31,20 +31,32 @@ public class ImagePreviewManager
         var pictures = files.Where(f => FileTypeHelper.IsPicture(f))
                         .ToList().Sorted(NaturalPZItemComparer.Instance);
 
-        var win = GetActiveWindow();
+        var win = GetWindow();
         win.OpenImage(file, pictures);
-        win.Activate();
+        if (win.IsVisible)
+        {
+            win.Activate();
+            if (win.WindowState == WindowState.Minimized)
+            {
+                win.WindowState = WindowState.Normal;
+            }
+        }
+        else
+        {
+            win.Show();
+        }
     }
 
     static public void DevOpenImage(string file)
     {
-        var win = GetActiveWindow();
+        var win = GetWindow();
         win.DevOpenImage(file);
         win.Activate();
+        win.Show();
     }
 
-    static public void CloseActiveWindow()
+    static public void ClosePreviewWindow()
     {
-        ActiveWindow?.Close();
+        PreviewWindow?.Close();
     }
 }

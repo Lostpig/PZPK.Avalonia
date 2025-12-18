@@ -125,7 +125,7 @@ public class NoteBookModel : PageModelBase
         }
         catch (Exception ex)
         {
-            CatchException(ex);
+            OnErrorCatch(ex);
         }
     }
     public void Create(string path, string password, string repeatPassword)
@@ -147,7 +147,7 @@ public class NoteBookModel : PageModelBase
         }
         catch (Exception ex)
         {
-            CatchException(ex);
+            OnErrorCatch(ex);
         }
     }
     public void Save()

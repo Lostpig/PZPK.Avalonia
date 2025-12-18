@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -47,52 +48,54 @@ public record FieldsJsonNameSpace
     public Dictionary<string, string> Fields { get; set; } = [];
 }
 
-public class Translate
+public static class Translate
 {
-    const string DefaultLanguage = "en";
-    public string Current { get; private set; } = DefaultLanguage;
-    private readonly List<LanguageItem> _languages = [];
-    public IList<LanguageItem> Languages => _languages;
-    public event Action? LanguageChanged;
-
-    public void Initialize()
+    private static bool _initialized = false;
+    private static List<LanguageItem> _languages = [];
+    public static IReadOnlyList<LanguageItem> Languages => _languages;
+    public static string Default { get; private set; } = "zh-CN";
+    public static void Initialize()
     {
-        string rootPath = System.AppDomain.CurrentDomain.BaseDirectory;
-        string langFilePath = Path.Join(rootPath, "Localization", "languages.json");
+        if (_initialized) return;
 
-        var langText = File.ReadAllText(langFilePath);
-        var langJson = JsonSerializer.Deserialize<LanguageJson>(langText) ?? throw new Exception("languages.json deserialize failed");
-        _languages.Clear();
-        _languages.AddRange(langJson.Languages);
+        try
+        {
+            string rootPath = AppDomain.CurrentDomain.BaseDirectory;
+            string langFilePath = Path.Join(rootPath, "Localization", "languages.json");
 
-        string userSetLang = GetSetting();
-        LoadLanguage(userSetLang);
-        Current = userSetLang;
+            var langText = File.ReadAllText(langFilePath);
+            var langJson = JsonSerializer.Deserialize<LanguageJson>(langText) ?? throw new Exception("languages.json deserialize failed");
+            _languages.Clear();
+            _languages.AddRange(langJson.Languages);
+
+            Default = langJson.DefaultLanguage;
+        }
+        catch(Exception ex)
+        {
+            Logger.Instance.Log("Error: Translate initialize failed!");
+            ErrorProxy.CatchException(ex);
+        }
+        finally
+        {
+            _initialized = true;
+        }
     }
-    public void ChangeLanguage(LanguageItem lang)
+
+    public static LanguageItem? Current { get; private set; }
+    public static event Action? LanguageChanged;
+
+    public static void ChangeLanguage(LanguageItem lang)
     {
-        if (Current == lang.Value) return;
+        if (Current?.Value == lang.Value) return;
 
-        Current = lang.Value;
-        LoadLanguage(lang.Value);
-        Settings.Set(lang);
-
+        Current = lang;
+        LoadLanguage(lang);
         LanguageChanged?.Invoke();
     }
-    private static string GetSetting()
-    {
-        string? userSetCurrent = Settings.Get(SettingsField.Language);
-        if (String.IsNullOrEmpty(userSetCurrent))
-        {
-            userSetCurrent = DefaultLanguage;
-            Settings.Set(SettingsField.Language, userSetCurrent);
-        }
-        return userSetCurrent;
-    }
-    private static void LoadLanguage(string lang)
+    private static void LoadLanguage(LanguageItem lang)
     {
         string rootPath = AppDomain.CurrentDomain.BaseDirectory;
-        string langPath = Path.Join(rootPath, "Localization", $"{lang}.json");
+        string langPath = Path.Join(rootPath, "Localization", $"{lang.Value}.json");
 
         string langJson = File.ReadAllText(langPath, Encoding.UTF8);
         FieldsJson? langFields = JsonSerializer.Deserialize<FieldsJson>(langJson);

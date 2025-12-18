@@ -50,6 +50,14 @@ internal sealed class Program
 #if DEBUG
         lifetime.MainWindow?.AttachDevTools();
 #endif
-        lifetime.Start(args);
+        try
+        {
+            lifetime.Start(args);
+        }
+        catch (Exception ex)
+        {
+            ErrorProxy.CatchException(ex);
+            throw;
+        }
     }
 }

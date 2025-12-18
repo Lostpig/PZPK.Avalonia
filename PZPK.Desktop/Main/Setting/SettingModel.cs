@@ -2,7 +2,6 @@
 using PZPK.Desktop.Localization;
 using SukiUI;
 using SukiUI.Models;
-using System.Linq;
 using System.Reactive.Subjects;
 
 namespace PZPK.Desktop.Main.Setting;
@@ -20,7 +19,7 @@ public class SettingModel : PageModelBase
     }
 
     public SukiTheme Theme { get; init; }
-    public IList<LanguageItem> Languages { get; init; }
+    public IReadOnlyList<LanguageItem> Languages { get; init; }
     public IList<ThemeVariant> BaseThemes { get; init; }
     public IList<SukiColorTheme> ColorThemes { get; init; }
 
@@ -33,11 +32,11 @@ public class SettingModel : PageModelBase
         Theme = SukiTheme.GetInstance();
         BaseThemes = [ThemeVariant.Light, ThemeVariant.Dark];
         ColorThemes = [.. Theme.ColorThemes];
-        Languages = App.Instance.Translate.Languages;
+        Languages = Translate.Languages;
 
-        ColorTheme = new(Theme.ActiveColorTheme!);
-        BaseTheme = new(Theme.ActiveBaseTheme);
-        ActiveLanguage = new(Languages[0]);
+        ColorTheme = new(Settings.ColorTheme);
+        BaseTheme = new(Settings.BaseTheme);
+        ActiveLanguage = new(Settings.Language);
 
         ColorTheme.Subscribe(ChangeColorTheme);
         BaseTheme.Subscribe(ChangeBaseTheme);
@@ -46,21 +45,14 @@ public class SettingModel : PageModelBase
 
     public void ChangeColorTheme(SukiColorTheme theme)
     {
-        Theme.ChangeColorTheme(theme);
-        Settings.Set(theme);
+        Settings.ColorTheme = theme;
     }
     public void ChangeBaseTheme(ThemeVariant theme)
     {
-        Theme.ChangeBaseTheme(theme);
-        Settings.Set(theme);
+        Settings.BaseTheme = theme;
     }
-    public static async void ChangeLanguge(LanguageItem? language)
+    public static async void ChangeLanguge(LanguageItem language)
     {
-        if (language is null) return;
-
-        var tl = App.Instance.Translate;
-        if (tl.Current == language.Value) return;
-
-        tl.ChangeLanguage(language);
+        Settings.Language = language;
     }
 }

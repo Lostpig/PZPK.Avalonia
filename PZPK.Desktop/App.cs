@@ -18,17 +18,14 @@ internal class App
 
     public MainWindow MainWindow { get; init; }
     public SukiHelpers Suki { get; init; }
-    public Translate Translate { get; init; }
 
     private App()
     {
         Suki = new();
-        Translate = new();
         try
         {
-            Settings.Load();
-            Settings.ApplySetting();
             Translate.Initialize();
+            Settings.Initialize();
         }
         catch
         {
@@ -36,10 +33,9 @@ internal class App
         }
 
         MainWindow = new MainWindow();
-        MainWindow.BindingTranslate(Translate);
         MainWindow.OnClosed((_) =>
         {
-            ImagePreviewManager.CloseActiveWindow();
+            ImagePreviewManager.ClosePreviewWindow();
             Environment.Exit(0);
         });
     }

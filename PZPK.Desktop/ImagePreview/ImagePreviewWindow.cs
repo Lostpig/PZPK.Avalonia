@@ -4,7 +4,7 @@ using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using PZPK.Core;
-using System.Diagnostics;
+using PZPK.Desktop.Localization;
 using System.IO;
 using System.Reactive.Linq;
 
@@ -61,6 +61,7 @@ public class ImagePreviewWindow : PZWindowBase
             );
 
         InitializeOperators();
+        Translate.LanguageChanged += UpdateState;
     }
 
     private readonly List<IDisposable> _subscriptions = [];
@@ -76,13 +77,18 @@ public class ImagePreviewWindow : PZWindowBase
                 .Subscribe(t => UpdateImageScale(t.First, t.Second))
         );
     }
-    protected override void OnClosed(EventArgs e)
+
+    protected override void OnClosing(WindowClosingEventArgs e)
     {
-        foreach(var subscription in _subscriptions)
-        {
-            subscription.Dispose(); 
-        }
-        base.OnClosed(e);
+        e.Cancel = true;
+        base.OnClosing(e);
+
+        this.Hide();
+    }
+    private void UpdateState()
+    {
+        OperateBarRef.UpdateState();
+        InfoBarRef.UpdateState();
     }
 
     protected void OnScrollLayoutUpdated(EventArgs e)

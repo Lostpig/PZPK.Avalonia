@@ -32,12 +32,12 @@ internal class ErrorProxy
         try
         {
             Logger.Instance.Error(ex);
+            return FormatException(ex);
         }
         catch
         {
             // DO NOTHING
+            return "";
         }
-
-        return FormatException(ex);
     }
 }

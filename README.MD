@@ -17,20 +17,22 @@ PZPK 包管理桌面应用程序Avalonia版
 ## RoadMap
 + [✓] 浏览
 + [✓] 提取/全部提取
-+ [-] 创建/打包
-+ [-] 笔记
++ [✓] 创建/打包
++ [✓] 笔记
 + [ ] 仓库
-+ [-] 设置
++ [✓] 设置
 + [✓] 图片预览窗口
 + [ ] 视频预览窗口
-+ [-] 多语言支持
++ [✓] 多语言支持
 
 ## Used Technologies and Tools
 + Avalonia( https://github.com/AvaloniaUI/Avalonia )
 + Avalonia.Markup.Declarative( https://github.com/AvaloniaUI/Avalonia.Markup.Declarative )
++ AvaloniaEdit( https://github.com/AvaloniaUI/AvaloniaEdit )
++ Material.Icons.Avalonia( https://github.com/AvaloniaUtils/Material.Icons.Avalonia )
 + PZ.RxAvalonia( https://github.com/Lostpig/PZ.RxAvalonia )
-+ SukiUI( https://github.com/kikipoulet/SukiUI )
 + Rx.Net( https://github.com/dotnet/reactive )
 + SixLabors.ImageSharp( https://sixlabors.com/products/imagesharp/ )
-+ Material.Icons.Avalonia( https://github.com/AvaloniaUtils/Material.Icons.Avalonia )
-+ AvaloniaEdit( https://github.com/AvaloniaUI/AvaloniaEdit )
++ SukiUI( https://github.com/kikipoulet/SukiUI )
+
+

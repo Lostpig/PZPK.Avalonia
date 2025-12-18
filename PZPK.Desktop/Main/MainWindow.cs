@@ -1,5 +1,4 @@
 ﻿using Avalonia.Platform;
-using PZPK.Desktop.Global;
 using PZPK.Desktop.Localization;
 using SukiUI.Controls;
 using System.Reflection;
@@ -28,6 +27,8 @@ public class MainWindow : PZWindowBase
             IsSearchEnabled = false
         };
         Initialize();
+
+        Translate.LanguageChanged += UpdateState;
     }
 
     private SukiSideMenu Sidemenu;
@@ -48,10 +49,6 @@ public class MainWindow : PZWindowBase
         Content = Sidemenu;
     }
 
-    public void BindingTranslate(Translate translate)
-    {
-        translate.LanguageChanged += UpdateState;
-    }
     protected void UpdateState()
     {
         foreach (var item in Sidemenu.Items)

@@ -1,10 +1,12 @@
-﻿namespace PZPK.Desktop.Global;
+﻿using PZPK.Desktop.Localization;
+
+namespace PZPK.Desktop.Global;
 
 public abstract class PZComponentBase: ComponentBase
 {
     protected PZComponentBase(): base()
     {
-        App.Instance.Translate.LanguageChanged += OnLanguageChanged;
+        Translate.LanguageChanged += OnLanguageChanged;
     }
 
     protected void OnLanguageChanged()

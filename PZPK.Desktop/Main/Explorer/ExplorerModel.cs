@@ -42,8 +42,7 @@ public class ExplorerModel : PageModelBase
             }
             catch (Exception ex)
             {
-                Toast.Error(string.Format(LOC.Error.Message, ex.Message));
-                Logger.Instance.Error(ex);
+                OnErrorCatch(ex);
             }
         }
     }
@@ -51,6 +50,9 @@ public class ExplorerModel : PageModelBase
     {
         PackageManager.Close();
         Package.OnNext(null);
+
+        FilePath.OnNext("");
+        Password.OnNext("");
     }
 
     public async void ExtractFile(PZFile file, string dest)

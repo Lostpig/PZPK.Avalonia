@@ -1,19 +1,12 @@
-﻿using Avalonia.Controls;
-using Avalonia.Controls.Notifications;
-using SukiUI.Controls;
+﻿using Avalonia.Controls.Notifications;
 using SukiUI.Dialogs;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace PZPK.Desktop.Global;
 
-public class PZDialog
+public class PZDialog(ISukiDialogManager manager)
 {
-    public ISukiDialogManager Manager { get; init; }
-    public PZDialog(ISukiDialogManager manager)
-    {
-        Manager = manager;
-    }
+    public ISukiDialogManager Manager { get; init; } = manager;
 
     public async Task<bool> Confirm(
         NotificationType msgType, 
@@ -42,8 +35,10 @@ public class PZDialog
         return await builder.TryShowAsync();
     }
 
-    public async Task<bool> DeleteConfirm(string message, string title = "Delete")
+    public async Task<bool> DeleteConfirm(string message, string? title = null)
     {
+        title ??= LOC.Base.Delete;
+
         return await Confirm(
             NotificationType.Warning,
             title,
@@ -54,8 +49,10 @@ public class PZDialog
             []
         );
     }
-    public async Task<bool> InfoConfirm(string message, string title = "Infomation")
+    public async Task<bool> InfoConfirm(string message, string? title = null)
     {
+        title ??= LOC.Base.Info;
+
         return await Confirm(
             NotificationType.Information,
             title,
@@ -66,8 +63,10 @@ public class PZDialog
             []
         );
     }
-    public async Task<bool> WarningConfirm(string message, string title = "Warning")
+    public async Task<bool> WarningConfirm(string message, string? title = null)
     {
+        title ??= LOC.Base.Warning;
+
         return await Confirm(
             NotificationType.Warning,
             title,
@@ -79,13 +78,15 @@ public class PZDialog
         );
     }
 
-    public bool Alert(string message, string title = "Message", NotificationType msgType = NotificationType.Information)
+    public bool Alert(string message, string? title = null, NotificationType msgType = NotificationType.Information)
     {
+        title ??= LOC.Base.Alert;
+
         return Manager.CreateDialog()
             .OfType(msgType)
             .WithTitle(title)
             .WithContent(message)
-            .WithActionButton("Close", _ => { }, true, "Flat")
+            .WithActionButton(LOC.Base.Close, _ => { }, true, "Flat")
             .TryShow();
     }
 
@@ -94,7 +95,7 @@ public class PZDialog
         Manager.CreateDialog()
             .WithTitle(title)
             .WithContent(content)
-            .WithActionButton("Close", _ => { }, true)
+            .WithActionButton(LOC.Base.Close, _ => { }, true)
             .TryShow();
     }
 }

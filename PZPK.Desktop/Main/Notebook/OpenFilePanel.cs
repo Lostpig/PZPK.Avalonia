@@ -3,6 +3,7 @@ using Avalonia.Platform.Storage;
 using Material.Icons;
 using SukiUI.Controls;
 using System.IO;
+using System.Reactive.Linq;
 using System.Reactive.Subjects;
 
 
@@ -94,6 +95,20 @@ public class OpenFilePanel : PZComponentBase
                     new TabItem().Header(() => LOC.Base.Create).Content(BuildCreateTab())
                 )
             );
+    }
+
+    protected override IEnumerable<IDisposable> WhenActivate()
+    {
+        return [
+            Model.Notebook.Where(n => n == null)
+                .Subscribe(_ => {
+                    SelectedPath.OnNext("");
+                    Password.OnNext("");
+                    CreatePath.OnNext("");
+                    CreatePw.OnNext("");
+                    CreateRepeatPw.OnNext("");
+                })
+        ];
     }
 
     private static NoteBookModel Model => NoteBookModel.Instance;

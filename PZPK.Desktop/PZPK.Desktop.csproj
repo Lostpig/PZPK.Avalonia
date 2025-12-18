@@ -6,7 +6,7 @@
     <RootNamespace>PZPK.Desktop</RootNamespace>
     <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
     <ApplicationManifest>app.manifest</ApplicationManifest>
-    <Version>0.0.1.0</Version>
+    <Version>0.0.1.2</Version>
     <VersionSuffix>alpha</VersionSuffix>
 
 	<RuntimeIdentifier>win-x64</RuntimeIdentifier>

@@ -1,19 +1,12 @@
-﻿using Avalonia.Controls;
-using Avalonia.Controls.Notifications;
+﻿using Avalonia.Controls.Notifications;
 using SukiUI.Dialogs;
 using SukiUI.Toasts;
-using System;
-using System.Collections.Generic;
 
 namespace PZPK.Desktop.Global;
 
-public class PZToast
+public class PZToast(ISukiToastManager manager)
 {
-    public ISukiToastManager Manager { get; init; }
-    public PZToast(ISukiToastManager manager)
-    {
-        Manager = manager;
-    }
+    public ISukiToastManager Manager { get; init; } = manager;
 
     public void ShowToast(string title, string message, NotificationType toastType, int time = 3)
     {
@@ -25,8 +18,12 @@ public class PZToast
             .Queue();
     }
 
-    public void Error(string message, string title = "Error") => ShowToast(title, message, NotificationType.Error);
-    public void Warning(string message, string title = "Warning") => ShowToast(title, message, NotificationType.Warning);
-    public void Info(string message, string title = "Information") => ShowToast(title, message, NotificationType.Information);
-    public void Success(string message, string title = "Success") => ShowToast(title, message, NotificationType.Success);
+    public void Error(string message, string? title = null) => 
+        ShowToast(title ?? LOC.Base.Error, message, NotificationType.Error);
+    public void Warning(string message, string? title = null) => 
+        ShowToast(title ?? LOC.Base.Warning, message, NotificationType.Warning);
+    public void Info(string message, string? title = null) => 
+        ShowToast(title ?? LOC.Base.Info, message, NotificationType.Information);
+    public void Success(string message, string? title = null) => 
+        ShowToast(title ?? LOC.Base.Success, message, NotificationType.Success);
 }
