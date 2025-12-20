@@ -1,3 +1,5 @@
 ﻿.vs
 */bin
 */obj
+*.user
+/PZPK.Desktop/PZPK.Desktop.csproj.user

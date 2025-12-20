@@ -3,6 +3,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml.Styling;
 using Avalonia.Media;
 using Material.Icons.Avalonia;
+using PZPK.Desktop.Common;
 using PZPK.Desktop.Main;
 using SukiUI;
 
@@ -23,6 +24,7 @@ internal sealed class Program
         var app = AppBuilder.Configure<Application>()
             .UsePlatformDetect()
             .WithInterFont()
+            // .UseServiceProvider(services)
             // .LogToTrace()
             .AfterSetup(b =>
             {

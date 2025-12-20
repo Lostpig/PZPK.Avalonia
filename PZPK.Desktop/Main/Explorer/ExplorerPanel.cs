@@ -183,7 +183,7 @@ public class ExplorerPanel : PZComponentBase
         {
             if (ctrl.DataContext is PZFile file)
             {
-                ImagePreviewManager.OpenImage(file);
+                Model.PreviewFile(file);
             }
             else if (ctrl.DataContext is PZFolder folder)
             {

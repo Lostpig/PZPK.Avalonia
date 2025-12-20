@@ -38,7 +38,8 @@ internal class DevPage : PZComponentBase
                     ),
                 HStackPanel().Margin(10)
                     .Children(
-                        SukiButton("Re Render").OnClick(_ => ToReRender())
+                        SukiButton("Re Render").OnClick(_ => ToReRender()),
+                        SukiButton("Close Viode Window").OnClick(_ => VideoPreview.VideoPreviewManager.ClosePreviewWindow())
                     )
             );
     }

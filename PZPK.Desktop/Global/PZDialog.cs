@@ -43,8 +43,8 @@ public class PZDialog(ISukiDialogManager manager)
             NotificationType.Warning,
             title,
             message,
-            "Delete",
-            "Cancel",
+            LOC.Base.Delete,
+            LOC.Base.Cancel,
             ["Danger"],
             []
         );
@@ -57,8 +57,8 @@ public class PZDialog(ISukiDialogManager manager)
             NotificationType.Information,
             title,
             message,
-            "Yes",
-            "No",
+            LOC.Base.OK,
+            LOC.Base.Cancel,
             [],
             []
         );
@@ -71,8 +71,8 @@ public class PZDialog(ISukiDialogManager manager)
             NotificationType.Warning,
             title,
             message,
-            "Yes",
-            "No",
+            LOC.Base.OK,
+            LOC.Base.Cancel,
             ["Warning"],
             []
         );

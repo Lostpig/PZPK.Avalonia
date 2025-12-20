@@ -55,6 +55,18 @@ public class ExplorerModel : PageModelBase
         Password.OnNext("");
     }
 
+    public void PreviewFile(PZFile file)
+    {
+        if (FileTypeHelper.IsVideo(file))
+        {
+            VideoPreview.VideoPreviewManager.OpenVideo(file);
+        } 
+        else if (FileTypeHelper.IsPicture(file))
+        {
+            ImagePreview.ImagePreviewManager.OpenImage(file);
+        }
+    }
+
     public async void ExtractFile(PZFile file, string dest)
     {
         PackageManager.Check();
