@@ -4,6 +4,7 @@ using PZ.RxAvalonia.Reactive;
 using PZPK.Core;
 using PZPK.Core.Crypto;
 using PZPK.Desktop.ImagePreview;
+using PZPK.Desktop.VideoPreview;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Text;
@@ -23,7 +24,8 @@ internal class DevPage : PZComponentBase
                         PzText("File"),
                         PzTextBox(SelectedFile).Width(400).IsReadOnly(true),
                         SukiButton("Select File").RxClick(OnSelectFile),
-                        SukiButton("OpenAsImage").RxClick(OnOpenImage)
+                        SukiButton("OpenAsImage").RxClick(OnOpenImage),
+                        SukiButton("OpenAsVideo").RxClick(OnOpenVideo)
                     ),
                 HStackPanel().Margin(10)
                     .Children(
@@ -43,25 +45,29 @@ internal class DevPage : PZComponentBase
                     )
             );
     }
-    protected override void OnCreated()
+
+    protected override IEnumerable<IDisposable> WhenActivate()
     {
-        base.OnCreated();
+        return [
+            OnOpenImage.WithLatestFrom(SelectedFile)
+                .Where(t => !string.IsNullOrEmpty(t.Second))
+                .Select(t => t.Second)
+                .Subscribe(ImagePreviewManager.DevOpenImage),
+            OnOpenVideo.WithLatestFrom(SelectedFile)
+                .Where(t => !string.IsNullOrEmpty(t.Second))
+                .Select(t => t.Second)
+                .Subscribe(VideoPreviewManager.DevOpenVideo),
+            OnSelectFile.Select(_ => SelectFile())
+                .Concat()
+                .WhereNotEmpty(true)
+                .Subscribe(SelectedFile),
 
-        OnOpenImage.WithLatestFrom(SelectedFile)
-            .Where(t => !string.IsNullOrEmpty(t.Second))
-            .Select(t => t.Second)
-            .Subscribe(ImagePreviewManager.DevOpenImage);
-
-        OnSelectFile.Select(_ => SelectFile())
-            .Concat()
-            .WhereNotEmpty(true)
-            .Subscribe(SelectedFile);
-
-        OnTestCrypto.WithLatestFrom(Text)
-            .Select(t => t.Second)
-            .WhereNotEmpty(true)
-            .Select(TestCrypto)
-            .Subscribe(DeText);
+            OnTestCrypto.WithLatestFrom(Text)
+                .Select(t => t.Second)
+                .WhereNotEmpty(true)
+                .Select(TestCrypto)
+                .Subscribe(DeText)
+            ];
     }
 
     private readonly BehaviorSubject<string> SelectedFile = new(string.Empty);
@@ -69,6 +75,7 @@ internal class DevPage : PZComponentBase
     private readonly BehaviorSubject<string> DeText = new(string.Empty);
 
     private readonly Subject<RoutedEventArgs> OnOpenImage = new();
+    private readonly Subject<RoutedEventArgs> OnOpenVideo = new();
     private readonly Subject<RoutedEventArgs> OnSelectFile = new();
     private readonly Subject<RoutedEventArgs> OnTestCrypto = new();
 

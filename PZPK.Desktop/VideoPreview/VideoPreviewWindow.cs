@@ -1,42 +1,40 @@
-﻿using LibVLCSharp.Avalonia;
-using LibVLCSharp.Shared;
+﻿using Avalonia;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace PZPK.Desktop.VideoPreview;
 
 internal class VideoPreviewWindow: Window
 {
-    private LibVLC _libVlc;
-    private MediaPlayer _player;
-    private VideoView _videoView;
+    private VlcMeidaElement _element;
+    private MediaModel _mediaModel;
     public VideoPreviewWindow()
     {
-        _libVlc = new LibVLC();
-        _player = new(_libVlc);
-        _videoView = new();
-        _videoView.MediaPlayer = _player;
-        _videoView.Content = new Button().Content("Play");
+        _mediaModel = new();
+        _element = new VlcMeidaElement(_mediaModel);
 
-        Content = Grid("*", "*")
+        Content = new Panel()
             .Children(
-                _videoView
-                    .Cell(0, 0)
+                _element
             );
+
+        this.AttachDevTools();
     }
 
-    public void PlayStream(Stream stream)
+    public void OpenStream(Stream stream)
     {
-        var input = new StreamMediaInput(stream);
-        _player.Media = new Media(_libVlc, input);
-        _player.Play();
+        _element.OpenStream(stream);
     }
     protected override void OnClosing(WindowClosingEventArgs e)
     {
         e.Cancel = true;
         base.OnClosing(e);
-        _player.Stop();
-        _player.Media = null;
 
         Hide();
+    }
+    public Task ShowPreview(Window owner)
+    {
+        _element.ReShow();
+        return ShowDialog(owner);
     }
 }
