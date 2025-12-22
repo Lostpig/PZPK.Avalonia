@@ -46,8 +46,8 @@ public class OperateBar: PZComponentBase
                                     SukiButton(() => LOC.Preview.FitToWidth).OnClick(_ => Model.FitToWidth()),
                                     SukiButton(() => LOC.Preview.FitToHeight).OnClick(_ => Model.FitToHeight()),
                                     PzSeparatorH(),
-                                    SukiButton(() => LOC.Base.Prev).OnClick(_ => Model.Current.Reducer(i => i - 1)),
-                                    SukiButton(() => LOC.Base.Next).OnClick(_ => Model.Current.Reducer(i => i + 1)),
+                                    SukiButton(() => LOC.Preview.Prev).OnClick(_ => Model.Current.Reducer(i => i - 1)),
+                                    SukiButton(() => LOC.Preview.Next).OnClick(_ => Model.Current.Reducer(i => i + 1)),
                                     PzSeparatorH(),
                                     new ComboBox()
                                         .Width(120)

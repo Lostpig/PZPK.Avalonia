@@ -95,7 +95,11 @@
         "LockScale": "锁定缩放",
         "LockFitHeight": "锁定适配高度",
         "LockFitWdith": "锁定适配宽度",
-        "ImagePreview": "图像预览"
+        "ImagePreview": "图像预览",
+        "VLCInitializing": "正在初始化VLC播放器...",
+        "Next": "下一个",
+        "Prev": "上一个",
+        "VideoPreview": "视频预览"
       }
     },
     {

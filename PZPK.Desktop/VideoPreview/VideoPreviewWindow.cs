@@ -12,14 +12,15 @@ namespace PZPK.Desktop.VideoPreview;
 
 internal class VideoPreviewWindow : Window
 {
-    private static LibVLC VLC => VideoPreviewManager.VLC;
+    private LibVLC VLC { get; init; }
     private readonly VlcVideoView _videoView;
     private readonly MediaPlayer _player;
     private Window _controllerWin;
     private readonly MediaModel _mediaModel;
     private List<IDisposable> _subscriptions = [];
-    public VideoPreviewWindow()
+    public VideoPreviewWindow(LibVLC libVlc)
     {
+        VLC = libVlc;
         _mediaModel = new();
         _videoView = new VlcVideoView();
         _player = new(VLC);

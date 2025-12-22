@@ -95,7 +95,11 @@
         "LockScale": "MISS_LockScale",
         "LockFitHeight": "MISS_LockFitHeight",
         "LockFitWdith": "MISS_LockFitWdith",
-        "ImagePreview": "MISS_ImagePreview"
+        "ImagePreview": "MISS_ImagePreview",
+        "VLCInitializing": "MISS_VLCInitializing",
+        "Next": "MISS_Next",
+        "Prev": "MISS_Prev",
+        "VideoPreview": "MISS_VideoPreview"
       }
     },
     {
