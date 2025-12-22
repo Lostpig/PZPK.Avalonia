@@ -6,6 +6,7 @@ namespace PZPK.Desktop.Global;
 
 public static class PackageManager
 {
+    [MemberNotNullWhen(true, nameof(Current))]
     public static bool HasOpened => Current != null;
     public static Package? Current { get; private set; }
     public static Package Open(string file, string password)

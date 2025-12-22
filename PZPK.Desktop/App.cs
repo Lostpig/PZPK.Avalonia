@@ -2,6 +2,7 @@
 using PZPK.Desktop.ImagePreview;
 using PZPK.Desktop.Localization;
 using PZPK.Desktop.Main;
+using PZPK.Desktop.VideoPreview;
 
 namespace PZPK.Desktop;
 
@@ -36,6 +37,7 @@ internal class App
         MainWindow.OnClosed((_) =>
         {
             ImagePreviewManager.ClosePreviewWindow();
+            VideoPreviewManager.ClosePreviewWindow();
             Environment.Exit(0);
         });
     }

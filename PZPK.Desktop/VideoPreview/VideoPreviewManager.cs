@@ -1,14 +1,9 @@
 ﻿using LibVLCSharp.Shared;
 using PZPK.Core;
 using PZPK.Desktop.Common;
-using PZPK.Desktop.ImagePreview;
-using SkiaSharp;
 using SukiUI.Dialogs;
-using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace PZPK.Desktop.VideoPreview;
@@ -58,17 +53,20 @@ internal class VideoPreviewManager
 
     static async public void OpenVideo(PZFile file)
     {
-        if (PackageManager.Current == null) return;
+        if (!PackageManager.HasOpened) return;
         if (!FileTypeHelper.IsVideo(file)) return;
 
         await InitializeVLC();
-        var stream = PackageManager.Current.GetFileStream(file);
+
+        var idx = PackageManager.Current.Index;
+        var folder = idx.GetFolder(file.Pid);
+        var files = idx.GetFiles(folder, false);
+        var videos = files.Where(f => FileTypeHelper.IsVideo(f))
+                        .ToList().Sorted(NaturalPZItemComparer.Instance);
 
         var win = GetWindow();
-        win.OpenStream(stream);
+        win.OpenFile(file, files);
         await win.ShowDialog(App.Instance.MainWindow);
-
-        stream.Dispose();
     }
 
     static public async void DevOpenVideo(string file)
@@ -80,7 +78,7 @@ internal class VideoPreviewManager
             var win = GetWindow();
             var stream = fileInfo.OpenRead();
             win.OpenStream(stream);
-            await win.ShowPreview(App.Instance.MainWindow);
+            await win.ShowDialog(App.Instance.MainWindow);
 
             stream.Dispose();
         }

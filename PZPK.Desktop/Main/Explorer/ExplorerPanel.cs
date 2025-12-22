@@ -7,7 +7,6 @@ using Material.Icons;
 using PZPK.Core;
 using PZPK.Core.Extract;
 using PZPK.Desktop.Common;
-using PZPK.Desktop.ImagePreview;
 using SukiUI.Content;
 using SukiUI.Controls;
 using System.Collections;
@@ -67,7 +66,10 @@ public class ExplorerPanel : PZComponentBase
             .VerticalAlignment(VerticalAlignment.Center)
             .Children(
                 SukiButton(() => LOC.PZPK.ExtractAll).Margin(0, 0, 0, 10).OnClick(_ => ExtractAll()),
-                SukiButton(() => LOC.Base.Close, "Outlined", "Accent").OnClick(_ => Model.ClosePackage())
+                SukiButton(() => LOC.Base.Close, "Outlined", "Accent").OnClick(_ => Model.ClosePackage()),
+#if DEBUG
+                SukiButton(() => "Test Extract", "Outlined", "Accent").OnClick(_ => Model.DebugExtract())
+#endif
             );
     }
     private StackPanel DirStackFuncTemplete(PZFolder folder)

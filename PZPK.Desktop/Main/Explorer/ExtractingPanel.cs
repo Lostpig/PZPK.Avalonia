@@ -1,5 +1,6 @@
 ﻿namespace PZPK.Desktop.Main.Explorer;
 
+using Avalonia.Media;
 using PZPK.Desktop.Common;
 using System.Reactive.Linq;
 using static PZPK.Desktop.Common.ControlHelpers;
@@ -16,18 +17,18 @@ public class ExtractingPanel: PZComponentBase
 
         return VStackPanel(Avalonia.Layout.HorizontalAlignment.Center)
             .Children(
-                PzText("Extracting...", "h3")
+                PzText(() => LOC.PZPK.ExtractingDDD, "h3")
                     .HorizontalAlignment(Avalonia.Layout.HorizontalAlignment.Center),
                 new DockPanel().Height(40).Width(300).Margin(0, 10, 0, 0)
                     .Children(
-                        PzText("Files:").Dock(Dock.Left),
+                        PzText(() => LOC.PZPK.Files).Dock(Dock.Left),
                         PzText(filesText)
                             .HorizontalAlignment(Avalonia.Layout.HorizontalAlignment.Right)
                             .Dock(Dock.Right)
                     ),
                 new DockPanel().Height(40).Width(300)
                     .Children(
-                        PzText("Bytes:").Dock(Dock.Left),
+                        PzText(() => LOC.PZPK.Bytes).Dock(Dock.Left),
                         PzText(bytesText)
                             .HorizontalAlignment(Avalonia.Layout.HorizontalAlignment.Right)
                             .Dock(Dock.Right)
@@ -39,7 +40,7 @@ public class ExtractingPanel: PZComponentBase
                     .Height(20)
                     .Width(360)
                     .Margin(0, 10, 0, 0),
-                SukiButton("Cancel", "Danger")
+                SukiButton(() => LOC.Base.Cancel, "Danger")
                     .Width(120)
                     .Margin(0, 20, 0, 0)
                     .OnClick(_ => CancelPacking())
@@ -57,11 +58,14 @@ public class ExtractingPanel: PZComponentBase
                 .Height(250)
                 .Child(BuildContent());
 
-        var mask = new Panel()
+        var mask = new Canvas()
+            .IsHitTestVisible(false)
             .Background(maskColor)
-            .Children(content);
+            .Opacity(0.4);
 
-        return mask;
+        return new Panel()
+            .Background(Brushes.Transparent)
+            .Children(mask, content);
     }
     
     private static ExplorerModel Model => ExplorerModel.Instance;
