@@ -34,10 +34,9 @@ public class NoteListPanel : PZComponentBase
 
     protected override Control Build()
     {
-        var borderColor = App.Instance.Suki.GetSukiColor("SukiBorderBrush");
         return new Border()
             .BorderThickness(0, 0, 1, 0)
-            .BorderBrush(borderColor)
+            .BorderBrush(() => Suki.GetSukiColor("SukiBorderBrush"))
             .Child(
                 Grid(null, "60, 1*").Children(
                     HStackPanel(VerticalAlignment.Center)

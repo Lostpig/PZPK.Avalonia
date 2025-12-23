@@ -21,15 +21,13 @@ public class InfoBar: PZComponentBase
     }
     protected override Control Build()
     {
-        var bgColor = App.Instance.Suki.GetSukiColor("SukiControlBorderBrush");
-
         return VStackPanel(HorizontalAlignment.Center).Classes("container")
             .Background(Brushes.Transparent)
             .Children(
                 new Border()
                     .Padding(25, 4, 25, 8)
                     .CornerRadius(10, 0)
-                    .Background(bgColor)
+                    .Background(() => Suki.GetSukiColor("SukiControlBorderBrush"))
                     .Child(
                         HStackPanel()
                             .Height(40)

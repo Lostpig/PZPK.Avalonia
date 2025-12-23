@@ -18,7 +18,7 @@ internal class MediaModel
 
     public BehaviorSubject<bool> Playing { get; init; } = new(false);
     public BehaviorSubject<double> Position { get; init; } = new(0);
-    public BehaviorSubject<double> Duration { get; init; } = new(0);
+    public BehaviorSubject<double> Duration { get; init; } = new(1);
     public BehaviorSubject<double> Volumn { get; init; } = new(100);
     public BehaviorSubject<bool> SliderHolding { get; init; } = new(false);
 

@@ -1,12 +1,14 @@
 ﻿using Avalonia;
 using Avalonia.Input;
 using Avalonia.Media;
+using Avalonia.Threading;
 using LibVLCSharp.Shared;
 using PZPK.Core;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Reactive.Linq;
+using System.Threading;
 
 namespace PZPK.Desktop.VideoPreview;
 
@@ -17,7 +19,7 @@ internal class VideoPreviewWindow : Window
     private readonly MediaPlayer _player;
     private Window _controllerWin;
     private readonly MediaModel _mediaModel;
-    private List<IDisposable> _subscriptions = [];
+    private readonly List<IDisposable> _subscriptions = [];
     public VideoPreviewWindow(LibVLC libVlc)
     {
         VLC = libVlc;
@@ -210,6 +212,10 @@ internal class VideoPreviewWindow : Window
                 _mediaModel.SeekEvent.Throttle(TimeSpan.FromSeconds(0.33))
                     .Subscribe(e => {
                         e.Handled = true;
+                        if (_player.State != VLCState.Playing && _player.State != VLCState.Paused)
+                        {
+                            return;
+                        }
 
                         var diff = e.NewValue - (_player.Time / 1000);
                         if (diff > 3 || diff < -3) 
@@ -235,6 +241,8 @@ internal class VideoPreviewWindow : Window
         _player.Stopped += Player_StateChanged;
         _player.Paused += Player_StateChanged;
         _player.TimeChanged += Player_TimeChanged;
+
+        _player.EndReached += Player_EndReached;
     }
 
     public void ChangeFile(int moved)
@@ -247,11 +255,11 @@ internal class VideoPreviewWindow : Window
 
         var newFile = Files[newValue];
         OpenFile(newFile);
-        _player.Play();
     }
 
     private void Player_LengthChanged(object? sender, EventArgs e)
     {
+        if (_player.Length <= 0) return;
         _mediaModel.Duration.OnNext(_player.Length / 1000.0);
     }
     private void Player_TimeChanged(object? sender, MediaPlayerTimeChangedEventArgs e)
@@ -261,17 +269,24 @@ internal class VideoPreviewWindow : Window
     }
     private void Player_StateChanged(object? sender, EventArgs e)
     {
+        Debug.WriteLine($"palyer state change to {_player.State}, progress ${_player.Time} / ${_player.Length}");
         _mediaModel.Playing.OnNext(_player.State == VLCState.Playing);
 
         var isStoped = _player.State != VLCState.Playing && _player.State != VLCState.Paused;
         if (isStoped)
         {
             _mediaModel.Position.OnNext(0);
-            if (_player.Time == _player.Length)
-            {
-                ChangeFile(1);
-            }
         }
+    }
+
+    private void Player_EndReached(object? sender, EventArgs e)
+    {
+        // cannot call Vlc from a Vlc callback
+        ThreadPool.QueueUserWorkItem(e => {
+            _player.Stop();
+            Thread.Sleep(300);
+            Dispatcher.UIThread.Post(() => ChangeFile(1));
+        });
     }
     #endregion
 
@@ -295,7 +310,7 @@ internal class VideoPreviewWindow : Window
 
         var current = Files.IndexOf(file);
         _mediaModel.Current.OnNext(current + 1);
-
+        _mediaModel.Name.OnNext(file.Name);
     }
     public void OpenStream(Stream stream)
     {
@@ -303,6 +318,8 @@ internal class VideoPreviewWindow : Window
 
         var input = new StreamMediaInput(stream);
         _player.Media = new Media(VLC, input);
+
+        _player.Play();
     }
     protected override void OnClosing(WindowClosingEventArgs e)
     {
@@ -310,6 +327,8 @@ internal class VideoPreviewWindow : Window
         base.OnClosing(e);
 
         Hide();
+        _player.Stop();
+        _player.Media?.Dispose();
     }
     protected override void OnClosed(EventArgs e)
     {

@@ -25,15 +25,13 @@ public class OperateBar: PZComponentBase
 
     protected override Control Build()
     {
-        var bgColor = App.Instance.Suki.GetSukiColor("SukiControlBorderBrush");
-
         return VStackPanel(HorizontalAlignment.Center).Classes("container")
                 .Background(Brushes.Transparent)
                 .Children(
                     new Border()
                         .Padding(5)
                         .CornerRadius(0, 10)
-                        .Background(bgColor)
+                        .Background(() => Suki.GetSukiColor("SukiControlBorderBrush"))
                         .Child(
                             HStackPanel()
                                 .Height(40)

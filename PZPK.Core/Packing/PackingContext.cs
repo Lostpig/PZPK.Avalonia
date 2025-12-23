@@ -54,7 +54,7 @@ internal class PackingContext
     {
         ProgressState.CurrentBytes = total;
         ProgressState.CurrentProcessedBytes = processed;
-        Progress?.Report(ProgressState);
+        Progress?.Report(ProgressState with { ProcessedBytes = ProgressState.ProcessedBytes + processed });
     }
     public void FileComplete(PZIndexFile file, long processedSize, long offset, string? newName, long? newSize)
     {

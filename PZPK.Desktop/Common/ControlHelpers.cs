@@ -6,6 +6,7 @@ using Material.Icons.Avalonia;
 using SukiUI.Controls;
 using System.Collections;
 using System.Reactive.Subjects;
+using TextMateSharp.Themes;
 
 namespace PZPK.Desktop.Common;
 
@@ -136,25 +137,19 @@ internal static class ControlHelpers
         return icon;
     }
 
-    public static Rectangle PzSeparatorV(int height = 1, IBrush? color = null)
+    public static Rectangle PzSeparatorV(int height = 1)
     {
-        color ??= App.Instance.Suki.GetSukiColor("SukiControlBorderBrush");
         return new Rectangle()
-        {
-            Height = height,
-            Fill = color,
-            HorizontalAlignment = HorizontalAlignment.Stretch
-        };
+            .Height(height)
+            .HorizontalAlignment(HorizontalAlignment.Stretch)
+            .Fill(() => App.Instance.Suki.GetSukiColor("SukiControlBorderBrush"));
     }
-    public static Rectangle PzSeparatorH(int width = 1, IBrush? color = null)
+    public static Rectangle PzSeparatorH(int width = 1)
     {
-        color ??= App.Instance.Suki.GetSukiColor("SukiControlBorderBrush");
         return new Rectangle()
-        {
-            Width = width,
-            Fill = color,
-            VerticalAlignment = VerticalAlignment.Stretch
-        };
+            .Width(width)
+            .VerticalAlignment(VerticalAlignment.Stretch)
+            .Fill(() => App.Instance.Suki.GetSukiColor("SukiControlBorderBrush"));
     }
 
     public static Stepper Index(this Stepper control, IObservable<int> obs)

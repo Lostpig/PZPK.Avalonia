@@ -3,6 +3,7 @@ using PZPK.Core;
 using PZPK.Core.Packing;
 using PZPK.Core.Utility;
 using PZPK.Desktop.Common;
+using System;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Threading;
@@ -77,12 +78,30 @@ public class PackingInfomation
     public IObservable<double> Percent { get; init; }
     public IObservable<string> FilesText { get; init; }
     public IObservable<string> BytesText { get; init; }
+    public IObservable<string> TimerText { get; init; }
+    public IObservable<string> SpeedText { get; init; }
+
+    public DateTime StartTime { get; private set; } = DateTime.MaxValue;
 
     public PackingInfomation()
     {
         Percent = Progress.Where(p => p.Bytes > 0).Select(p => ComputePercent(p.ProcessedBytes, p.Bytes));
         FilesText = Progress.Select(p => $"{p.ProcessedFiles} / {p.Files}");
         BytesText = Progress.Select(p => $"{ComputeFileSize(p.ProcessedBytes)} / {ComputeFileSize(p.Bytes)}");
+        TimerText = Progress.Select(_ => {
+            if (StartTime > DateTime.Now || !Running.Value) return "00:00:00";
+            else return (DateTime.Now - StartTime).ToString(@"hh\:mm\:ss");
+        });
+        SpeedText = Progress.Select(p => {
+            if (StartTime > DateTime.Now || !Running.Value) return "-";
+            else return ComputeFileSize(p.ProcessedBytes / (DateTime.Now - StartTime).TotalSeconds) + "/s";
+        });
+
+        Running.Subscribe(r => 
+        {
+            if (r) StartTime = DateTime.Now;
+            else StartTime = DateTime.MaxValue;
+        });
     }
 
     public void Reset()
@@ -204,15 +223,13 @@ public class CreatorModel : PageModelBase
         try
         {
             IImageResizer? imageResizer = GetImageResizer();
-            DateTime startTime = DateTime.Now;
             CancelSource = new CancellationTokenSource();
             PackingInfo.Running.OnNext(true);
             long total = await Packer.PackAsync(savePath, Index, options, progress, imageResizer, CancelSource.Token);
-            PackingInfo.Running.OnNext(false);
-
+            
             Toast.Success(LOC.Message.PackingComplete);
+            Completed.OnNext(new(savePath, total, Index.FilesCount, DateTime.Now - PackingInfo.StartTime));
             NextStep();
-            Completed.OnNext(new(savePath, total, Index.FilesCount, DateTime.Now - startTime));
         }
         catch (OperationCanceledException)
         {
@@ -227,6 +244,7 @@ public class CreatorModel : PageModelBase
         finally
         {
             CancelSource = null;
+            PackingInfo.Running.OnNext(false);
         }
     }
 
@@ -245,7 +263,6 @@ public class CreatorModel : PageModelBase
                     h => progress.ProgressChanged -= h
                 ).Select(p => p.EventArgs).Subscribe(PackingInfo.Progress.OnNext);
 
-            DateTime startTime = DateTime.Now;
             CancelSource = new CancellationTokenSource();
             PackingInfo.Running.OnNext(true);
             await Task.Run(() =>
@@ -267,18 +284,18 @@ public class CreatorModel : PageModelBase
                     }
                 }
             });
-            PackingInfo.Running.OnNext(false);
 
             if (CancelSource.IsCancellationRequested)
             {
                 PackingInfo.Progress.OnNext(new(Index.FilesCount, Index.SumFilesSize()));
                 Toast.Warning("Info", "Packing canceled!");
+                PackingInfo.Running.OnNext(false);
             }
             else
             {
                 Toast.Success("Success", "Packing complete!");
+                Completed.OnNext(new("Test://path", bytes, filesCount, DateTime.Now - PackingInfo.StartTime));
                 NextStep();
-                Completed.OnNext(new("Test://path", bytes, filesCount, DateTime.Now - startTime));
             }
 
             CancelSource = null;

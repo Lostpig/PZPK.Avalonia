@@ -14,11 +14,10 @@ public class OpenFilePanel : PZComponentBase
 {
     private StackPanel BuildOpenTab()
     {
-        var primaryColor = App.Instance.Suki.GetSukiColor("SukiPrimaryColor");
         return VStackPanel(HorizontalAlignment.Stretch)
                 .Children(
                     MaterialIcon(MaterialIconKind.BookAdd, 32)
-                        .Foreground(primaryColor),
+                        .Foreground(() => Suki.GetSukiColor("SukiPrimaryColor")),
                     PzText(() => LOC.Message.OpenPZPKNotebook)
                         .FontSize(20)
                         .Margin(0, 5, 0, 27)
@@ -48,11 +47,10 @@ public class OpenFilePanel : PZComponentBase
     }
     private StackPanel BuildCreateTab()
     {
-        var primaryColor = App.Instance.Suki.GetSukiColor("SukiPrimaryColor");
         return VStackPanel(HorizontalAlignment.Stretch)
                 .Children(
                     MaterialIcon(MaterialIconKind.BookEdit, 32)
-                        .Foreground(primaryColor),
+                        .Foreground(() => Suki.GetSukiColor("SukiPrimaryColor")),
                     PzText(() => LOC.Message.CreatePZPKNotebook)
                         .FontSize(20)
                         .Margin(0, 5, 0, 27)

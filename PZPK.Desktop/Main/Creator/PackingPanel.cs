@@ -1,4 +1,5 @@
-﻿using Avalonia.Platform.Storage;
+﻿using Avalonia.Media;
+using Avalonia.Platform.Storage;
 using System.IO;
 using System.Reactive.Linq;
 
@@ -47,8 +48,18 @@ internal class PackingPanel : PZComponentBase
                             .HorizontalAlignment(Avalonia.Layout.HorizontalAlignment.Right)
                             .Dock(Dock.Right)
                     ),
+                new DockPanel().Height(20).Width(300).Margin(0, 30, 0, 0)
+                    .Children(
+                        PzText(packing.TimerText).Dock(Dock.Left),
+                        PzText(packing.SpeedText)
+                            .HorizontalAlignment(Avalonia.Layout.HorizontalAlignment.Right)
+                            .Dock(Dock.Right)
+                    ),
+                PzText(packing.Percent.Select(p => $"{p:f1}%"))
+                    .Margin(0, 20, 0, 0)
+                    .TextAlignment(TextAlignment.Center)
+                    .HorizontalAlignment(Avalonia.Layout.HorizontalAlignment.Center),
                 new ProgressBar()
-                    .Margin(0, 30, 0, 0)
                     .Height(20).Width(480)
                     .Minimum(0).Maximum(100)
                     .Value(packing.Percent),

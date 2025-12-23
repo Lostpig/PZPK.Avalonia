@@ -48,11 +48,8 @@ public class ExtractingPanel: PZComponentBase
     }
     protected override Control Build()
     {
-        var maskColor = App.Instance.Suki.GetSukiColor("SukiDialogBackground");
-        var contentColor = App.Instance.Suki.GetSukiColor("SukiCardBackground");
-
         var content = new Border()
-                .Background(contentColor)
+                .Background(() => Suki.GetSukiColor("SukiCardBackground"))
                 .CornerRadius(10)
                 .Width(380)
                 .Height(250)
@@ -60,7 +57,7 @@ public class ExtractingPanel: PZComponentBase
 
         var mask = new Canvas()
             .IsHitTestVisible(false)
-            .Background(maskColor)
+            .Background(() => Suki.GetSukiColor("SukiDialogBackground"))
             .Opacity(0.4);
 
         return new Panel()

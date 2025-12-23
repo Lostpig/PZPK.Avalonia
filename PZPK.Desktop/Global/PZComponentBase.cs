@@ -1,16 +1,20 @@
-﻿using PZPK.Desktop.Localization;
+﻿using PZPK.Desktop.Common;
+using PZPK.Desktop.Localization;
+using SukiUI;
 
 namespace PZPK.Desktop.Global;
 
 public abstract class PZComponentBase: ComponentBase
 {
+    protected static SukiHelpers Suki => App.Instance.Suki;
     protected PZComponentBase(): base()
     {
-        Translate.LanguageChanged += OnLanguageChanged;
+        Translate.LanguageChanged += UpdateState;
+        Settings.ThemeChanged += UpdateState;
     }
-
-    protected void OnLanguageChanged()
+    protected PZComponentBase(ViewInitializationStrategy s) : base(s)
     {
-        UpdateState();
+        Translate.LanguageChanged += UpdateState;
+        Settings.ThemeChanged += UpdateState;
     }
 }

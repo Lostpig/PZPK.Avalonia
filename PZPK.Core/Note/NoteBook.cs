@@ -54,32 +54,32 @@ public class NoteBook : IDisposable
         using FileStream stream = File.Open(FilePath, FileMode.Create);
         stream.Seek(PZNoteHeader.Size, SeekOrigin.Begin);
 
-        Span<byte> noteDataBuffer = new byte[Constants.Sizes.t_256KB];
+        Span<byte> noteBuf = new byte[Constants.Sizes.t_256KB];
+        Span<byte> encBuf = new byte[Constants.Sizes.t_256KB];
+        Span<byte> idxBuf = new byte[Constants.Sizes.t_256KB];
         using MemoryStream indexStream = new();
         foreach (var note in Notes)
         {
             // write note data
-            var length = note.Encode(noteDataBuffer);
-            var encryptedNoteData = noteDataBuffer[length..];
-            var encLength = Crypto.Encrypt(noteDataBuffer[..length], encryptedNoteData);
+            var length = note.Encode(noteBuf);
+            var encLength = Crypto.Encrypt(noteBuf[..length], encBuf);
             int noteOffset = (int)stream.Position;
-            stream.Write(encryptedNoteData[..encLength]);
+            stream.Write(encBuf[..encLength]);
             // write index data
-            var indexPart = noteDataBuffer[(length + encLength)..];
-            var titleLength = Encoding.UTF8.GetBytes(note.Title, indexPart[16..]);
+            var titleLength = Encoding.UTF8.GetBytes(note.Title, idxBuf[16..]);
             int partLength = 4 + 4 + 4 + 4 + titleLength;
-            BitConverter.TryWriteBytes(indexPart[..4], partLength);
-            BitConverter.TryWriteBytes(indexPart[4..8], note.Id);
-            BitConverter.TryWriteBytes(indexPart[8..12], noteOffset);
-            BitConverter.TryWriteBytes(indexPart[12..16], encLength);
-            indexStream.Write(indexPart[..partLength]);
+            BitConverter.TryWriteBytes(idxBuf[..4], partLength);
+            BitConverter.TryWriteBytes(idxBuf[4..8], note.Id);
+            BitConverter.TryWriteBytes(idxBuf[8..12], noteOffset);
+            BitConverter.TryWriteBytes(idxBuf[12..16], encLength);
+            indexStream.Write(idxBuf[..partLength]);
         }
 
         int indexOffset = (int)stream.Position;
-        var indexData = noteDataBuffer[..(int)indexStream.Length];
+        var indexData = idxBuf[..(int)indexStream.Length];
         indexStream.Seek(0, SeekOrigin.Begin);
         indexStream.ReadExactly(indexData);
-        var encrptedIndexData = noteDataBuffer[(int)indexStream.Length..];
+        var encrptedIndexData = idxBuf[(int)indexStream.Length..];
         var encrptedIndexLength = Crypto.Encrypt(indexData, encrptedIndexData);
         stream.Write(encrptedIndexData[..encrptedIndexLength]);
         int fileSize = (int)stream.Length;
@@ -89,10 +89,10 @@ public class NoteBook : IDisposable
         bw.Write(Constants.Version);
         bw.Write((int)PZType.Note);
 
-        Constants.GetTypeHashSign(PZType.Note, noteDataBuffer[..32]);
-        bw.Write(noteDataBuffer[..32]);
-        var pwCheck = noteDataBuffer[32..96];
-        var pwCheckLen = Crypto.Encrypt(noteDataBuffer[..32], pwCheck);
+        Constants.GetTypeHashSign(PZType.Note, noteBuf[..32]);
+        bw.Write(noteBuf[..32]);
+        var pwCheck = noteBuf[32..96];
+        var pwCheckLen = Crypto.Encrypt(noteBuf[..32], pwCheck);
         Debug.Assert(pwCheckLen == 64);
 
         bw.Write(pwCheck);

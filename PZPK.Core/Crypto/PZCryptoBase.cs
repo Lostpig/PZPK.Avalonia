@@ -114,6 +114,7 @@ internal class PZCryptoBase : IDisposable
             destination.Write(written);
 
             totalWritten += writtenBytes;
+            // Thread.Sleep(300); // DEBUG
         }
         return totalWritten;
     }

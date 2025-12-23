@@ -6,7 +6,7 @@ using SukiUI.Models;
 
 namespace PZPK.Desktop.Common;
 
-internal class SukiHelpers
+public class SukiHelpers
 {
     private static Color GetDynamicColor(string key)
     {

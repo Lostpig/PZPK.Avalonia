@@ -11,9 +11,23 @@ using System.Reactive.Subjects;
 
 namespace PZPK.Desktop.VideoPreview;
 
-internal class PlayerController : ComponentBase
+internal class PlayerController : PZComponentBase
 {
     private readonly MediaModel _model;
+
+    private static TextBlock CtrlText(IObservable<string> t)
+    {
+        return PzText(t)
+            .VerticalAlignment(VerticalAlignment.Center)
+            .Foreground(() => Suki.GetSukiColor("SukiText"));
+    }
+    private static TextBlock CtrlText(string t)
+    {
+        return PzText(t)
+            .VerticalAlignment(VerticalAlignment.Center)
+            .Foreground(() => Suki.GetSukiColor("SukiInformationForeground"));
+    }
+
     private Grid BuildControls()
     {
         return Grid("1*, 50, 150").Margin(20, 0)
@@ -31,14 +45,14 @@ internal class PlayerController : ComponentBase
                             .RxClick(_model.StopEvent),
                         PzSeparatorH(),
                         IconButton(MaterialIconKind.PreviousTitle).RxClick(_model.PrevEvent),
-                        PzText(_model.Current.Select(i => i.ToString())).VerticalAlignment(VerticalAlignment.Center),
-                        PzText("/").VerticalAlignment(VerticalAlignment.Center),
-                        PzText(_model.Total.Select(i => i.ToString())).VerticalAlignment(VerticalAlignment.Center),
+                        CtrlText(_model.Current.Select(i => i.ToString())),
+                        CtrlText("/"),
+                        CtrlText(_model.Total.Select(i => i.ToString())),
                         IconButton(MaterialIconKind.NextTitle).RxClick(_model.NextEvent),
                         PzSeparatorH(),
-                        PzText(_model.PositionText).VerticalAlignment(VerticalAlignment.Center),
-                        PzText("/").VerticalAlignment(VerticalAlignment.Center),
-                        PzText(_model.DurationText).VerticalAlignment(VerticalAlignment.Center)
+                        CtrlText(_model.PositionText),
+                        CtrlText("/"),
+                        CtrlText(_model.DurationText)
                     ),
                 HStackPanel().Col(2)
                     .Children(
@@ -69,19 +83,19 @@ internal class PlayerController : ComponentBase
     }
     private Grid BuildControllerBar(Grid bar)
     {
-        var maskColor = App.Instance.Suki.GetSukiColor("SukiDialogBackground");
         return bar
-            .Height(100)
+            .Height(110)
             .Background(Brushes.Transparent)
             .Children(
                 new Canvas()
                     .IsHitTestVisible(false)
-                    .Background(maskColor)
-                    .Opacity(0.75),
-                Grid(null, "30, 40, 10").VerticalAlignment(VerticalAlignment.Bottom)
+                    .Background(() => Suki.GetSukiColor("SukiDialogBackground"))
+                    .Opacity(0.9),
+                Grid(null, "30, 30, 40, 10").VerticalAlignment(VerticalAlignment.Bottom)
                     .Children(
-                        BuildProgress().Row(0),
-                        BuildControls().Row(1)
+                        CtrlText(_model.Name).Row(0).Margin(15, 0),
+                        BuildProgress().Row(1),
+                        BuildControls().Row(2)
                     )
             );
     }

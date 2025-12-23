@@ -42,9 +42,6 @@ public class IndexPanel : PZComponentBase
     }
     private StackPanel DirStackFuncTemplete(PZIndexFolder folder)
     {
-        var normalBg = App.Instance.Suki.GetSukiColor("SukiBackground");
-        var highlightBg = App.Instance.Suki.GetSukiColor("SukiStrongBackground");
-
         static PathIcon createArrow() => new()
         {
             Data = Icons.ChevronRight,
@@ -67,14 +64,13 @@ public class IndexPanel : PZComponentBase
         }
 
         btn.PointerReleased += (_, _) => Current.OnNext(folder);
-        btn.PointerEntered += (_, _) => btn.Background = highlightBg;
-        btn.PointerExited += (_, _) => btn.Background = normalBg;
+        btn.PointerEntered += (_, _) => btn.Background = Suki.GetSukiColor("SukiStrongBackground");
+        btn.PointerExited += (_, _) => btn.Background = Suki.GetSukiColor("SukiBackground");
 
         return HStackPanel().Children(btn, createArrow());
     }
     override protected Control Build()
     {
-        var suki = App.Instance.Suki;
         var items = Current.CombineLatest(Changed)
                 .Select(t => Index.GetItems(t.First, false).Sorted(NaturalPZItemComparer.Instance));
         var dirStack = Current.Select(fo => Index.GetFolderResolveStack(fo));
@@ -85,7 +81,7 @@ public class IndexPanel : PZComponentBase
                     .Margin(18, 0)
                     .CornerRadius(4)
                     .VerticalAlignment(VerticalAlignment.Center)
-                    .Background(() => suki.GetSukiColor("SukiGlassCardBackground"))
+                    .Background(() => Suki.GetSukiColor("SukiGlassCardBackground"))
                     .Child(
                         new ItemsControl()
                             .ItemsPanel(HStackPanel())

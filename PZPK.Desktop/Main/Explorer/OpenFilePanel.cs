@@ -10,8 +10,6 @@ public class OpenFilePanel : PZComponentBase
 {
     protected override Control Build()
     {
-        var primaryColor = App.Instance.Suki.GetSukiColor("SukiPrimaryColor");
-
         return new GlassCard()
             .Width(380)
             .Height(360)
@@ -19,7 +17,7 @@ public class OpenFilePanel : PZComponentBase
                 VStackPanel(HorizontalAlignment.Stretch)
                     .Children(
                         MaterialIcon(MaterialIconKind.FolderOpen, 48)
-                            .Foreground(primaryColor),
+                            .Foreground(() => Suki.GetSukiColor("SukiPrimaryColor")),
                         PzText(() => LOC.Message.OpenPZPKFile)
                             .FontSize(20)
                             .Margin(0, 5, 0, 27)

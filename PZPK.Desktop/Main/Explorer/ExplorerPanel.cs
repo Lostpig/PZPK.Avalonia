@@ -22,7 +22,6 @@ public class ExplorerPanel : PZComponentBase
 {
     private Border BuildPackageDetail()
     {
-        var suki = App.Instance.Suki;
         var pkg = Model.Package;
         static string infoFormat(Package p)
         {
@@ -40,7 +39,7 @@ public class ExplorerPanel : PZComponentBase
             .Padding(20, 0)
             .HorizontalAlignment(HorizontalAlignment.Stretch)
             .BorderThickness(1, 0)
-            .BorderBrush(() => suki.GetSukiColor("SukiLowText"))
+            .BorderBrush(() => Suki.GetSukiColor("SukiLowText"))
             .Child(
                 VStackPanel()
                     .Children(
@@ -75,9 +74,7 @@ public class ExplorerPanel : PZComponentBase
     private StackPanel DirStackFuncTemplete(PZFolder folder)
     {
         if (Index == null) return new StackPanel();
-
-        var normalBg = App.Instance.Suki.GetSukiColor("SukiBackground");
-        var highlightBg = App.Instance.Suki.GetSukiColor("SukiStrongBackground");
+        var suki = App.Instance.Suki;
 
         static PathIcon createArrow() => new()
         {
@@ -101,8 +98,8 @@ public class ExplorerPanel : PZComponentBase
         }
 
         btn.PointerReleased += (_, _) => Current.OnNext(folder);
-        btn.PointerEntered += (_, _) => btn.Background = highlightBg;
-        btn.PointerExited += (_, _) => btn.Background = normalBg;
+        btn.PointerEntered += (_, _) => btn.Background = suki.GetSukiColor("SukiStrongBackground");
+        btn.PointerExited += (_, _) => btn.Background = suki.GetSukiColor("SukiBackground");
 
         return HStackPanel().Children(btn, createArrow());
     }
@@ -117,7 +114,6 @@ public class ExplorerPanel : PZComponentBase
 
     protected override Control Build()
     {
-        var suki = App.Instance.Suki;
         var dirStack = Current.Select(fo => {
                 if (fo != null && Index != null) return Index.GetFolderResolveStack(fo);
                 else return [];
@@ -149,7 +145,7 @@ public class ExplorerPanel : PZComponentBase
                     .Margin(18, 0)
                     .CornerRadius(4)
                     .VerticalAlignment(VerticalAlignment.Center)
-                    .Background(() => suki.GetSukiColor("SukiGlassCardBackground"))
+                    .Background(() => Suki.GetSukiColor("SukiGlassCardBackground"))
                     .Child(
                         new ItemsControl()
                             .ItemsSource(dirStack)

@@ -5,7 +5,7 @@ namespace PZPK.Core.Note;
 
 public class Note
 {
-    const int MaxSize = 64 * 1024; // 64 KB
+    const int MaxSize = 256 * 1024; // 256 KB
 
     public int Id { get; init; }
     public string Title { get; private set; }

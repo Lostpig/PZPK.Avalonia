@@ -40,6 +40,8 @@ public static class Settings
         return defaultValue;
     }
 
+    public static event Action? ThemeChanged;
+
     public static ThemeVariant BaseTheme
     {
         get 
@@ -62,6 +64,7 @@ public static class Settings
 
             Set(SettingsField.BaseTheme, v);
             SukiTheme.GetInstance().ChangeBaseTheme(value);
+            ThemeChanged?.Invoke();
         }
     }
     public static SukiColorTheme ColorTheme
@@ -86,6 +89,7 @@ public static class Settings
 
             Set(SettingsField.ColorTheme, v);
             SukiTheme.GetInstance().ChangeColorTheme(value);
+            ThemeChanged?.Invoke();
         }
     }
     public static LanguageItem Language

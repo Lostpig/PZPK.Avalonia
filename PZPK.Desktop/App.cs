@@ -6,7 +6,7 @@ using PZPK.Desktop.VideoPreview;
 
 namespace PZPK.Desktop;
 
-internal class App
+public class App
 {
     static private App? _instance;
     static public App Instance {
