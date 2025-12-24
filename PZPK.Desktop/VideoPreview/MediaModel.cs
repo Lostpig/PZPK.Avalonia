@@ -1,22 +1,24 @@
 ﻿using Avalonia.Controls.Primitives;
-using Avalonia.Input;
 using Avalonia.Interactivity;
 using LibVLCSharp.Shared;
-using PZPK.Desktop.Common;
-using System.Diagnostics;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
-using TextMateSharp.Model;
 
 namespace PZPK.Desktop.VideoPreview;
 
+internal enum PlayAction
+{
+    Play,
+    Pause,
+    Stop
+}
 internal class MediaModel
 {
     public BehaviorSubject<string> Name { get; init; } = new("");
     public BehaviorSubject<int> Current { get; init; } = new(0);
     public BehaviorSubject<int> Total { get; init; } = new(0);
 
-    public BehaviorSubject<bool> Playing { get; init; } = new(false);
+    public BehaviorSubject<VLCState> State { get; init; } = new(VLCState.NothingSpecial);
     public BehaviorSubject<double> Position { get; init; } = new(0);
     public BehaviorSubject<double> Duration { get; init; } = new(1);
     public BehaviorSubject<double> Volumn { get; init; } = new(100);
@@ -25,12 +27,11 @@ internal class MediaModel
     public IObservable<string> DurationText { get; init; }
     public IObservable<string> PositionText { get; init; }
 
-    public Subject<RoutedEventArgs> PlayEvent { get; init; } = new();
-    public Subject<RoutedEventArgs> PauseEvent { get; init; } = new();
-    public Subject<RoutedEventArgs> StopEvent { get; init; } = new();
+    public Subject<PlayAction> PlayEvent { get; init; } = new();
     public Subject<RangeBaseValueChangedEventArgs> SeekEvent { get; init; } = new();
     public Subject<RoutedEventArgs> NextEvent { get; init; } = new();
     public Subject<RoutedEventArgs> PrevEvent { get; init; } = new();
+    public Subject<double> ForwardChange { get; init; } = new();
 
     public MediaModel()
     {

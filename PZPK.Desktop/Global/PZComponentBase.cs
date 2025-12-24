@@ -1,6 +1,5 @@
 ﻿using PZPK.Desktop.Common;
 using PZPK.Desktop.Localization;
-using SukiUI;
 
 namespace PZPK.Desktop.Global;
 

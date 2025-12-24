@@ -4,7 +4,10 @@ using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Threading;
+using LibVLCSharp.Shared;
 using Material.Icons;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
@@ -14,6 +17,14 @@ namespace PZPK.Desktop.VideoPreview;
 internal class PlayerController : PZComponentBase
 {
     private readonly MediaModel _model;
+
+    protected override StyleGroup? BuildStyles()
+    {
+        return [
+            new Style<Button>().Focusable(false),
+            new Style<RepeatButton>().Focusable(false)  // TODO: this is SukiUI bug
+        ];
+    }
 
     private static TextBlock CtrlText(IObservable<string> t)
     {
@@ -36,13 +47,13 @@ internal class PlayerController : PZComponentBase
                     .Spacing(10)
                     .Children(
                         IconButton(MaterialIconKind.Play)
-                            .IsVisible(_model.Playing.Select(x => !x))
-                            .RxClick(_model.PlayEvent),
+                            .IsVisible(_model.State.Select(s => s != VLCState.Playing))
+                            .OnClick(_ => _model.PlayEvent.OnNext(PlayAction.Play)),
                         IconButton(MaterialIconKind.Pause)
-                            .IsVisible(_model.Playing)
-                            .RxClick(_model.PauseEvent),
+                            .IsVisible(_model.State.Select(s => s == VLCState.Playing))
+                            .OnClick(_ => _model.PlayEvent.OnNext(PlayAction.Pause)),
                         IconButton(MaterialIconKind.Stop)
-                            .RxClick(_model.StopEvent),
+                            .OnClick(_ => _model.PlayEvent.OnNext(PlayAction.Stop)),
                         PzSeparatorH(),
                         IconButton(MaterialIconKind.PreviousTitle).RxClick(_model.PrevEvent),
                         CtrlText(_model.Current.Select(i => i.ToString())),
@@ -60,6 +71,7 @@ internal class PlayerController : PZComponentBase
                         new Slider().Width(120).Margin(10, 0)
                             .Cursor(new Cursor(StandardCursorType.Hand))
                             .IsSnapToTickEnabled(false)
+                            .Focusable(false)
                             .Maximum(100)
                             .Minimum(0)
                             .Value(_model.Volumn)
@@ -71,12 +83,13 @@ internal class PlayerController : PZComponentBase
         return new Slider()
             .Margin(10, 0)
             .Cursor(new Cursor(StandardCursorType.Hand))
+            .Focusable(false)
             .IsSnapToTickEnabled(false)
             .Maximum(_model.Duration)
             .Minimum(0)
             .Value(_model.Position)
-            .SmallChange(3)
-            .LargeChange(3)
+            .SmallChange(5)
+            .LargeChange(5)
             .OnPointerPressed(_ => _model.SliderHolding.OnNext(true))
             .OnPointerReleased(_ => _model.SliderHolding.OnNext(false))
             .RxValueChanged(_model.SeekEvent);
@@ -103,6 +116,7 @@ internal class PlayerController : PZComponentBase
     protected override Control Build()
     {
         return new DockPanel()
+                .Focusable(true)
                 .Background(Brushes.Transparent)
                 .LastChildFill(false)
                 .Children(
@@ -117,6 +131,7 @@ internal class PlayerController : PZComponentBase
 
         Initialize();
         InitializeEvents();
+        InitializeHotKey();
     }
     protected override IEnumerable<IDisposable> WhenActivate()
     {
@@ -177,4 +192,88 @@ internal class PlayerController : PZComponentBase
         LastMousePosition = currentPosition;
         Hider.OnNext(Unit.Default);
     }
+
+    #region hotkey
+    private DispatcherTimer KeyDownTimer;
+    private Key? CurrentDownKey;
+
+    [MemberNotNull(nameof(KeyDownTimer))]
+    private void InitializeHotKey()
+    {
+        KeyDown += HotKeyDown;
+        KeyUp += HotKeyUp;
+
+        KeyDownTimer = new DispatcherTimer(DispatcherPriority.Background)
+        {
+            Interval = TimeSpan.FromMilliseconds(333),
+            IsEnabled = true,
+        };
+        KeyDownTimer.Tick += (e, s) =>
+        {
+            if (CurrentDownKey.HasValue)
+            {
+                MoveForward(CurrentDownKey.Value);
+            }
+            else
+            {
+                KeyDownTimer.Stop();
+            }
+        };
+        LostFocus += (e, s) =>
+        {
+            if (CurrentDownKey != null)
+            {
+                CurrentDownKey = null;
+                KeyDownTimer.Stop();
+            }
+        };
+    }
+
+    private void HotKeyDown(object? sender, KeyEventArgs e)
+    {
+        Debug.WriteLine("key down:" + e.Key);
+        // e.Handled = true;
+        if (e.Key == Key.Left || e.Key == Key.Right)
+        {
+            CurrentDownKey = e.Key;
+            MoveForward(CurrentDownKey.Value);
+            KeyDownTimer.Start();
+        }
+        else if (e.Key == Key.Space)
+        {
+            if (_model.State.Value == VLCState.Playing)
+            {
+                _model.PlayEvent.OnNext(PlayAction.Pause);
+            }
+            else
+            {
+                _model.PlayEvent.OnNext(PlayAction.Play);
+            }
+        }
+    }
+    private void HotKeyUp(object? sender, KeyEventArgs e)
+    {
+        // e.Handled = true;
+        if (e.Key == Key.Left || e.Key == Key.Right)
+        {
+            if (e.Key == CurrentDownKey)
+            {
+                CurrentDownKey = null;
+                KeyDownTimer.Stop();
+            }
+        }
+    }
+    private void MoveForward(Key key)
+    {
+        if (key == Key.Left)
+        {
+            _model.ForwardChange.OnNext(-5);
+        }
+        else if (key == Key.Right)
+        {
+            _model.ForwardChange.OnNext(5);
+        }
+    }
+    #endregion
+
 }

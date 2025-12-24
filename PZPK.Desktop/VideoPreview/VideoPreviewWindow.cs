@@ -2,13 +2,16 @@
 using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.Threading;
+using Avalonia.Utilities;
 using LibVLCSharp.Shared;
 using PZPK.Core;
+using PZPK.Desktop.Common;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Reactive.Linq;
 using System.Threading;
+using TextMateSharp.Model;
 
 namespace PZPK.Desktop.VideoPreview;
 
@@ -57,6 +60,9 @@ internal class VideoPreviewWindow : Window
             DataContext = DataContext,
             Content = new PlayerController(_mediaModel)
         };
+#if DEBUG
+        _controllerWin.AttachDevTools();
+#endif
 
         Opened += ShowControllerWindow;
         LayoutUpdated += LayoutUpdate;
@@ -203,27 +209,31 @@ internal class VideoPreviewWindow : Window
     public void InitializeEvent()
     {
         _subscriptions.AddRange(
-                _mediaModel.PlayEvent.Subscribe(_ => {
-                        if (_player.State == VLCState.Paused) _player.Pause();
-                        else _player.Play();
-                    }),
-                _mediaModel.PauseEvent.Subscribe(_ => _player.Pause()),
-                _mediaModel.StopEvent.Subscribe(_ => _player.Stop()),
-                _mediaModel.SeekEvent.Throttle(TimeSpan.FromSeconds(0.33))
-                    .Subscribe(e => {
-                        e.Handled = true;
-                        if (_player.State != VLCState.Playing && _player.State != VLCState.Paused)
-                        {
-                            return;
-                        }
+                _mediaModel.PlayEvent.Subscribe(a => {
+                    if (a == PlayAction.Play) _player.Play();
+                    else if (a == PlayAction.Pause) _player.Pause();
+                    else if (a == PlayAction.Stop) _player.Stop();
+                }),
 
-                        var diff = e.NewValue - (_player.Time / 1000);
-                        if (diff > 3 || diff < -3) 
-                        {
-                            Debug.WriteLine($"Player seek from {_player.Time / 1000} to {e.NewValue}");
-                            _player.SeekTo(TimeSpan.FromSeconds(e.NewValue));
-                        }
-                    }),
+                _mediaModel.SeekEvent
+                .Where(_ => _mediaModel.SliderHolding.Value)
+                .Throttle(TimeSpan.FromSeconds(0.33))
+                .Subscribe(e =>
+                {
+                    e.Handled = true;
+                    if (_player.State != VLCState.Playing && _player.State != VLCState.Paused)
+                    {
+                        return;
+                    }
+
+                    _player.SeekTo(TimeSpan.FromSeconds(e.NewValue));
+                }),
+
+                _mediaModel.ForwardChange.Subscribe(v => {
+                    var newValue = (_player.Time / 1000.0) + v;
+                    _player.SeekTo(TimeSpan.FromSeconds(newValue));
+                }),
+
                 _mediaModel.Volumn.Subscribe(n => _player.Volume = (int)n),
                 _mediaModel.PrevEvent.Subscribe(_ => ChangeFile(-1)),
                 _mediaModel.NextEvent.Subscribe(_ => ChangeFile(1))
@@ -270,7 +280,7 @@ internal class VideoPreviewWindow : Window
     private void Player_StateChanged(object? sender, EventArgs e)
     {
         Debug.WriteLine($"palyer state change to {_player.State}, progress ${_player.Time} / ${_player.Length}");
-        _mediaModel.Playing.OnNext(_player.State == VLCState.Playing);
+        _mediaModel.State.OnNext(_player.State);
 
         var isStoped = _player.State != VLCState.Playing && _player.State != VLCState.Paused;
         if (isStoped)

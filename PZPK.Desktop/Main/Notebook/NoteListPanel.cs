@@ -1,7 +1,5 @@
-﻿using Avalonia.Input;
-using Avalonia.Interactivity;
+﻿using Avalonia.Interactivity;
 using Avalonia.Layout;
-using Avalonia.Media;
 using Avalonia.Styling;
 using Material.Icons;
 
