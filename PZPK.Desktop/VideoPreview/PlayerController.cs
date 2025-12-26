@@ -36,7 +36,7 @@ internal class PlayerController : PZComponentBase
     {
         return PzText(t)
             .VerticalAlignment(VerticalAlignment.Center)
-            .Foreground(() => Suki.GetSukiColor("SukiInformationForeground"));
+            .Foreground(() => Suki.GetSukiColor("SukiText"));
     }
 
     private Grid BuildControls()

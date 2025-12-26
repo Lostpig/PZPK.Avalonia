@@ -51,26 +51,25 @@ public static class Packer
         using BinaryWriter bw = new(writer, Encoding.Default, true);
         bw.Seek(0, SeekOrigin.Begin);
 
-        bw.Write(Constants.Version);
-        bw.Write((int)context.Options.Type);
-        Span<byte> buffer = stackalloc byte[256];
+        bw.Write(Constants.Version);                // 4
+        bw.Write((int)context.Options.Type);        // 8
 
-        var signBuf = buffer[..32];
-        Constants.GetTypeHashSign(context.Options.Type, buffer);
-        bw.Write(signBuf);
+        Span<byte> signBuf = stackalloc byte[32];   
+        Constants.GetTypeHashSign(context.Options.Type, signBuf);
+        bw.Write(signBuf);                          // 40
 
-        var pwcBuf = buffer.Slice(64, 64);
+        Span<byte> pwcBuf = stackalloc byte[64];
         var pwcLen = crypto.Encrypt(signBuf, pwcBuf);
-        bw.Write(pwcBuf);
+        bw.Write(pwcBuf);                           // 104
         Debug.Assert(pwcLen == 64);
 
-        bw.Write(DateTime.Now.Ticks);
-        bw.Write(context.TotalSize + HeaderSize);
-        bw.Write(context.Options.BlockSize);
-        bw.Write(context.DetailOffset);
-        bw.Write(context.DetailSize);
-        bw.Write(context.IndexOffset);
-        bw.Write(context.IndexSize);
+        bw.Write(DateTime.Now.Ticks);               // 112
+        bw.Write(context.TotalSize + HeaderSize);   // 120
+        bw.Write(context.Options.BlockSize);        // 124
+        bw.Write(context.DetailOffset);             // 132
+        bw.Write(context.DetailSize);               // 136
+        bw.Write(context.IndexOffset);              // 144
+        bw.Write(context.IndexSize);                // 148
     }
     private static int WriteIndex(FileStream writer, IPZCrypto crypto, PackingContext context)
     {
