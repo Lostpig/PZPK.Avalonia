@@ -11,71 +11,87 @@ internal record ViewFolder(IPZFolder Folder, int Files, long Size) : IPZItem
     public int Pid => Folder.Pid;
 }
 
+internal record LabelValuePair(string Label, string Value);
+
 internal class ItemDialogContent : ContentControl
 {
     public ItemDialogContent(IPZItem item)
     {
+        var pairs = item switch
+        {
+            PZFile file => PZFileContent(file),
+            PZIndexFile ifile => PZIndexFileContent(ifile),
+            ViewFolder folder => FolderContent(folder),
+            _ => []
+        };
+
+        RenderContent(pairs);
+    }
+    public ItemDialogContent(IEnumerable<LabelValuePair> pairs)
+    {
+        RenderContent(pairs);
+    }
+
+    private void RenderContent(IEnumerable<LabelValuePair> pairs)
+    {
         var content = VStackPanel(Avalonia.Layout.HorizontalAlignment.Stretch);
-        AddBaseContent(content, item);
-        if (item is PZFile file)
+        foreach (var pair in pairs)
         {
-            BuildFileContent(content, file);
-        }
-        else if (item is PZIndexFile indexFile)
-        {
-            BuildIndexFileContent(content, indexFile);
-        }
-        else if (item is ViewFolder folder)
-        {
-            BuildFolderContent(content, folder);
+            content.Children.Add(ContentItem(pair));
         }
 
         Content = content;
     }
-
-    private static DockPanel ContentItem(string label, string value)
+    private static DockPanel ContentItem(LabelValuePair item)
     {
         return new DockPanel()
             .Margin(0, 0, 0, 10)
             .Children(
-                PzText(label).FontWeight(Avalonia.Media.FontWeight.Bold),
-                PzText(value)
+                PzText(item.Label).FontWeight(Avalonia.Media.FontWeight.Bold),
+                PzText(item.Value)
                     .Dock(Dock.Right)
                     .MaxWidth(200)
                     .TextWrapping(Avalonia.Media.TextWrapping.Wrap)
                     .HorizontalAlignment(Avalonia.Layout.HorizontalAlignment.Right)
             );
     }
-    private static void AddBaseContent(StackPanel content, IPZItem item)
-    {
 
-#if DEBUG
-        content.Children.Add(ContentItem("Id", item.Id.ToString()));
-        content.Children.Add(ContentItem("Pid", item.Pid.ToString()));
-#endif
-        content.Children.Add(ContentItem("Name", item.Name));
-    }
-    private static void BuildFileContent(StackPanel content, PZFile file)
+    public static List<LabelValuePair> PZItemBaseContent(IPZItem item)
     {
-        content.Children(
-                ContentItem("Extension", file.Extension),
-                ContentItem("Size", Utility.ComputeFileSize(file.Size)),
-                ContentItem("OriginSize", Utility.ComputeFileSize(file.OriginSize))
-            );
+        return
+        [
+            new("Id", item.Id.ToString()),
+            new("Pid", item.Pid.ToString()),
+            new("Name", item.Name),
+        ];
     }
-    private static void BuildIndexFileContent(StackPanel content, PZIndexFile file)
+    public static List<LabelValuePair> PZFileContent(PZFile file)
     {
-        content.Children(
-                ContentItem("Extension", file.Extension),
-                ContentItem("Source", file.Source),
-                ContentItem("Size", Utility.ComputeFileSize(file.Size))
-            );
+        return 
+        [
+            .. PZItemBaseContent(file),
+            new("Extension", file.Extension),
+            new("Size", Utility.ComputeFileSize(file.Size)),
+            new("OriginSize", Utility.ComputeFileSize(file.OriginSize)),
+        ];
     }
-    private static void BuildFolderContent(StackPanel content, ViewFolder folder)
+    public static List<LabelValuePair> PZIndexFileContent(PZIndexFile file)
     {
-        content.Children(
-            ContentItem("Files", folder.Files.ToString()),
-            ContentItem("Total Size", Utility.ComputeFileSize(folder.Size))
-        );
+        return
+        [
+            .. PZItemBaseContent(file),
+            new("Extension", file.Extension),
+            new("Source", file.Source),
+            new("Size", Utility.ComputeFileSize(file.Size))
+        ];
+    }
+    public static List<LabelValuePair> FolderContent(ViewFolder folder)
+    {
+        return
+        [
+            .. PZItemBaseContent(folder),
+            new("Files", folder.Files.ToString()),
+            new("Total Size", Utility.ComputeFileSize(folder.Size))
+        ];
     }
 }

@@ -3,7 +3,7 @@ using Avalonia.Media;
 using Avalonia.Styling;
 using PZ.RxAvalonia.Reactive;
 
-namespace PZPK.Desktop.ImagePreview;
+namespace PZPK.Desktop.Previews.ImagePreview;
 using static PZPK.Desktop.Common.ControlHelpers;
 
 public class OperateBar: PZComponentBase

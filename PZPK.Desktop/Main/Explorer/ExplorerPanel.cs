@@ -7,6 +7,7 @@ using Material.Icons;
 using PZPK.Core;
 using PZPK.Core.Extract;
 using PZPK.Desktop.Common;
+using PZPK.Desktop.Previews;
 using SukiUI.Content;
 using SukiUI.Controls;
 using System.Collections;
@@ -23,54 +24,26 @@ public class ExplorerPanel : PZComponentBase
     private Border BuildPackageDetail()
     {
         var pkg = Model.Package;
-        static string infoFormat(Package p)
-        {
-            var header = p.Header;
-            string version = header.Version.ToString();
-            string size = Utility.ComputeFileSize(header.FileSize);
-            string blockSize = Utility.ComputeFileSize(header.BlockSize);
-            string createTime = header.CreateTime.ToString("yyyy-MM-dd HH:mm:ss");
-
-            return $"{LOC.PZPK.Version}: {version} | {LOC.Base.Size}: {size} | {LOC.PZPK.BlockSize}: {blockSize} | {LOC.PZPK.CreateTime}: {createTime}";
-        }
 
         return new Border()
-            .Margin(12, 0, 32, 0)
             .Padding(20, 0)
             .HorizontalAlignment(HorizontalAlignment.Stretch)
-            .BorderThickness(1, 0)
-            .BorderBrush(() => Suki.GetSukiColor("SukiLowText"))
             .Child(
-                VStackPanel()
-                    .Children(
-                        HStackPanel().Spacing(10).Children(
-                            PzText(() => $"{LOC.PZPK.PackageName}:"),
-                            PzText(pkg.Select(p => p?.Detail.Name ?? ""))
-                        ),
-                        HStackPanel().Spacing(10).Children(
-                            PzText(() => $"{LOC.PZPK.Description}:"),
-                            PzText(pkg.Select(p => p?.Detail.Description ?? ""))
-                        ),
-                        HStackPanel().Spacing(10).Children(
-                            PzText(() => $"{LOC.PZPK.Tags}:"),
-                            PzText(pkg.Select(p => string.Join(", ", p?.Detail.Tags ?? [])))
-                        ),
-                        PzText(pkg.Select(p => p is null ? "" : infoFormat(p)))
-                    )
-            );
-    }
-    private StackPanel BuildPackageOperators()
-    {
-        return VStackPanel()
-            .VerticalAlignment(VerticalAlignment.Center)
-            .Children(
-                SukiButton(() => LOC.PZPK.ExtractAll).Margin(0, 0, 0, 10).OnClick(_ => ExtractAll()),
-                SukiButton(() => LOC.Base.Close, "Outlined", "Accent").OnClick(_ => Model.ClosePackage()),
+                new DockPanel().LastChildFill(false).Children(
+                    HStackPanel().Spacing(10).Children(
+                        SukiButton(() => LOC.PZPK.MetaData).OnClick(_ => ShowHeaderRaw()),
+                        SukiButton(() => LOC.PZPK.Detail).OnClick(_ => ShowDetailRaw()),
+                        SukiButton(() => LOC.PZPK.ExtractAll).OnClick(_ => ExtractAll()),
 #if DEBUG
-                SukiButton(() => "Test Extract", "Outlined", "Accent").OnClick(_ => Model.DebugExtract())
+                        SukiButton(() => "Test Extract", "Accent").OnClick(_ => Model.DebugExtract())
 #endif
+                    ),
+                    SukiButton(() => LOC.Base.Close, "Danger").OnClick(_ => Model.ClosePackage())
+                        .Dock(Dock.Right)
+                )
             );
     }
+
     private StackPanel DirStackFuncTemplete(PZFolder folder)
     {
         if (Index == null) return new StackPanel();
@@ -134,11 +107,10 @@ public class ExplorerPanel : PZComponentBase
                 new GlassCard().Row(0)
                     .Margin(10)
                     .Content(
-                        Grid("Auto, 1*, Auto", null)
+                        Grid("Auto, 1*", null)
                             .Children(
                                 MaterialIcon(MaterialIconKind.File, 48).Col(0),
-                                BuildPackageDetail().Col(1),
-                                BuildPackageOperators().Col(2)
+                                BuildPackageDetail().Col(1)
                             )
                     ),
                 new Border().Row(1)
@@ -160,14 +132,16 @@ public class ExplorerPanel : PZComponentBase
                     .OnDoubleTapped(OnItemDoubleTap)
             );
     }
-    protected override void OnCreated()
+    protected override IEnumerable<IDisposable> WhenActivate()
     {
-        base.OnCreated();
-        Model.Package.Subscribe(p =>
-        {
-            if (p != null) Current.OnNext(p.Index.Root);
-            else Current.OnNext(null);
-        });
+        return 
+        [
+            Model.Package.Subscribe(p =>
+            {
+                if (p != null) Current.OnNext(p.Index.Root);
+                else Current.OnNext(null);
+            })
+        ];
     }
 
     private static ExplorerModel Model => ExplorerModel.Instance;
@@ -181,7 +155,7 @@ public class ExplorerPanel : PZComponentBase
         {
             if (ctrl.DataContext is PZFile file)
             {
-                Model.PreviewFile(file);
+                PreviewManager.PreviewFile(file);
             }
             else if (ctrl.DataContext is PZFolder folder)
             {
@@ -281,9 +255,49 @@ public class ExplorerPanel : PZComponentBase
                 item = new ViewFolder(fo, files.Count, size);
             }
 
-            Model.Dialog.ShowContentDialog(LOC.PZPK.Property, new ItemDialogContent(item));
+            var opt = PZDialog.AlertOptions(LOC.PZPK.Property, new ItemDialogContent(item));
+            Model.Dialog.ShowDialog(opt);
         }
     }
 
+    private static void ShowHeaderRaw()
+    {
+        var header = Model.Package.Value?.Header;
+        if (header is null) return;
 
+        List<LabelValuePair> pairs = 
+        [
+            new(LOC.PZPK.Version, header.Version.ToString()),
+            new(LOC.PZPK.FileType, header.Type.ToString()),
+            new(LOC.PZPK.Sign, Convert.ToHexString(header.Sign)),
+            new(LOC.PZPK.PasswordChcek, Convert.ToHexString(header.PasswordCheck)),
+            new(LOC.PZPK.CreateTime, header.CreateTime.ToString()),
+            new(LOC.Base.Size, header.FileSize.ToString()),
+            new(LOC.PZPK.BlockSize, header.BlockSize.ToString()),
+            new("DetailOffset", header.DetailOffset.ToString()),
+            new("DetailSize", header.DetailSize.ToString()),
+            new("IndexOffset", header.IndexOffset.ToString()),
+            new("IndexSize", header.IndexSize.ToString()),
+        ];
+
+        var content = new ItemDialogContent(pairs);
+        var opt = PZDialog.AlertOptions(LOC.PZPK.Property, content);
+        Model.Dialog.ShowDialog(opt);
+    }
+    private static void ShowDetailRaw()
+    {
+        var d = Model.Package.Value?.Detail;
+        if (d is null) return;
+
+        List<LabelValuePair> pairs =
+        [
+            new(LOC.PZPK.PackageName, d.Name),
+            new(LOC.PZPK.Description, d.Description),
+            new(LOC.PZPK.Tags, string.Join(',', d.Tags))
+        ];
+
+        var content = new ItemDialogContent(pairs);
+        var opt = PZDialog.AlertOptions(LOC.PZPK.Property, content);
+        Model.Dialog.ShowDialog(opt);
+    }
 }

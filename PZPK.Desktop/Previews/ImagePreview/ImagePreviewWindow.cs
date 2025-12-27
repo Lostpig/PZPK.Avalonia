@@ -8,7 +8,7 @@ using PZPK.Desktop.Localization;
 using System.IO;
 using System.Reactive.Linq;
 
-namespace PZPK.Desktop.ImagePreview;
+namespace PZPK.Desktop.Previews.ImagePreview;
 using static PZPK.Desktop.Common.ControlHelpers;
 
 struct MouseState

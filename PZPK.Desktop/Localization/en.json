@@ -82,7 +82,11 @@
         "PackingCompleted": "MISS_PackingCompleted",
         "OpenDirectory": "MISS_OpenDirectory",
         "Time": "MISS_Time",
-        "Speed": "MISS_Speed"
+        "Speed": "MISS_Speed",
+        "MetaData": "MISS_MetaData",
+        "Detail": "MISS_Detail",
+        "Sign": "MISS_Sign",
+        "PasswordChcek": "MISS_PasswordChcek"
       }
     },
     {

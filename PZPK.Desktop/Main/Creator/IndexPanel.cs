@@ -9,7 +9,6 @@ using PZPK.Core;
 using PZPK.Core.Packing;
 using PZPK.Desktop.Common;
 using SukiUI.Content;
-using SukiUI.Dialogs;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -113,9 +112,12 @@ public class IndexPanel : PZComponentBase
     protected override IEnumerable<IDisposable> WhenActivate()
     {
         return [
-            Model.Completed.Subscribe(_ => {
-                Changed.OnNext(Unit.Default);
-                // Debug.WriteLine("Complete fired");
+            Model.Step.Subscribe(s => {
+                if (s.from == 4 && s.current == 1)
+                {
+                    Current.OnNext(Index.Root);
+                    Changed.OnNext(Unit.Default);
+                }
             })
         ];
     }
@@ -251,7 +253,8 @@ public class IndexPanel : PZComponentBase
     }
     private async void Clear()
     {
-        var ok = await Model.Dialog.DeleteConfirm(LOC.Message.SureToClear);
+        var opt = PZDialog.ConfirmOptions(LOC.Base.Warning, LOC.Message.SureToClear);
+        var ok = await Model.Dialog.ShowDialog(opt);
 
         if (ok)
         {
@@ -307,34 +310,18 @@ public class IndexPanel : PZComponentBase
                 item = new ViewFolder(fo, files.Count, size);
             }
 
-            Model.Dialog.ShowContentDialog(LOC.PZPK.Property, new ItemDialogContent(item));
+            var opt = PZDialog.AlertOptions(LOC.PZPK.Property, new ItemDialogContent(item));
+            Model.Dialog.ShowDialog(opt);
         }
     }
 
     private static async Task<string?> ShowNameDialog(string title, string originName = "")
     {
         var content = new NameDialogContent(originName);
-        var builder = Model.Dialog.Manager.CreateDialog()
-            .WithTitle(title)
-            .WithContent(content);
+        var opt = PZDialog.ConfirmOptions(title, content);
+        var ok = await Model.Dialog.ShowDialog(opt);
 
-        var completion = new TaskCompletionSource<string?>();
-        builder.WithActionButton(LOC.Base.OK, (d) =>
-        {
-            var text = content.GetResult();
-            if (!string.IsNullOrEmpty(text))
-            {
-                completion.SetResult(text.Trim());
-                d.Dismiss();
-            }
-        });
-        builder.WithActionButton(LOC.Base.Cancel, (d) =>
-        {
-            completion.SetResult(null);
-            d.Dismiss();
-        });
-        builder.TryShow();
-
-        return await completion.Task;
+        var result = ok ? content.GetResult() : null;
+        return result;
     }
 }

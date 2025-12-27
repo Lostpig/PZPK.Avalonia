@@ -111,7 +111,8 @@ internal class PackingPanel : PZComponentBase
     }
     private static async void CancelPacking()
     {
-        var sure = await Model.Dialog.WarningConfirm(LOC.Message.SureToCancelPacking);
+        var opt = PZDialog.ConfirmOptions(LOC.Base.Warning, LOC.Message.SureToCancelPacking);
+        var sure = await Model.Dialog.ShowDialog(opt);
 
         if (sure)
         {

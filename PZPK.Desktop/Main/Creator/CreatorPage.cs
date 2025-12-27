@@ -15,17 +15,17 @@ public class CreatorPage : PZComponentBase
                     .Row(0)
                     .HorizontalAlignment(HorizontalAlignment.Center)
                     .Margin(50, 10, 50, 0)
-                    .Index(Model.Step.Select(s => s - 1))
+                    .Index(Model.Step.Select(s => s.current - 1))
                     .Steps(GetSteps),
                 new GlassCard()
                     .Row(1)
                     .Margin(20, 5, 20, 20)
                     .Content(
                         Grid().Children(
-                            new IndexPanel().IsVisible(Model.Step.Select(s => s == 1)),
-                            new PropertiesPanel().IsVisible(Model.Step.Select(s => s == 2)),
-                            new PackingPanel().IsVisible(Model.Step.Select(s => s == 3)),
-                            new CompletePanel().IsVisible(Model.Step.Select(s => s == 4))
+                            new IndexPanel().IsVisible(Model.Step.Select(s => s.current == 1)),
+                            new PropertiesPanel().IsVisible(Model.Step.Select(s => s.current == 2)),
+                            new PackingPanel().IsVisible(Model.Step.Select(s => s.current == 3)),
+                            new CompletePanel().IsVisible(Model.Step.Select(s => s.current == 4))
                         )
                     )
             );

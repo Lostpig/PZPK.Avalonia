@@ -93,7 +93,11 @@
         "PackingCompleted",
         "OpenDirectory",
         "Time",
-        "Speed"
+        "Speed",
+        "MetaData",
+        "Detail",
+        "Sign",
+        "PasswordChcek"
       ]
     },
     {

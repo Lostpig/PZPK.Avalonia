@@ -3,7 +3,6 @@ using PZPK.Core;
 using PZPK.Core.Packing;
 using PZPK.Core.Utility;
 using PZPK.Desktop.Common;
-using System;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Threading;
@@ -68,7 +67,6 @@ public class ResizerProperties
         return new ImageResizerOptions(Format.Value, Quality.Value, MaxSize.Value, Lossless.Value);
     }
 }
-
 public class PackingInfomation
 {
     public BehaviorSubject<string> SavePath { get; init; } = new("");
@@ -121,6 +119,7 @@ public record CompleteInfomation(string PackagePath, long Size, int Count, TimeS
         }
     }
 }
+public record CreateStep(int current, int from);
 
 public class CreatorModel : PageModelBase
 {
@@ -142,8 +141,8 @@ public class CreatorModel : PageModelBase
     /// <summary>
     /// 1:Index 2:Properties 3:Packing 4:Complete
     /// </summary>
-    private readonly BehaviorSubject<int> _step = new(1);
-    public IObservable<int> Step { get; init; }
+    private readonly BehaviorSubject<CreateStep> _step = new(new(1, 1));
+    public IObservable<CreateStep> Step { get; init; }
     public Subject<CompleteInfomation> Completed { get; init; }
     private CreatorModel()
     {
@@ -158,33 +157,35 @@ public class CreatorModel : PageModelBase
 
     public void NextStep()
     {
-        if (_step.Value == 1 && !Index.IsEmpty)
+        var current = _step.Value.current;
+
+        if (current == 1 && !Index.IsEmpty)
         {
-            _step.OnNext(2);
+            _step.OnNext(new(2, current));
         }
-        else if (_step.Value == 2 && Properties.Check())
+        else if (current == 2 && Properties.Check())
         {
-            _step.OnNext(3);
+            _step.OnNext(new(3, current));
             PackingInfo.Progress.OnNext(new(Index.FilesCount, Index.SumFilesSize()));
         }
-        else if (_step.Value == 3)
+        else if (current == 3)
         {
             Index.Reset();
             Properties.Reset();
             PackingInfo.Reset();
-            _step.OnNext(4);
+            _step.OnNext(new(4, current));
         }
     }
     public void PreviousStep()
     {
-        if (_step.Value > 1)
+        if (_step.Value.current > 1)
         {
-            _step.Reducer(s => s - 1);
+            _step.Reducer(s => new(s.current - 1, s.current));
         }
     }
     public void Done()
     {
-        _step.OnNext(1);
+        _step.OnNext(new(1, 4));
     }
 
     private ImageResizer? GetImageResizer()
@@ -275,11 +276,11 @@ public class CreatorModel : PageModelBase
                         CurrentBytes = 1024,
                         ProcessedFiles = i 
                     };
-                    for (int j = 0; j < 65536; j += 256)
+                    for (int j = 0; j < 65536; j += 8192)
                     {
                         processedBytes = i * 65536 + j;
                         progress.Report(progressState with { CurrentProcessedBytes = j, ProcessedBytes = processedBytes });
-                        Thread.Sleep(10);
+                        Thread.Sleep(50);
                         if (CancelSource.Token.IsCancellationRequested) return;
                     }
                 }

@@ -4,7 +4,7 @@ using Avalonia.Platform;
 using LibVLCSharp.Shared;
 using System.Runtime.InteropServices;
 
-namespace PZPK.Desktop.VideoPreview;
+namespace PZPK.Desktop.Previews.VideoPreview;
 
 /// <summary>
 /// Avalonia VideoView for Windows, Linux and Mac.

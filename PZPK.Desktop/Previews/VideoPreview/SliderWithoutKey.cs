@@ -1,6 +1,6 @@
 ﻿using Avalonia.Input;
 
-namespace PZPK.Desktop.VideoPreview;
+namespace PZPK.Desktop.Previews.VideoPreview;
 
 internal class SliderWithoutKey : Slider
 {

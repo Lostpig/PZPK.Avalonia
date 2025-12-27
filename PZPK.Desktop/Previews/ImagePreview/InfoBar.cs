@@ -2,7 +2,7 @@
 using Avalonia.Media;
 using Avalonia.Styling;
 
-namespace PZPK.Desktop.ImagePreview;
+namespace PZPK.Desktop.Previews.ImagePreview;
 using static PZPK.Desktop.Common.ControlHelpers;
 
 public class InfoBar: PZComponentBase

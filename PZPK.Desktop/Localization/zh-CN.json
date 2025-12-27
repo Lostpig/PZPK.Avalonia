@@ -82,7 +82,11 @@
         "PackingCompleted": "打包完成",
         "OpenDirectory": "打开目录",
         "Time": "时间",
-        "Speed": "速度"
+        "Speed": "速度",
+        "MetaData": "元数据",
+        "Detail": "详细信息",
+        "Sign": "签名",
+        "PasswordChcek": "密码校验"
       }
     },
     {

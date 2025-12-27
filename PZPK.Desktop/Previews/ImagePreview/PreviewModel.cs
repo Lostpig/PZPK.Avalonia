@@ -3,7 +3,7 @@ using PZPK.Desktop.Common;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 
-namespace PZPK.Desktop.ImagePreview;
+namespace PZPK.Desktop.Previews.ImagePreview;
 
 public enum LockMode
 {

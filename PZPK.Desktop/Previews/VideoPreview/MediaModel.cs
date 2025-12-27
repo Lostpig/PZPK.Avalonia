@@ -4,7 +4,7 @@ using LibVLCSharp.Shared;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 
-namespace PZPK.Desktop.VideoPreview;
+namespace PZPK.Desktop.Previews.VideoPreview;
 
 internal enum PlayAction
 {

@@ -2,6 +2,9 @@
 using PZPK.Core.Extract;
 using PZPK.Core.Utility;
 using PZPK.Desktop.Common;
+using PZPK.Desktop.Previews;
+using PZPK.Desktop.Previews.ImagePreview;
+using PZPK.Desktop.Previews.VideoPreview;
 using System.IO;
 using System.Reactive.Subjects;
 using System.Threading;
@@ -53,18 +56,6 @@ public class ExplorerModel : PageModelBase
 
         FilePath.OnNext("");
         Password.OnNext("");
-    }
-
-    public void PreviewFile(PZFile file)
-    {
-        if (FileTypeHelper.IsVideo(file))
-        {
-            VideoPreview.VideoPreviewManager.OpenVideo(file);
-        } 
-        else if (FileTypeHelper.IsPicture(file))
-        {
-            ImagePreview.ImagePreviewManager.OpenImage(file);
-        }
     }
 
     public async void ExtractFile(PZFile file, string dest)

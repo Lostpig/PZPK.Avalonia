@@ -16,7 +16,7 @@ public class OpenFilePanel : PZComponentBase
     {
         return VStackPanel(HorizontalAlignment.Stretch)
                 .Children(
-                    MaterialIcon(MaterialIconKind.BookAdd, 32)
+                    MaterialIcon(MaterialIconKind.BookEdit, 32)
                         .Foreground(() => Suki.GetSukiColor("SukiPrimaryColor")),
                     PzText(() => LOC.Message.OpenPZPKNotebook)
                         .FontSize(20)
@@ -49,7 +49,7 @@ public class OpenFilePanel : PZComponentBase
     {
         return VStackPanel(HorizontalAlignment.Stretch)
                 .Children(
-                    MaterialIcon(MaterialIconKind.BookEdit, 32)
+                    MaterialIcon(MaterialIconKind.BookAdd, 32)
                         .Foreground(() => Suki.GetSukiColor("SukiPrimaryColor")),
                     PzText(() => LOC.Message.CreatePZPKNotebook)
                         .FontSize(20)

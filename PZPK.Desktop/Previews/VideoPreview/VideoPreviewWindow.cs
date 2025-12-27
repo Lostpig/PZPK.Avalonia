@@ -2,18 +2,15 @@
 using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.Threading;
-using Avalonia.Utilities;
 using LibVLCSharp.Shared;
 using PZPK.Core;
-using PZPK.Desktop.Common;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Reactive.Linq;
 using System.Threading;
-using TextMateSharp.Model;
 
-namespace PZPK.Desktop.VideoPreview;
+namespace PZPK.Desktop.Previews.VideoPreview;
 
 internal class VideoPreviewWindow : Window
 {

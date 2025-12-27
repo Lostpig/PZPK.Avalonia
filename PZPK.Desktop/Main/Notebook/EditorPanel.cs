@@ -160,7 +160,8 @@ public class EditorPanel: PZComponentBase
     {
         if (Model.Note.Value == null) return;
 
-        var ok = await Model.Dialog.DeleteConfirm(LOC.Message.SureToDelete);
+        var opt = PZDialog.ConfirmOptions(LOC.Base.Warning, LOC.Message.SureToDelete);
+        var ok = await Model.Dialog.ShowDialog(opt);
         if (ok)
         {
             Model.DeleteNote();

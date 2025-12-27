@@ -55,6 +55,11 @@ public class Package : IDisposable
         var length = _crypto.DecryptFile(_stream, file, decrypted);
         return decrypted[..length].ToArray();
     }
+    public int ExtractFile(PZFile file, Span<byte> output)
+    {
+        var length = _crypto.DecryptFile(_stream, file, output);
+        return length;
+    }
 
     public long ExtractFileToPath(PZFile file, string destination, Action<long, long>? progress = default)
     {

@@ -3,8 +3,7 @@ using Avalonia.Platform.Storage;
 using PZ.RxAvalonia.Reactive;
 using PZPK.Core;
 using PZPK.Core.Crypto;
-using PZPK.Desktop.ImagePreview;
-using PZPK.Desktop.VideoPreview;
+using PZPK.Desktop.Previews;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Text;
@@ -40,8 +39,7 @@ internal class DevPage : PZComponentBase
                     ),
                 HStackPanel().Margin(10)
                     .Children(
-                        SukiButton("Re Render").OnClick(_ => ToReRender()),
-                        SukiButton("Close Viode Window").OnClick(_ => VideoPreview.VideoPreviewManager.ClosePreviewWindow())
+                        SukiButton("Close Viode Window").OnClick(_ => PreviewManager.CloseVideoWindow())
                     )
             );
     }
@@ -52,11 +50,11 @@ internal class DevPage : PZComponentBase
             OnOpenImage.WithLatestFrom(SelectedFile)
                 .Where(t => !string.IsNullOrEmpty(t.Second))
                 .Select(t => t.Second)
-                .Subscribe(ImagePreviewManager.DevOpenImage),
+                .Subscribe(PreviewManager.DevOpenImage),
             OnOpenVideo.WithLatestFrom(SelectedFile)
                 .Where(t => !string.IsNullOrEmpty(t.Second))
                 .Select(t => t.Second)
-                .Subscribe(VideoPreviewManager.DevOpenVideo),
+                .Subscribe(PreviewManager.DevOpenVideo),
             OnSelectFile.Select(_ => SelectFile())
                 .Concat()
                 .WhereNotEmpty(true)
@@ -107,16 +105,5 @@ internal class DevPage : PZComponentBase
         var decLength = crypto.Decrypt(enc, dec);
         dec = buffer[encLength..(encLength + decLength)];
         return Encoding.UTF8.GetString(dec);
-    }
-
-    private async void ToReRender()
-    {
-        var sure = await App.Instance.MainWindow.Dialog.WarningConfirm("Sure to re render main window?");
-
-        if (sure == true)
-        {
-            await Task.Delay(333);
-            App.Instance.MainWindow.DebugReRender();
-        }
     }
 }

@@ -4,16 +4,18 @@ using PZPK.Desktop.Main.Creator;
 using PZPK.Desktop.Main.Explorer;
 using PZPK.Desktop.Main.Notebook;
 using PZPK.Desktop.Main.Setting;
+using PZPK.Desktop.Main.Store;
 
 namespace PZPK.Desktop.Main;
 
 internal class Routes
 {
     static public readonly PageRecord[] Pages = [
-        new PageRecord(() => LOC.Base.Explorer, MaterialIconKind.Explore, typeof(ExplorerPage)),
-        new PageRecord(() => LOC.Base.Creator, MaterialIconKind.Create, typeof(CreatorPage)),
+        new PageRecord(() => LOC.Base.Explorer, MaterialIconKind.ViewGallery, typeof(ExplorerPage)),
+        new PageRecord(() => LOC.Base.Creator, MaterialIconKind.Package, typeof(CreatorPage)),
         new PageRecord(() => LOC.Base.Notebook, MaterialIconKind.Book, typeof(NoteBookPage)),
         new PageRecord(() => LOC.Base.Setting, MaterialIconKind.Settings, typeof(SettingPage)),
+        new PageRecord(() => "Store", MaterialIconKind.AppsBox, typeof(StorePage)),
 #if DEBUG
         new PageRecord(() => "Dev", MaterialIconKind.DeveloperBoard, typeof(Dev.DevPage)),
 #endif

@@ -4,98 +4,70 @@ using System.Threading.Tasks;
 
 namespace PZPK.Desktop.Global;
 
+public record DialogOptions<T>
+{
+    public string Title { get; set; } = "";
+    public object Content { get; set; } = "";
+    public NotificationType Type { get; set; } = NotificationType.Information;
+    public (string text, T result, bool dismiss)[] Buttons { get; set; } = [];
+    public string[][]? ButtonStyles { get; set; }
+}
+
 public class PZDialog(ISukiDialogManager manager)
 {
     public ISukiDialogManager Manager { get; init; } = manager;
 
-    public async Task<bool> Confirm(
-        NotificationType msgType, 
-        string title, 
-        string message, 
-        string yesButton, 
-        string noButton, 
-        string[] yesClasses, 
-        string[] noClasses)
+    public Task<T> ShowDialog<T>(DialogOptions<T> options)
     {
         var builder = Manager.CreateDialog()
-             .OfType(msgType)
-             .WithTitle(title)
-             .WithContent(message);
+            .WithTitle(options.Title)
+            .WithContent(options.Content);
 
-        builder.Completion = new TaskCompletionSource<bool>();
-        builder.AddActionButton(yesButton, delegate
+        var completion = new TaskCompletionSource<T>();
+        for (int i = 0; i < options.Buttons.Length; i++)
         {
-            builder.Completion.SetResult(result: true);
-        }, dismissOnClick: true, yesClasses);
-        builder.AddActionButton(noButton, delegate
+            var btn = options.Buttons[i];
+            var style = options.ButtonStyles?.Length > i ? options.ButtonStyles[i] : [];
+            builder.AddActionButton(btn.text, d =>
+            {
+                completion.SetResult(btn.result);
+            }, btn.dismiss, style);
+        }
+        builder.TryShow();
+
+        return completion.Task;
+    }
+
+    public static DialogOptions<bool> ConfirmOptions(string title, object content)
+    {
+        return new DialogOptions<bool>
         {
-            builder.Completion.SetResult(result: false);
-        }, dismissOnClick: true, noClasses);
-
-        return await builder.TryShowAsync();
+            Title = title,
+            Content = content,
+            Type = NotificationType.Information,
+            Buttons = [
+                (LOC.Base.OK, true, true),
+                (LOC.Base.Cancel, false, true),
+            ],
+            ButtonStyles = [
+                [],
+                ["Accent"]
+            ]
+        };
     }
-
-    public async Task<bool> DeleteConfirm(string message, string? title = null)
+    public static DialogOptions<bool> AlertOptions(string title, object content)
     {
-        title ??= LOC.Base.Delete;
-
-        return await Confirm(
-            NotificationType.Warning,
-            title,
-            message,
-            LOC.Base.Delete,
-            LOC.Base.Cancel,
-            ["Danger"],
-            []
-        );
-    }
-    public async Task<bool> InfoConfirm(string message, string? title = null)
-    {
-        title ??= LOC.Base.Info;
-
-        return await Confirm(
-            NotificationType.Information,
-            title,
-            message,
-            LOC.Base.OK,
-            LOC.Base.Cancel,
-            [],
-            []
-        );
-    }
-    public async Task<bool> WarningConfirm(string message, string? title = null)
-    {
-        title ??= LOC.Base.Warning;
-
-        return await Confirm(
-            NotificationType.Warning,
-            title,
-            message,
-            LOC.Base.OK,
-            LOC.Base.Cancel,
-            ["Warning"],
-            []
-        );
-    }
-
-    public bool Alert(string message, string? title = null, NotificationType msgType = NotificationType.Information)
-    {
-        title ??= LOC.Base.Alert;
-
-        return Manager.CreateDialog()
-            .OfType(msgType)
-            .WithTitle(title)
-            .WithContent(message)
-            .WithActionButton(LOC.Base.Close, _ => { }, true, "Flat")
-            .TryShow();
-    }
-
-    public void ShowContentDialog(string title, object content)
-    {
-        Manager.CreateDialog()
-            .WithTitle(title)
-            .WithContent(content)
-            .WithActionButton(LOC.Base.Close, _ => { }, true)
-            .TryShow();
+        return new DialogOptions<bool>
+        {
+            Title = title,
+            Content = content,
+            Type = NotificationType.Warning,
+            Buttons = [
+                (LOC.Base.OK, true, true)
+            ],
+            ButtonStyles = [
+                []
+            ]
+        };
     }
 }

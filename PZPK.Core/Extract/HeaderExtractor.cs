@@ -46,10 +46,11 @@ internal static class HeaderExtractor
     private static void CheckPasswordV20(IPZCrypto crypto, PZHeader header)
     {
         Span<byte> pwCheck = stackalloc byte[64];
-        header.PasswordCheck.CopyTo(pwCheck);
+        // header.PasswordCheck.CopyTo(pwCheck);
+        // crypto.Encrypt(header.Sign, pwCheck[16..], pwCheck[..16]);
+        var len = crypto.Decrypt(header.PasswordCheck, pwCheck);
 
-        crypto.Encrypt(header.Sign, pwCheck[16..], pwCheck[..16]);
-        if (!Utils.CompareBytes(pwCheck, header.PasswordCheck))
+        if (!Utils.CompareBytes(pwCheck[..len], header.Sign))
         {
             throw new PZPasswordIncorrectException();
         }

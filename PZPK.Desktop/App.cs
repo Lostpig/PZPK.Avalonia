@@ -1,8 +1,9 @@
 ﻿using PZPK.Desktop.Common;
-using PZPK.Desktop.ImagePreview;
 using PZPK.Desktop.Localization;
 using PZPK.Desktop.Main;
-using PZPK.Desktop.VideoPreview;
+using PZPK.Desktop.Previews;
+using PZPK.Desktop.Previews.ImagePreview;
+using PZPK.Desktop.Previews.VideoPreview;
 
 namespace PZPK.Desktop;
 
@@ -36,8 +37,7 @@ public class App
         MainWindow = new MainWindow();
         MainWindow.OnClosed((_) =>
         {
-            ImagePreviewManager.ClosePreviewWindow();
-            VideoPreviewManager.ClosePreviewWindow();
+            PreviewManager.CloseWindows();
             Environment.Exit(0);
         });
     }

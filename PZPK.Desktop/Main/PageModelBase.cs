@@ -1,6 +1,4 @@
-﻿using PZPK.Desktop.Global;
-
-namespace PZPK.Desktop.Main;
+﻿namespace PZPK.Desktop.Main;
 
 public abstract class PageModelBase
 {

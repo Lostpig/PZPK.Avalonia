@@ -25,7 +25,7 @@ public class PZItemTemplate(ContextMenu? menu = null) : IDataTemplate
         {
             name = file.Name;
             size = Utility.ComputeFileSize(file.Size);
-            icon = MaterialIconKind.FileDocument;
+            icon = GetFileIcon(file);
         }
         else if (data is IPZFolder folder)
         {
@@ -51,5 +51,19 @@ public class PZItemTemplate(ContextMenu? menu = null) : IDataTemplate
         }
 
         return content;
+    }
+
+    private static MaterialIconKind GetFileIcon(IPZFile file)
+    {
+        var type = PZItemTypeHelper.GetItemType(file);
+        return type switch
+        {
+            PZItemType.Picture => MaterialIconKind.FileImage,
+            PZItemType.Video => MaterialIconKind.FileVideo,
+            PZItemType.Audio => MaterialIconKind.FileMusic,
+            PZItemType.Text => MaterialIconKind.FileDocument,
+            PZItemType.Folder => MaterialIconKind.Folder,
+            _ => MaterialIconKind.File,
+        };
     }
 }
